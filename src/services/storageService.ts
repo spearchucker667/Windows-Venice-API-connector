@@ -1,4 +1,7 @@
 import { DB_NAME, DB_VERSION, STORE_NAMES } from "../constants/venice";
+import { encryptData, decryptData } from "./cryptoService";
+
+const ENCRYPTED_STORES = ["chats", "settings"];
 
 const StorageService = {
   db: null as IDBDatabase | null,
@@ -23,15 +26,19 @@ const StorageService = {
   },
   async saveItem(store: string, item: any): Promise<any> {
     const db = await this.openDB();
-    const record = {
-      ...item,
-      id: item.id || crypto.randomUUID(),
-      timestamp: item.timestamp || Date.now(),
-    };
+    const id = item.id || crypto.randomUUID();
+    const timestamp = item.timestamp || Date.now();
+
+    let payload = { ...item, id, timestamp };
+    if (ENCRYPTED_STORES.includes(store)) {
+      const encryptedData = await encryptData(payload);
+      payload = { id, timestamp, data: encryptedData, _isEncryptedWrapper: true };
+    }
+
     return new Promise((resolve, reject) => {
       const tx = db.transaction(store, "readwrite");
-      tx.objectStore(store).put(record);
-      tx.oncomplete = () => resolve(record);
+      tx.objectStore(store).put(payload);
+      tx.oncomplete = () => resolve({ ...item, id, timestamp }); // Return unencrypted to caller
       tx.onerror = () => reject(tx.error);
     });
   },
@@ -40,10 +47,22 @@ const StorageService = {
     return new Promise((resolve, reject) => {
       const tx = db.transaction(store, "readonly");
       const req = tx.objectStore(store).getAll();
-      req.onsuccess = () =>
-        resolve(
-          (req.result || []).sort((a: any, b: any) => (b.timestamp || 0) - (a.timestamp || 0))
-        );
+      req.onsuccess = async () => {
+        let results = req.result || [];
+        if (ENCRYPTED_STORES.includes(store)) {
+          const decrypted = await Promise.all(
+            results.map(async (row: any) => {
+               if (row._isEncryptedWrapper) {
+                  const val = await decryptData(row.data);
+                  return val === null ? null : val;
+               }
+               return await decryptData(row);
+            })
+          );
+          results = decrypted.filter(Boolean);
+        }
+        resolve(results.sort((a: any, b: any) => (b.timestamp || 0) - (a.timestamp || 0)));
+      };
       req.onerror = () => reject(req.error);
     });
   },

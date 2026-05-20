@@ -1,4 +1,5 @@
 import { FALLBACK_MODELS, DEFAULT_SYSTEM_PROMPT } from "../constants/venice";
+import { produce } from "immer";
 
 function classifyModel(model: any) {
   const id = String(model.id || model.model || "").toLowerCase();
@@ -116,67 +117,65 @@ export const initialState = {
   toasts: [] as import("../types/app").ToastMessage[],
 };
 
-export function appReducer(state: typeof initialState, action: any) {
+export const appReducer = produce((draft: typeof initialState, action: any) => {
   switch (action.type) {
     case "SET_TAB":
-      return { ...state, activeTab: action.tab };
+      draft.activeTab = action.tab;
+      break;
     case "SET_MODELS": {
       const models = withFallbackModels(action.models || {});
-      return {
-        ...state,
-        models,
-        usingFallbackModels: !!action.fallback,
-        selectedChatModel:
-          state.selectedChatModel || models.text[0]?.id || "venice-uncensored",
-        selectedImageModel:
-          state.selectedImageModel || models.image[0]?.id || "fluently-xl",
-        modelLoadError: action.error || "",
-      };
+      draft.models = models;
+      draft.usingFallbackModels = !!action.fallback;
+      draft.selectedChatModel = draft.selectedChatModel || models.text[0]?.id || "venice-uncensored";
+      draft.selectedImageModel = draft.selectedImageModel || models.image[0]?.id || "fluently-xl";
+      draft.modelLoadError = action.error || "";
+      break;
     }
     case "SET_SELECTED_CHAT_MODEL":
-      return { ...state, selectedChatModel: action.model };
+      draft.selectedChatModel = action.model;
+      break;
     case "SET_SELECTED_IMAGE_MODEL":
-      return { ...state, selectedImageModel: action.model };
+      draft.selectedImageModel = action.model;
+      break;
     case "SET_SETTINGS":
-      return { ...state, settings: { ...state.settings, ...action.settings } };
+      Object.assign(draft.settings, action.settings);
+      break;
     case "SET_DIAGNOSTICS": {
       const entry = {
         ...action.diagnostics,
         id: crypto.randomUUID(),
         timestamp: Date.now(),
       };
-      return {
-        ...state,
-        diagnostics: entry,
-        diagnosticsLog: [entry, ...state.diagnosticsLog].slice(0, 50),
-      };
+      draft.diagnostics = entry;
+      draft.diagnosticsLog.unshift(entry);
+      if (draft.diagnosticsLog.length > 50) {
+        draft.diagnosticsLog.pop();
+      }
+      break;
     }
     case "SET_GALLERY":
-      return { ...state, gallery: action.items || [] };
+      draft.gallery = action.items || [];
+      break;
     case "SET_CHATS":
-      return { ...state, chats: action.items || [] };
+      draft.chats = action.items || [];
+      break;
     case "TOGGLE_SOURCE_PANEL":
-      return { ...state, sourcePanelOpen: !state.sourcePanelOpen };
+      draft.sourcePanelOpen = !draft.sourcePanelOpen;
+      break;
     case "SET_CHAT_DRAFT":
-      return {
-        ...state,
-        chatDraft: { ...state.chatDraft, ...action.patch },
-      };
+      Object.assign(draft.chatDraft, action.patch);
+      break;
     case "SET_IMAGE_DRAFT":
-      return {
-        ...state,
-        imageDraft: { ...state.imageDraft, ...action.patch },
-      };
+      Object.assign(draft.imageDraft, action.patch);
+      break;
     case "SET_BATCH_DRAFT":
-      return {
-        ...state,
-        batchDraft: { ...state.batchDraft, ...action.patch },
-      };
+      Object.assign(draft.batchDraft, action.patch);
+      break;
     case "ADD_TOAST":
-      return { ...state, toasts: [...state.toasts, action.toast] };
+      draft.toasts.push(action.toast);
+      break;
     case "REMOVE_TOAST":
-      return { ...state, toasts: state.toasts.filter((t) => t.id !== action.id) };
-    default:
-      return state;
+      draft.toasts = draft.toasts.filter((t) => t.id !== action.id);
+      break;
   }
-}
+});

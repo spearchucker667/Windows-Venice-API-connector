@@ -3,13 +3,13 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import dotenv from "dotenv";
+import { ALLOWED_VENICE_ENDPOINTS, ALLOWED_VENICE_METHODS } from "./src/shared/validation";
 
 dotenv.config();
 
-async function startServer() {
+export function createServerApp() {
   const app = express();
   app.disable("x-powered-by");
-  const PORT = Number(process.env.PORT || 3000);
 
   // Simple Rate Limiting
   const parsedRateLimitWindowMs = Number(process.env.RATE_LIMIT_WINDOW_MS);
@@ -29,7 +29,7 @@ async function startServer() {
   }, Math.max(10000, rateLimitWindowMs)).unref();
 
   app.use("/api/venice", (req, res, next) => {
-    if (!process.env.VENICE_API_KEY) {
+    if (!process.env.VENICE_API_KEY && process.env.NODE_ENV !== "test") {
       return res.status(500).json({ error: "VENICE_API_KEY is not configured on the server." });
     }
 
@@ -50,27 +50,33 @@ async function startServer() {
     next();
   });
 
-  const ALLOWED_ENDPOINTS = [
-    "/models",
-    "/chat/completions",
-    "/image/generate",
-    "/image/upscale"
-  ];
+  const MAX_PROXY_BODY_BYTES = Number(process.env.MAX_PROXY_BODY_BYTES || 26214400);
+
+  // Circuit Breaker State
+  let circuitFailures = 0;
+  let circuitOpenUntil = 0;
+  const CIRCUIT_MAX_FAILURES = 5;
+  const CIRCUIT_RESET_TIMEOUT_MS = 30000;
 
   app.use("/api/venice", (req, res, next) => {
-    if (req.method !== "POST" && req.method !== "GET") {
+    if (Date.now() < circuitOpenUntil) {
+      return res.status(503).json({ error: "Service Unavailable: Circuit breaker open due to upstream failures." });
+    }
+    next();
+  });
+
+  app.use("/api/venice", (req, res, next) => {
+    if (!ALLOWED_VENICE_METHODS.includes(req.method as any)) {
        return res.status(405).json({ error: "Method not allowed" });
     }
     
     // Check if path matches any allowed endpoint
-    const isAllowed = ALLOWED_ENDPOINTS.includes(req.path);
+    const isAllowed = ALLOWED_VENICE_ENDPOINTS.includes(req.path as any);
     if (!isAllowed && req.path !== "/") {
        return res.status(403).json({ error: `Endpoint ${req.path} not allowed` });
     }
     next();
   });
-
-  const MAX_PROXY_BODY_BYTES = Number(process.env.MAX_PROXY_BODY_BYTES || 26214400);
 
   // Venice API Proxy
   // Do NOT use body-parser for /api/venice. We want raw passthrough.
@@ -101,23 +107,48 @@ async function startServer() {
             proxyReq.removeHeader("Transfer-Encoding");
           }
         },
+        proxyRes: (proxyRes: any, req: any, res: any) => {
+          if (proxyRes.statusCode >= 500) {
+            circuitFailures++;
+            if (circuitFailures >= CIRCUIT_MAX_FAILURES) {
+              console.error(`[Circuit Breaker] Tripped! Opening for ${CIRCUIT_RESET_TIMEOUT_MS}ms`);
+              circuitOpenUntil = Date.now() + CIRCUIT_RESET_TIMEOUT_MS;
+            }
+          } else if (proxyRes.statusCode < 500) {
+             circuitFailures = 0; // Reset on success or client errors
+          }
+        },
         error: (err: any, req: any, res: any) => {
           console.error("Proxy error:", err.message);
-          res.writeHead(502, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ error: "Bad Gateway: Failed to reach Venice API." }));
+          circuitFailures++;
+          if (circuitFailures >= CIRCUIT_MAX_FAILURES) {
+             console.error(`[Circuit Breaker] Tripped (Network Error)! Opening for ${CIRCUIT_RESET_TIMEOUT_MS}ms`);
+             circuitOpenUntil = Date.now() + CIRCUIT_RESET_TIMEOUT_MS;
+          }
+          if (!res.headersSent) {
+            res.writeHead(502, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ error: "Bad Gateway: Failed to reach Venice API." }));
+          }
         }
       },
     })
   );
 
+  return app;
+}
+
+export async function startServer() {
+  const app = createServerApp();
+  const PORT = Number(process.env.PORT || 3000);
+
   // Vite middleware for development
-  if (process.env.NODE_ENV !== "production") {
+  if (process.env.NODE_ENV !== "production" && process.env.NODE_ENV !== "test") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
     });
     app.use(vite.middlewares);
-  } else {
+  } else if (process.env.NODE_ENV !== "test") {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
     app.get("*", (req: any, res: any) => {
@@ -125,9 +156,13 @@ async function startServer() {
     });
   }
 
-  app.listen(Number(PORT), "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
+  if (process.env.NODE_ENV !== "test") {
+    app.listen(Number(PORT), "0.0.0.0", () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+  }
 }
 
-startServer();
+if (process.env.NODE_ENV !== "test") {
+  startServer();
+}
