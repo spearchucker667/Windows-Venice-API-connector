@@ -53,8 +53,11 @@ export function getApiKey(): string | null {
   if (store["apiKeyEncrypted"] === "true") {
     try {
       return safeStorage.decryptString(Buffer.from(raw, "base64"));
-    } catch {
-      console.error("[SecureStore] Failed to decrypt API key.");
+    } catch (err) {
+      console.error(
+        "[SecureStore] Failed to decrypt API key. The stored data may be corrupted or the OS credential changed.",
+        err instanceof Error ? err.message : String(err)
+      );
       return null;
     }
   }

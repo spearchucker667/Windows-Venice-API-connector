@@ -12,11 +12,11 @@ export function isElectron(): boolean {
 }
 
 // Module-level cached proxy base URL (initialised by initDesktopBridge)
-let _veniceProxyBase = "/api/venice";
+let veniceProxyBase = "/api/venice";
 
 /** Returns the Venice proxy base URL.  Updated by initDesktopBridge in desktop mode. */
 export function getVeniceProxyBase(): string {
-  return _veniceProxyBase;
+  return veniceProxyBase;
 }
 
 /**
@@ -26,7 +26,7 @@ export function getVeniceProxyBase(): string {
 export async function initDesktopBridge(): Promise<void> {
   if (!isElectron()) return;
   try {
-    _veniceProxyBase = await window.veniceForge!.getProxyUrl();
+    veniceProxyBase = await window.veniceForge!.getProxyUrl();
   } catch (err) {
     console.error("[DesktopBridge] Could not get proxy URL:", err);
   }

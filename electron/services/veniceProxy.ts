@@ -21,6 +21,9 @@ const ALLOWED_PATHS = [
 ];
 
 const MAX_BODY_BYTES = 26_214_400; // 25 MB
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX_REQUESTS = 120;
+const FALLBACK_IP_IDENTIFIER = "local";
 
 let _server: Server | null = null;
 let _port: number | null = null;
@@ -50,8 +53,6 @@ export async function startVeniceProxy(): Promise<number> {
   app.disable("x-powered-by");
 
   // Rate limiting state (simple in-memory)
-  const rateLimitWindow = 60_000;
-  const rateLimitMax = 120;
   const reqCounts = new Map<string, { count: number; resetTime: number }>();
 
   app.use("/api/venice", (_req: Request, res: Response, next: NextFunction) => {
@@ -66,14 +67,14 @@ export async function startVeniceProxy(): Promise<number> {
 
   app.use("/api/venice", (req: Request, res: Response, next: NextFunction) => {
     const now = Date.now();
-    const ip = req.ip || "local";
-    const rec = reqCounts.get(ip) || { count: 0, resetTime: now + rateLimitWindow };
+    const ip = req.ip || FALLBACK_IP_IDENTIFIER;
+    const rec = reqCounts.get(ip) || { count: 0, resetTime: now + RATE_LIMIT_WINDOW_MS };
     if (now > rec.resetTime) {
       rec.count = 1;
-      rec.resetTime = now + rateLimitWindow;
+      rec.resetTime = now + RATE_LIMIT_WINDOW_MS;
     } else {
       rec.count++;
-      if (rec.count > rateLimitMax) {
+      if (rec.count > RATE_LIMIT_MAX_REQUESTS) {
         return res.status(429).json({ error: "Rate limit exceeded." });
       }
     }

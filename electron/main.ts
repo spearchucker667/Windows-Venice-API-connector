@@ -78,7 +78,10 @@ function createWindow(proxyPort: number): BrowserWindow {
   } else {
     // Production: load built renderer from dist/
     win.loadFile(path.join(__dirname, "../dist/index.html")).catch((err) => {
-      console.error("[Main] Failed to load renderer:", err);
+      console.error(
+        "[Main] Failed to load renderer. Ensure 'npm run build:web' has completed and 'dist/index.html' exists.",
+        err
+      );
     });
   }
 
