@@ -1,16 +1,11 @@
 export const MAX_VENICE_IPC_BODY_BYTES = 25 * 1024 * 1024;
 
-export const ALLOWED_VENICE_ENDPOINTS = [
-  "/models",
-  "/chat/completions",
-  "/image/generate",
-  "/image/upscale",
-] as const;
-
-export const ALLOWED_VENICE_METHODS = ["GET", "POST"] as const;
-
-export type VeniceIpcEndpoint = (typeof ALLOWED_VENICE_ENDPOINTS)[number];
-export type VeniceIpcMethod = (typeof ALLOWED_VENICE_METHODS)[number];
+import {
+  ALLOWED_VENICE_ENDPOINTS,
+  ALLOWED_VENICE_METHODS,
+  VeniceIpcEndpoint,
+  VeniceIpcMethod,
+} from "../../src/shared/validation";
 
 export interface VeniceIpcRequest {
   endpoint: string;
