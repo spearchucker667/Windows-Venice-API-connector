@@ -16,6 +16,15 @@ async function startServer() {
   const rateLimitMax = Number(process.env.RATE_LIMIT_MAX_REQUESTS || 60);
   const reqCounts = new Map<string, { count: number; resetTime: number }>();
 
+  setInterval(() => {
+    const now = Date.now();
+    for (const [ip, record] of reqCounts.entries()) {
+      if (now > record.resetTime) {
+        reqCounts.delete(ip);
+      }
+    }
+  }, Math.max(10000, rateLimitWindowMs)).unref();
+
   app.use("/api/venice", (req, res, next) => {
     if (!process.env.VENICE_API_KEY) {
       return res.status(500).json({ error: "VENICE_API_KEY is not configured on the server." });
@@ -51,7 +60,7 @@ async function startServer() {
     }
     
     // Check if path matches any allowed endpoint
-    const isAllowed = ALLOWED_ENDPOINTS.some(endpoint => req.path.startsWith(endpoint) || req.path === endpoint);
+    const isAllowed = ALLOWED_ENDPOINTS.includes(req.path);
     if (!isAllowed && req.path !== "/") {
        return res.status(403).json({ error: `Endpoint ${req.path} not allowed` });
     }
@@ -80,9 +89,11 @@ async function startServer() {
             "Authorization",
             `Bearer ${process.env.VENICE_API_KEY}`
           );
-          if (req.body && Buffer.isBuffer(req.body)) {
+          if (req.method !== "GET" && req.body && Buffer.isBuffer(req.body)) {
             proxyReq.setHeader("Content-Length", req.body.length);
             proxyReq.write(req.body);
+          } else if (req.method === "GET") {
+            proxyReq.removeHeader("Content-Length");
           }
         },
         error: (err: any, req: any, res: any) => {
