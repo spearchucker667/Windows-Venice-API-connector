@@ -4,9 +4,9 @@ Venice Forge is an Electron app with a sandboxed React renderer, a preload bridg
 
 ## Renderer, Preload, Main
 
-- Renderer: no Node integration, sandbox enabled, context isolation enabled.
-- Preload: exposes only `window.veniceForge` with typed methods for Venice requests, API key status/actions, diagnostics, logs, and JSON file dialogs.
-- Main: owns filesystem access, OS dialogs, logging, secure storage, and Venice HTTPS requests.
+- **Renderer:** no Node integration, sandbox enabled, context isolation enabled.
+- **Preload:** exposes only `window.veniceForge` with typed methods for Venice requests, API key status/actions, diagnostics, logs, and JSON file dialogs.
+- **Main:** owns filesystem access, OS dialogs, logging, secure storage, and Venice HTTPS requests.
 
 The renderer cannot access arbitrary IPC channels, shell execution, local files, or the raw Venice API key.
 
@@ -16,14 +16,28 @@ Desktop mode uses direct IPC, not a loopback proxy. The main process validates e
 
 Allowed endpoints:
 
-- `GET /models`
-- `POST /chat/completions`
-- `POST /image/generate`
-- `POST /image/upscale`
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| `GET` | `/models` | Fetch live model catalog |
+| `POST` | `/chat/completions` | Streaming chat completions |
+| `POST` | `/image/generate` | Image generation |
+| `POST` | `/image/upscale` | Image upscaling |
+| `POST` | `/augment/search` | Web search augmentation |
+| `POST` | `/augment/scrape` | Web page scraping |
+| `POST` | `/augment/text-parser` | Document text extraction |
 
-Validation rejects unsupported methods, non-relative endpoints, unexpected origins, and payloads larger than 25 MB. Authorization is injected only in the main process. Error messages and logs are redacted before they reach the UI.
+Validation rejects unsupported methods, endpoints not in the allowlist, unexpected origins, and payloads larger than 25 MB. Authorization is injected only in the main process. Error messages and logs are redacted before they reach the UI.
 
-Web development mode still uses the Express `/api/venice` proxy from `server.ts` and requires `.env`.
+Web development mode uses the Express `/api/venice` proxy from `server.ts` and requires `.env`. The same endpoint allowlist is enforced in both Electron IPC and the web proxy to prevent drift.
+
+## Web Proxy Security Headers
+
+The Express proxy adds the following headers to every response:
+
+- `X-Content-Type-Options: nosniff` — prevents MIME-type sniffing
+- `X-Frame-Options: DENY` — disallows embedding in frames
+- `Referrer-Policy: no-referrer` — suppresses Referer headers
+- `Content-Security-Policy` — restricts scripts, styles, connections, and objects to `'self'`
 
 ## API Key Storage
 
@@ -37,7 +51,17 @@ Development CSP allows the Vite dev server and HMR. Production CSP is restrictiv
 
 ## Logs and Diagnostics
 
-Logs are stored under Electron `userData/logs/venice-forge.log`, capped and rotated simply at 1 MB. Authorization headers, API-key-like values, bearer tokens, and secret-like fields are redacted. Diagnostics show app/runtime versions, storage mode, userData path, transport mode, API key configured state, and last sanitized API error.
+Logs are stored under Electron `userData/logs/venice-forge.log`, capped and rotated at 1 MB. Authorization headers, API-key-like values, bearer tokens, and secret-like fields are redacted. Diagnostics show app/runtime versions, storage mode, userData path, transport mode, API key configured state, and last sanitized API error.
+
+## URL Sanitization
+
+URLs returned by the Venice augment/search endpoint are validated before being rendered as anchor `href` attributes. Only `https:` and `http:` scheme URLs are allowed; `javascript:`, `data:`, and all other schemes are replaced with `#`.
+
+## Rate Limiting
+
+The web proxy enforces a per-IP request rate limit (default: 60 requests per 60-second window, configurable via `RATE_LIMIT_WINDOW_MS` and `RATE_LIMIT_MAX_REQUESTS`). Excess requests receive `429 Too Many Requests`. The rate-limit map is periodically cleaned up to prevent unbounded memory growth.
+
+A circuit breaker trips after five consecutive upstream 5xx or network errors and holds the circuit open for 30 seconds, returning `503 Service Unavailable` until upstream recovers.
 
 ## Not Protected Against
 
@@ -46,3 +70,7 @@ Logs are stored under Electron `userData/logs/venice-forge.log`, capped and rota
 - Unencrypted IndexedDB contents for images, chats, and non-secret settings.
 - Unsigned installer trust warnings.
 - Venice account misuse if the user pastes a compromised key.
+
+## Reporting a Vulnerability
+
+If you discover a security issue, please report it by opening a GitHub issue with the label **security**. Do not include exploit details in a public issue; request a private discussion first.
