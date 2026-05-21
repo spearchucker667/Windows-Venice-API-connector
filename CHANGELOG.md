@@ -1,0 +1,72 @@
+# Changelog
+
+All notable changes to Venice Forge are documented here.
+
+Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Venice Forge uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+---
+
+## [Unreleased]
+
+### Changed
+- Updated all supporting documentation (README, ABOUT, SECURITY, RELEASE, CHANGELOG, CONTRIBUTING, CODE_OF_CONDUCT, LICENSE).
+
+---
+
+## [1.0.1] — 2026-05-20
+
+### Security
+- **SEC-001:** Added `/augment/search`, `/augment/scrape`, `/augment/text-parser` to the IPC and web-proxy endpoint allowlist. These endpoints were previously blocked, making the Research tab non-functional in both Electron and web modes.
+- **SEC-002:** Added `safeHref()` sanitization to search result anchor tags. Only `http:` and `https:` scheme URLs are allowed; `javascript:`, `data:`, and other schemes are replaced with `#` to prevent XSS.
+- **SEC-003 (web proxy):** Added security response headers — `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, and `Content-Security-Policy` — to all web-proxy responses.
+
+### Fixed
+- **BUG-001:** `galleryFilename` was called with a plain string instead of the item object in bulk gallery download, producing `venice-undefined-undefined.png` filenames for all downloads.
+- **BUG-002:** Import backup was constructed in memory but never written to disk before import records were applied, misleading the user with a "backup prepared" message.
+- **BUG-003:** Removed dead `const endedAt = nowIso()` variable captured before `fetch()` was called in `veniceClient.ts`.
+
+### Changed
+- `upscaleGalleryImage` now accepts a `model` parameter (default `"upscale-model"`); `GalleryModule` passes `state.selectedImageModel` so the currently selected model is used.
+- `app.set("trust proxy", 1)` added to Express; removed deprecated `req.connection.remoteAddress` fallback so rate limiting uses the correct client IP behind a reverse proxy.
+- Excluded `vite.config.ts` and test files from `tsconfig.json`; `npm run typecheck` now exits with zero errors.
+
+### Added
+- 25 new tests across `server.test.ts`, `src/utils/image.test.ts`, `src/utils/markdown.test.ts` — total 41 tests (was 16). Coverage includes: augment endpoint validation, rate limiter enforcement, security header assertions, `galleryFilename` regression guard, `normalizeImageData`, `extractImages`, markdown XSS safety, and `escapeHtml`.
+
+---
+
+## [1.0.0] — 2026-05-20
+
+### Added
+
+**Core features**
+- Dual-mode application: Electron desktop (Windows) and Vite/Express web development mode.
+- **Prompt tab:** Streaming chat completions with system-prompt control, model selection, stop/abort, and conversation history stored in IndexedDB.
+- **Create tab:** Single and batch image generation with configurable dimensions, steps, guidance scale, negative prompt, seed, and watermark control. One-click upscaling via Venice upscale endpoint. Images saved to local gallery.
+- **Batch tab:** Run one prompt across multiple inputs, or run many prompts in sequence, with live progress, abort, and per-result download.
+- **Research tab:** Venice-augmented web search (Brave, Google, DuckDuckGo providers), page scraping, and document text extraction via Venice augment endpoints.
+- **Catalog tab:** Live Venice model browser showing model ID, type, traits, and capabilities; falls back to built-in model list on network error.
+- **Library tab:** Local image gallery with individual download, upscale, delete, and bulk-download (up to 50 images at a time).
+- **Config tab:** API key save/test/delete (desktop), theme selection, image/chat model defaults, JSON data import/export with schema validation and ID-merge (not overwrite).
+- **Status tab:** Diagnostics panel showing transport mode, runtime/app versions, storage info, API key state, rate-limit headers, and one-click log folder access.
+
+**Architecture and security**
+- Electron main process with strict IPC validation (`validateVeniceIpcRequest`), sandboxed renderer, context isolation, and preload bridge (`window.veniceForge`).
+- API key stored via Electron `safeStorage`; plaintext fallback disabled unless `VENICE_FORGE_ALLOW_PLAINTEXT_KEY_STORAGE=true`.
+- Restrictive production CSP; navigation blocked to non-app URLs; external HTTPS links open in OS browser.
+- Express web proxy with endpoint allowlist, method validation, rate limiting, circuit breaker, and `express.raw` body passthrough.
+- Log redaction for authorization headers, API keys, bearer tokens, and secret-like field values.
+- Versioned JSON export/import with size validation, store validation, and secret field stripping.
+
+**Developer experience**
+- TypeScript strict mode throughout renderer and Electron main.
+- Vitest test suite with supertest integration tests for the Express proxy.
+- CI matrix (Node 20 + 22) via GitHub Actions.
+- Windows release workflow with NSIS installer and portable exe, upload to GitHub Releases.
+- Placeholder icon generation and verification scripts.
+- `npm run clean`, `npm run typecheck`, `npm run verify:dist` convenience scripts.
+- `.env.example` with all configurable environment variables documented.
+
+[Unreleased]: https://github.com/spearchucker667/Test-ai/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/spearchucker667/Test-ai/compare/v1.0.0...v1.0.1
+[1.0.0]: https://github.com/spearchucker667/Test-ai/releases/tag/v1.0.0

@@ -3,6 +3,7 @@ import { AppDispatch } from "../types/app";
 import { GalleryImage } from "../types/storage";
 import { veniceFetch } from "./veniceClient";
 import { extractImages, galleryFilename } from "../utils/image";
+import { downloadImage } from "../utils/download";
 
 export const refreshGallery = async (dispatch: AppDispatch) => {
   const items = await StorageService.getItems("images");
@@ -21,17 +22,23 @@ export const saveImageRecord = async (dispatch: AppDispatch, record: GalleryImag
   return saved;
 };
 
+interface UpscaleOptions {
+  model?: string;
+  onComplete?: () => void;
+  onError?: (err: Error) => void;
+}
+
 export const upscaleGalleryImage = async (
   item: GalleryImage,
   dispatch: AppDispatch,
-  onComplete?: () => void,
-  onError?: (err: Error) => void
+  options: UpscaleOptions = {}
 ) => {
+  const { model = "upscale-model", onComplete, onError } = options;
   try {
     const { data } = await veniceFetch("/image/upscale", {
       method: "POST",
       body: {
-        model: "upscale-model", // Or dynamic selected model
+        model,
         image: item.image,
         return_binary: false,
       },
@@ -46,7 +53,7 @@ export const upscaleGalleryImage = async (
       image: images[0],
       prompt: item.prompt,
       negative: item.negative,
-      model: "upscale-model", // Use correct model here
+      model,
       timestamp: Date.now(),
       upscaled: true,
       parentId: item.id,
@@ -65,8 +72,6 @@ export const upscaleGalleryImage = async (
   }
 };
 
-import { downloadImage } from "../utils/download";
-
 export const downloadAllGallery = async (items: GalleryImage[], addToast: (msg: string, type: 'info'|'success'|'error') => void) => {
   if (!items.length) {
     addToast("No images to download.", "info");
@@ -81,7 +86,7 @@ export const downloadAllGallery = async (items: GalleryImage[], addToast: (msg: 
   const max = Math.min(items.length, 50);
   for (let i = 0; i < max; i++) {
     const item = items[i];
-    await downloadImage(item.image, galleryFilename(item.prompt, item.timestamp));
+    await downloadImage(item.image, galleryFilename(item));
     await new Promise((resolve) => setTimeout(resolve, 300));
   }
   addToast(`Saved ${max} images.`, "success");

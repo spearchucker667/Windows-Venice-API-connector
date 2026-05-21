@@ -11,6 +11,41 @@ export function createServerApp() {
   const app = express();
   app.disable("x-powered-by");
 
+  // Trust proxy only when explicitly configured via TRUST_PROXY env var,
+  // to prevent IP spoofing when the server is accessed directly without a trusted reverse proxy.
+  if (process.env.TRUST_PROXY) {
+    const raw = process.env.TRUST_PROXY;
+    const numeric = Number(raw);
+    app.set("trust proxy", Number.isFinite(numeric) ? numeric : raw);
+  }
+
+  // Security headers for all responses
+  app.use((_req, res, next) => {
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("X-Frame-Options", "DENY");
+    res.setHeader("Referrer-Policy", "no-referrer");
+    // In non-production environments Vite HMR uses WebSocket connections, so we
+    // widen connect-src to include ws: / wss:. In production only 'self' is allowed.
+    const isProduction = process.env.NODE_ENV === "production";
+    const connectSrc = isProduction ? "connect-src 'self'" : "connect-src 'self' ws: wss:";
+    res.setHeader(
+      "Content-Security-Policy",
+      [
+        "default-src 'self'",
+        "script-src 'self'",
+        "style-src 'self' 'unsafe-inline'",
+        "img-src 'self' data: blob:",
+        connectSrc,
+        "font-src 'self' data:",
+        "media-src 'self' blob:",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "form-action 'none'",
+      ].join("; ")
+    );
+    next();
+  });
+
   // Simple Rate Limiting
   const parsedRateLimitWindowMs = Number(process.env.RATE_LIMIT_WINDOW_MS);
   const rateLimitWindowMs = Number.isFinite(parsedRateLimitWindowMs) && parsedRateLimitWindowMs > 0
@@ -33,7 +68,7 @@ export function createServerApp() {
       return res.status(500).json({ error: "VENICE_API_KEY is not configured on the server." });
     }
 
-    const ip = req.ip || req.connection.remoteAddress || "unknown";
+    const ip = req.ip || "unknown";
     const now = Date.now();
     const record = reqCounts.get(ip) || { count: 0, resetTime: now + rateLimitWindowMs };
 

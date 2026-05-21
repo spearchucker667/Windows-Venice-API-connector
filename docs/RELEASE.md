@@ -4,7 +4,8 @@
 
 1. Update `version` in `package.json`.
 2. Run `npm install` so `package-lock.json` stays in sync.
-3. Confirm `README.md` and this checklist match the release.
+3. Update `CHANGELOG.md` with the new version section.
+4. Confirm `README.md` and this checklist match the release.
 
 ## Local Build
 
@@ -47,17 +48,19 @@ The workflow runs `npm ci`, typecheck, tests, build, `dist:win`, `verify:dist`, 
 
 ## Smoke Test
 
-- Fresh launch routes to API key setup when no key exists.
-- Save, test, and delete API key.
-- Invalid key returns a clean `401`/`403` style message.
-- Model refresh succeeds after a valid key is saved.
-- Chat and image generation work.
-- Export data creates versioned JSON without secrets.
-- Import validates and merges data without clearing existing records.
-- Copy diagnostics redacts secrets.
-- Open logs folder works.
-- Setup installer installs and uninstalls without deleting user data.
-- Portable exe launches.
+- [ ] Fresh launch routes to API key setup when no key exists.
+- [ ] Save, test, and delete API key.
+- [ ] Invalid key returns a clean `401`/`403` style message.
+- [ ] Model refresh succeeds after a valid key is saved.
+- [ ] Chat and image generation work.
+- [ ] Batch run completes successfully.
+- [ ] Research (web search, scrape, text-parser) returns results.
+- [ ] Export data creates versioned JSON without secrets.
+- [ ] Import validates and merges data without clearing existing records; pre-import backup saved to disk.
+- [ ] Copy diagnostics redacts secrets.
+- [ ] Open logs folder works.
+- [ ] Setup installer installs and uninstalls without deleting user data.
+- [ ] Portable exe launches without installation.
 
 ## Publish
 
@@ -66,3 +69,4 @@ The workflow runs `npm ci`, typecheck, tests, build, `dist:win`, `verify:dist`, 
 3. Smoke test on a clean Windows VM.
 4. Upload artifacts and checksums to the release.
 5. Note whether artifacts are signed or unsigned.
+6. Update the GitHub Release notes from `CHANGELOG.md`.

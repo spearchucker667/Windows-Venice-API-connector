@@ -145,6 +145,19 @@ export function SettingsModule({ state, dispatch, apiKeyConfigured, onApiKeyChan
         { images: imagesBefore, chats: chatsBefore, settings: settingsBefore },
         await desktopApp.getVersion()
       );
+
+      // Persist backup before any data is overwritten so it is recoverable.
+      // Include time in the filename so multiple imports on the same day don't collide.
+      const dateTimeStr = new Date().toISOString().slice(0, 19).replace('T', '_').replace(/:/g, '-');
+      const backupOk = await desktopFiles.exportJson(
+        backup,
+        `venice-forge-pre-import-backup-${dateTimeStr}.json`
+      );
+      if (!backupOk) {
+        setStatusError("Pre-import backup could not be saved. Import aborted.");
+        return;
+      }
+
       const { payload, summary } = validateImportJson(json);
 
       for (const img of payload.data.images) await StorageService.saveItem("images", img);
@@ -163,7 +176,7 @@ export function SettingsModule({ state, dispatch, apiKeyConfigured, onApiKeyChan
 
       setStatus(
         `Imported ${summary.imagesFound} images, ${summary.chatsFound} chats, ${summary.settingsFound} settings. ` +
-          `${summary.skippedRecords} records skipped. Pre-import backup prepared (${backup.data.images.length} images, ${backup.data.chats.length} chats).`
+          `${summary.skippedRecords} records skipped. Pre-import backup saved (${backup.data.images.length} images, ${backup.data.chats.length} chats).`
       );
     } catch (err: any) {
       setStatusError(err.message || "Import failed.");
