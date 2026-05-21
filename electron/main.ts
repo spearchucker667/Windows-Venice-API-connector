@@ -26,12 +26,23 @@ function rendererCsp(): string {
   ].join("; ");
 }
 
-function isTrustedExternalUrl(url: string): boolean {
+const TRUSTED_EXTERNAL_HOSTS = new Set(["venice.ai", "docs.venice.ai", "github.com"]);
+
+export function isTrustedExternalUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
-    // WARNING: This allows ANY https: domain. For production hardening,
-    // consider maintaining an explicit allowlist (e.g., venice.ai, github.com).
-    return parsed.protocol === "https:";
+    return parsed.protocol === "https:" && TRUSTED_EXTERNAL_HOSTS.has(parsed.hostname);
+  } catch {
+    return false;
+  }
+}
+
+export function isSafeExternalUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return false;
+    if (["localhost", "127.0.0.1", "::1"].includes(parsed.hostname)) return false;
+    return true;
   } catch {
     return false;
   }
@@ -84,11 +95,11 @@ function createWindow(): BrowserWindow {
   win.webContents.on("will-navigate", (event, url) => {
     if (isAllowedAppNavigation(url)) return;
     event.preventDefault();
-    if (isTrustedExternalUrl(url)) shell.openExternal(url).catch(() => {});
+    if (isSafeExternalUrl(url)) shell.openExternal(url).catch(() => {});
   });
 
   win.webContents.setWindowOpenHandler(({ url }) => {
-    if (isTrustedExternalUrl(url)) shell.openExternal(url).catch(() => {});
+    if (isSafeExternalUrl(url)) shell.openExternal(url).catch(() => {});
     return { action: "deny" };
   });
 
@@ -154,10 +165,10 @@ if (!gotLock) {
     contents.on("will-navigate", (event, url) => {
       if (isAllowedAppNavigation(url)) return;
       event.preventDefault();
-      if (isTrustedExternalUrl(url)) shell.openExternal(url).catch(() => {});
+      if (isSafeExternalUrl(url)) shell.openExternal(url).catch(() => {});
     });
     contents.setWindowOpenHandler(({ url }) => {
-      if (isTrustedExternalUrl(url)) shell.openExternal(url).catch(() => {});
+      if (isSafeExternalUrl(url)) shell.openExternal(url).catch(() => {});
       return { action: "deny" };
     });
   });

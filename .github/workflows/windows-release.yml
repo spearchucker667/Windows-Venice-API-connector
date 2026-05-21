@@ -6,15 +6,18 @@ on:
     tags:
       - "v*"
 
+permissions:
+  contents: read
+
 jobs:
   windows-release:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v6
 
       - name: Use Node.js 22
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm

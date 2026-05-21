@@ -1,8 +1,8 @@
 # Venice Forge
 
-[![CI](https://github.com/spearchucker667/Test-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/spearchucker667/Test-ai/actions/workflows/ci.yml)
-[![Windows Release](https://github.com/spearchucker667/Test-ai/actions/workflows/windows-release.yml/badge.svg)](https://github.com/spearchucker667/Test-ai/actions/workflows/windows-release.yml)
-[![Release](https://img.shields.io/github/v/release/spearchucker667/Test-ai?include_prereleases&label=release)](https://github.com/spearchucker667/Test-ai/releases)
+[![CI](https://github.com/spearchucker667/Windows-Venice-API-connector/actions/workflows/ci.yml/badge.svg)](https://github.com/spearchucker667/Windows-Venice-API-connector/actions/workflows/ci.yml)
+[![Windows Release](https://github.com/spearchucker667/Windows-Venice-API-connector/actions/workflows/windows-release.yml/badge.svg)](https://github.com/spearchucker667/Windows-Venice-API-connector/actions/workflows/windows-release.yml)
+[![Release](https://img.shields.io/github/v/release/spearchucker667/Windows-Venice-API-connector?include_prereleases&label=release)](https://github.com/spearchucker667/Windows-Venice-API-connector/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Node 20/22](https://img.shields.io/badge/node-20%20%7C%2022-339933.svg)](package.json)
 [![TypeScript strict](https://img.shields.io/badge/typescript-strict-3178c6.svg)](tsconfig.json)
@@ -157,3 +157,6 @@ See [docs/LEGAL.md](docs/LEGAL.md) for the public-readiness legal notes, tradema
 - [CHANGELOG.md](CHANGELOG.md) — Version history
 - [CONTRIBUTING.md](CONTRIBUTING.md) — How to contribute
 - [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) — Community standards
+
+
+IndexedDB records are encrypted with a browser-managed AES-GCM key stored in same-origin IndexedDB. This reduces casual local inspection risk but is not equivalent to OS credential storage and does not protect against malware, XSS, same-origin compromise, browser profile compromise, or a compromised OS user.

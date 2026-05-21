@@ -25,8 +25,8 @@ Please read and follow our [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 ### Development Setup
 
 ```bash
-git clone https://github.com/spearchucker667/Test-ai.git
-cd Test-ai
+git clone https://github.com/spearchucker667/Windows-Venice-API-connector.git
+cd Windows-Venice-API-connector
 npm install
 ```
 

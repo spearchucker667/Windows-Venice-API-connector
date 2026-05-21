@@ -8,6 +8,7 @@ const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 interface ModelsCache {
   grouped: any;
   fetchedAt: number;
+  isStale?: boolean;
 }
 
 function readCache(): ModelsCache | null {
@@ -15,8 +16,8 @@ function readCache(): ModelsCache | null {
     const raw = localStorage.getItem(CACHE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    if (Date.now() - parsed.fetchedAt > CACHE_TTL_MS) return null;
-    return parsed;
+    const isStale = Date.now() - parsed.fetchedAt > CACHE_TTL_MS;
+    return { ...parsed, isStale };
   } catch {
     return null;
   }
@@ -36,7 +37,7 @@ export async function refreshModels(dispatch: any, force = false): Promise<void>
   // Serve cached data immediately (even if stale) to reduce perceived latency.
   if (cached) {
     dispatch({ type: "SET_MODELS", models: cached.grouped, fallback: false });
-    const isStale = Date.now() - cached.fetchedAt > CACHE_TTL_MS;
+    const isStale = !!cached.isStale;
     if (!force && !isStale) {
       return; // Fresh — no background refresh needed.
     }

@@ -6,9 +6,10 @@ import { Chip } from "../components/Chip";
 import { DiagPreview } from "../components/DiagnosticsPreview";
 import { copyText } from "../utils/download";
 import { isValidSearchResponse } from "../utils/veniceValidation";
+import { MAX_SERIALIZED_UPLOAD_BYTES } from "../services/veniceClient";
 
 /** Allow only http/https URLs; return "#" for anything else (javascript:, data:, etc.). */
-function safeHref(url: string | undefined): string {
+export function safeHref(url: string | undefined): string {
   if (!url) return "#";
   try {
     const parsed = new URL(url);
@@ -92,6 +93,10 @@ export function SearchScrapeModule({ state, dispatch }: { state: any; dispatch: 
 
   async function runParser() {
     if (!file) return;
+    if (file.size > MAX_SERIALIZED_UPLOAD_BYTES) {
+      setError(`File too large. Maximum upload size is ${Math.floor(MAX_SERIALIZED_UPLOAD_BYTES / (1024 * 1024))} MiB.`);
+      return;
+    }
     setError("");
     setLoading("parser");
     abortRef.current = new AbortController();

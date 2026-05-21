@@ -28,6 +28,7 @@ export default function App() {
   const [bridgeReady, setBridgeReady] = useState(!isElectron());
   const [firstRunRouted, setFirstRunRouted] = useState(false);
   const [dbReady, setDbReady] = useState(false);
+  const [settingsHydrated, setSettingsHydrated] = useState(false);
 
   // Network status listener
   useEffect(() => {
@@ -84,7 +85,10 @@ export default function App() {
           },
         });
       } finally {
-        if (mounted) setDbReady(true);
+        if (mounted) {
+          setDbReady(true);
+          setSettingsHydrated(true);
+        }
       }
     })();
     return () => {
@@ -106,6 +110,7 @@ export default function App() {
   }, [apiKeyConfigured, firstRunRouted]);
 
   useEffect(() => {
+    if (!dbReady || !settingsHydrated) return;
     StorageService.saveItem("settings", {
       id: "app-settings",
       value: state.settings,
@@ -122,7 +127,7 @@ export default function App() {
         },
       });
     });
-  }, [state.settings]);
+  }, [dbReady, settingsHydrated, state.settings]);
 
   const activeLabel =
     TABS.find(([id]) => id === state.activeTab)?.[1] || "Chat";

@@ -22,19 +22,32 @@ interface SerializedFormData {
   _isSerializedFormData: true;
   entries: SerializedFormDataEntry[];
 }
+export function sanitizeMultipartToken(value: string): string {
+  return value.replace(/[\r\n"]/g, "").trim();
+}
 
-function buildMultipartBody(serialized: SerializedFormData): { body: Buffer; boundary: string } {
+export function sanitizeMultipartContentType(value: string | undefined): string {
+  const sanitized = sanitizeMultipartToken(value || "");
+  return /^[a-zA-Z0-9!#$&^_.+-]+\/[a-zA-Z0-9!#$&^_.+-]+$/.test(sanitized)
+    ? sanitized
+    : "application/octet-stream";
+}
+
+export function buildMultipartBody(serialized: SerializedFormData): { body: Buffer; boundary: string } {
   const boundary = `----VeniceForgeBoundary${Math.random().toString(36).slice(2)}`;
   const parts: Buffer[] = [];
 
   for (const entry of serialized.entries) {
     parts.push(Buffer.from(`--${boundary}\r\n`));
     if (entry._isFile && entry.filename) {
-      parts.push(Buffer.from(`Content-Disposition: form-data; name="${entry.name}"; filename="${entry.filename}"\r\n`));
-      parts.push(Buffer.from(`Content-Type: ${entry.type || "application/octet-stream"}\r\n\r\n`));
+      const safeName = sanitizeMultipartToken(entry.name);
+      const safeFilename = sanitizeMultipartToken(entry.filename);
+      parts.push(Buffer.from(`Content-Disposition: form-data; name="${safeName}"; filename="${safeFilename}"\r\n`));
+      parts.push(Buffer.from(`Content-Type: ${sanitizeMultipartContentType(entry.type)}\r\n\r\n`));
       parts.push(Buffer.from(entry.value, "base64"));
     } else {
-      parts.push(Buffer.from(`Content-Disposition: form-data; name="${entry.name}"\r\n\r\n`));
+      const safeName = sanitizeMultipartToken(entry.name);
+      parts.push(Buffer.from(`Content-Disposition: form-data; name="${safeName}"\r\n\r\n`));
       parts.push(Buffer.from(entry.value, "utf-8"));
     }
     parts.push(Buffer.from(`\r\n`));
