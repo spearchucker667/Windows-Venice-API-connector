@@ -58,6 +58,14 @@ describe("veniceValidation", () => {
       expect(isValidImageResponse({ url: "https://example.com/img.png" })).toBe(true);
     });
 
+    it("accepts payload with dataUrl (web binary PNG response)", () => {
+      expect(isValidImageResponse({ dataUrl: "data:image/png;base64,abc" })).toBe(true);
+    });
+
+    it("accepts payload with dataBase64 (Electron binary PNG response)", () => {
+      expect(isValidImageResponse({ dataBase64: "iVBORw0KGgo=" })).toBe(true);
+    });
+
     it("rejects null", () => {
       expect(isValidImageResponse(null)).toBe(false);
     });

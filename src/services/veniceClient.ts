@@ -83,6 +83,8 @@ export function normalizeError(status: number | null, rawMessage: string) {
     401: "401 invalid or missing API key",
     402: "402 insufficient balance/payment required",
     403: "403 forbidden/key scope problem",
+    404: "404 model or resource not found",
+    413: "413 payload too large",
     415: "415 wrong content type",
     429: "429 rate limit",
     500: "500 Venice/server retryable error",

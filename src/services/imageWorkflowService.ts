@@ -39,9 +39,7 @@ export const upscaleGalleryImage = async (
     const { data } = await veniceFetch("/image/upscale", {
       method: "POST",
       body: {
-        model,
         image: item.image,
-        return_binary: false,
       },
       dispatch,
     });

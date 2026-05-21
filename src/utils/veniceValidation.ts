@@ -58,7 +58,9 @@ export function isValidImageResponse(payload: unknown): boolean {
     typeof p.image === "string" ||
     typeof p.b64_json === "string" ||
     typeof p.base64 === "string" ||
-    typeof p.url === "string";
+    typeof p.url === "string" ||
+    typeof p.dataUrl === "string" ||     // web: binary PNG returned as data URL
+    typeof p.dataBase64 === "string";    // Electron: binary PNG serialized to base64
   if (!hasImages) {
     console.warn("[veniceValidation] Image response contains no recognisable image data", payload);
   }

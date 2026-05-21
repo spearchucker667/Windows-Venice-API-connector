@@ -17,6 +17,8 @@ export function normalizeImageData(value: any): string | null {
       value.b64_json ||
         value.b64 ||
         value.base64 ||
+        value.dataBase64 ||  // Electron: binary PNG response serialized to base64
+        value.dataUrl ||     // Web: binary PNG response converted to data URL
         value.image ||
         value.url ||
         value.data ||
@@ -36,6 +38,8 @@ export function extractImages(payload: any): string[] {
   if (Array.isArray(payload?.images)) payload.images.forEach(push);
   if (Array.isArray(payload?.data)) payload.data.forEach(push);
   if (payload?.image) push(payload?.image);
+  if (payload?.dataUrl) push(payload?.dataUrl);       // web: binary PNG response
+  if (payload?.dataBase64) push(payload?.dataBase64); // Electron: binary PNG response
   if (payload?.b64_json) push(payload?.b64_json);
   if (payload?.base64) push(payload?.base64);
   if (payload?.url) push(payload?.url);

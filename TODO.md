@@ -1,6 +1,6 @@
 # Venice Forge - Current Backlog
 
-> Updated: 2026-05-21  
+> Updated: 2026-05-22  
 > Scope: Public repository readiness, release quality, security, accessibility, and integration follow-ups.
 
 This backlog reflects the current repository state. Completed items from earlier audits have been removed or moved into the changelog.
@@ -37,7 +37,7 @@ This backlog reflects the current repository state. Completed items from earlier
 | SEC-003 | P0 | Done | Web proxy strips renderer-controlled forbidden headers | `server.ts`, `server.test.ts`. |
 | SEC-004 | P1 | Done | Root private vulnerability reporting instructions | `SECURITY.md` updated: GitHub private reporting link, supported versions, and `npm audit` gate documented. |
 | SEC-005 | P1 | Open | Run dependency audit before each public release | `npm audit` last run clean (0 vulnerabilities, 2026-05-21). Re-run before every release. |
-| SEC-006 | P2 | Done | Add runtime validation for Venice API response shapes | `src/utils/veniceValidation.ts` — validators for `/models`, `/image/generate`, `/image/upscale`, `/chat/completions`, `/augment/search`. Integrated into `modelService.ts`, `imageWorkflowService.ts`, and `SearchScrapeModule.tsx`. 24 tests added. |
+| SEC-006 | P2 | Done | Add runtime validation for Venice API response shapes | `src/utils/veniceValidation.ts` — validators for `/models`, `/image/generate`, `/image/upscale`, `/chat/completions`, `/augment/search`. Integrated into `modelService.ts`, `imageWorkflowService.ts`, and `SearchScrapeModule.tsx`. 26 tests. Extended to cover `dataUrl`/`dataBase64` binary PNG shapes from upscale endpoint. |
 
 ## Accessibility and UX
 
@@ -55,6 +55,7 @@ This backlog reflects the current repository state. Completed items from earlier
 | API-001 | P1 | Open | Validate desktop support for file uploads through `/augment/text-parser` | Requires an Electron smoke test with a real Venice key. |
 | API-002 | P1 | Done | Cache `/models` with stale-while-revalidate behavior | `modelService.ts`: cached models are served immediately (even when stale), with a background refresh triggered once the 5-minute TTL expires. Background refresh errors are swallowed silently when a cache hit was already dispatched. |
 | API-003 | P2 | Open | Consider additional Venice endpoints | Embeddings, audio, image edit, and usage endpoints are not currently allowlisted. |
+| API-004 | P1 | Done | Venice API full spec alignment | Completed review of full Swagger YAML + LLM info docs. Fixes: (1) `normalizeError` now covers 404 (`model/resource not found`) and 413 (`payload too large`); (2) `/image/upscale` request body no longer sends `model` or `return_binary` — both are outside the `additionalProperties: false` schema; (3) upscale binary PNG responses (`{ dataUrl }` web, `{ dataBase64 }` Electron) handled correctly in `isValidImageResponse`, `extractImages`, and `normalizeImageData`; (4) `x-ratelimit-type`, `x-venice-model-deprecation-date`, and all content safety headers tracked in diagnostics. `?type=all` query param on `/models` confirmed valid. |
 
 ## Verification Commands
 
