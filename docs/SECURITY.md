@@ -71,7 +71,7 @@ A circuit breaker trips after five consecutive upstream 5xx or network errors an
 
 - Malware or a debugger running as the same OS user.
 - Screen capture, clipboard capture, or memory scraping by local compromise.
-- Unencrypted IndexedDB contents for images, chats, and non-secret settings.
+- IndexedDB records are encrypted with a browser-managed AES-GCM key stored in same-origin IndexedDB. This reduces casual local inspection risk but is not equivalent to OS credential storage and does not protect against malware, XSS, same-origin compromise, browser profile compromise, or a compromised OS user.
 - Unsigned installer trust warnings.
 - Venice account misuse if the user pastes a compromised key.
 - Upstream Venice API behavior, model behavior, pricing, account status, or terms changes.

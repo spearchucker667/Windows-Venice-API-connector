@@ -6,7 +6,7 @@ import { createServer as createViteServer } from "vite";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import dotenv from "dotenv";
 import { ALLOWED_VENICE_ENDPOINTS, ALLOWED_VENICE_METHODS } from "./src/shared/validation";
-import { VENICE_API_HOST, VENICE_API_BASE_PATH } from "./src/shared/apiConfig";
+import { VENICE_API_HOST, VENICE_API_BASE_PATH, parsePositiveIntEnv } from "./src/shared/apiConfig";
 
 dotenv.config();
 
@@ -100,11 +100,8 @@ export function createServerApp() {
   });
 
   // Simple Rate Limiting
-  const parsedRateLimitWindowMs = Number(process.env.RATE_LIMIT_WINDOW_MS);
-  const rateLimitWindowMs = Number.isFinite(parsedRateLimitWindowMs) && parsedRateLimitWindowMs > 0
-    ? parsedRateLimitWindowMs
-    : 60000;
-  const rateLimitMax = Number(process.env.RATE_LIMIT_MAX_REQUESTS || 60);
+  const rateLimitWindowMs = parsePositiveIntEnv(process.env.RATE_LIMIT_WINDOW_MS, 60000, 1000, 3600000);
+  const rateLimitMax = parsePositiveIntEnv(process.env.RATE_LIMIT_MAX_REQUESTS, 60, 1, 10000);
   const reqCounts = new Map<string, { count: number; resetTime: number }>();
 
   setInterval(() => {
@@ -138,7 +135,7 @@ export function createServerApp() {
     next();
   });
 
-  const MAX_PROXY_BODY_BYTES = Number(process.env.MAX_PROXY_BODY_BYTES || 26214400);
+  const MAX_PROXY_BODY_BYTES = parsePositiveIntEnv(process.env.MAX_PROXY_BODY_BYTES, 26214400, 1024, 26214400);
 
   // Circuit Breaker State
   let circuitFailures = 0;
@@ -222,7 +219,7 @@ export function createServerApp() {
 
 export async function startServer() {
   const app = createServerApp();
-  const PORT = Number(process.env.PORT || 3000);
+  const PORT = parsePositiveIntEnv(process.env.PORT, 3000, 1, 65535);
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production" && process.env.NODE_ENV !== "test") {

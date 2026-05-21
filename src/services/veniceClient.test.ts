@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { summarizeDiagnostics, normalizeError } from "./veniceClient";
+import { summarizeDiagnostics, normalizeError, readWebErrorBody } from "./veniceClient";
 
 describe("veniceClient utilities", () => {
   describe("summarizeDiagnostics", () => {
@@ -53,6 +53,15 @@ describe("veniceClient utilities", () => {
 
     it("returns default when message is empty", () => {
       expect(normalizeError(400, "")).toBe("400 request/schema/model error: Request failed");
+    });
+  });
+
+  describe("readWebErrorBody", () => {
+    it("preserves text/plain error message", () => {
+      expect(readWebErrorBody({}, "plain failure", "Bad Request")).toBe("plain failure");
+    });
+    it("handles malformed JSON fallback", () => {
+      expect(readWebErrorBody(null, "{oops", "Bad Request")).toBe("{oops");
     });
   });
 });

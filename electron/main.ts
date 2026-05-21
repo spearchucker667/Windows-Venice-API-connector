@@ -26,12 +26,12 @@ function rendererCsp(): string {
   ].join("; ");
 }
 
-function isTrustedExternalUrl(url: string): boolean {
+const TRUSTED_EXTERNAL_HOSTS = new Set(["venice.ai", "docs.venice.ai", "github.com"]);
+
+export function isTrustedExternalUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
-    // WARNING: This allows ANY https: domain. For production hardening,
-    // consider maintaining an explicit allowlist (e.g., venice.ai, github.com).
-    return parsed.protocol === "https:";
+    return parsed.protocol === "https:" && TRUSTED_EXTERNAL_HOSTS.has(parsed.hostname);
   } catch {
     return false;
   }

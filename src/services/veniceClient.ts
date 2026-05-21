@@ -4,6 +4,7 @@ import { extractImages } from "../utils/image";
 import { DIAG_HEADER_NAMES } from "../constants/venice";
 import { PROXY_BASE_PATH } from "../shared/apiConfig";
 import { desktopVenice, isElectron } from "./desktopBridge";
+export const MAX_SERIALIZED_UPLOAD_BYTES = 25 * 1024 * 1024;
 
 // In-flight request deduplication (API-004)
 const inFlight = new Map<string, Promise<any>>();
@@ -111,7 +112,7 @@ function readDesktopErrorBody(body: any): string {
   return String(body?.detail || body?.text || "Unknown Venice API error");
 }
 
-function readWebErrorBody(parsed: any, text: string, statusText: string): string {
+export function readWebErrorBody(parsed: any, text: string, statusText: string): string {
   const top = parsed?.error?.message || parsed?.error || parsed?.message;
   if (top) return String(top);
   const details = parsed?.details;
@@ -145,10 +146,16 @@ async function serializeFormData(formData: FormData): Promise<SerializedFormData
   for (const [name, value] of formData.entries()) {
     if (value instanceof File) {
       const arrayBuffer = await value.arrayBuffer();
+      const estimatedSerializedBytes = Math.ceil(arrayBuffer.byteLength * 4 / 3);
+      if (estimatedSerializedBytes > MAX_SERIALIZED_UPLOAD_BYTES) {
+        throw new Error(`File too large. Maximum upload size is ${Math.floor(MAX_SERIALIZED_UPLOAD_BYTES / (1024 * 1024))} MiB.`);
+      }
       const bytes = new Uint8Array(arrayBuffer);
+      // 0x8000 (32 KiB) chunks avoid stack overflow when spreading large typed arrays.
+      const chunkSize = 0x8000;
       let binary = "";
-      for (let i = 0; i < bytes.byteLength; i++) {
-        binary += String.fromCharCode(bytes[i]);
+      for (let i = 0; i < bytes.byteLength; i += chunkSize) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
       }
       entries.push({
         name,
@@ -343,11 +350,12 @@ async function _veniceFetch(
       let text = "";
       const contentType = response.headers.get("content-type") || "";
       if (contentType.includes("application/json")) {
-        // use response! to bypass TS check inside catch closure
-        parsed = await response.json().catch(() => {
-          response!.text().then((t) => { text = t; }).catch(() => {});
-          return null;
-        });
+        text = await response.text().catch(() => "");
+        try {
+          parsed = text ? JSON.parse(text) : {};
+        } catch {
+          parsed = null;
+        }
       } else if (
         contentType.startsWith("image/") ||
         contentType.startsWith("audio/") ||
