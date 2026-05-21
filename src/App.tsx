@@ -1,7 +1,7 @@
 import React, { useEffect, useReducer, useState } from "react";
 import { appReducer, initialState } from "./state/appReducer";
 import StorageService from "./services/storageService";
-import { refreshModels } from "./modules/ModelsModule";
+import { refreshModels } from "./services/modelService";
 import { ChatModule } from "./modules/ChatModule";
 import { ImageModule } from "./modules/ImageModule";
 import { BatchModule } from "./modules/BatchModule";

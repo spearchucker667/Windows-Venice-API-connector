@@ -2,29 +2,8 @@ import React from "react";
 import { Field } from "../components/Field";
 import { ModelSelect } from "../components/ModelSelect";
 import { Chip } from "../components/Chip";
-import { veniceFetch } from "../services/veniceClient";
-import { flattenModels } from "../state/appReducer";
-
-export async function refreshModels(dispatch: any) {
-  try {
-    const { data } = await veniceFetch("/models?type=all", {
-      method: "GET",
-      dispatch,
-      retry: true,
-    });
-    const grouped = flattenModels(data);
-    dispatch({ type: "SET_MODELS", models: grouped, fallback: false });
-  } catch (err: any) {
-    dispatch({
-      type: "SET_MODELS",
-      models: undefined,
-      fallback: true,
-      error:
-        err.message ||
-        "Model discovery failed; using non-exhaustive static fallbacks.",
-    });
-  }
-}
+import { ModelRefreshButton } from "../components/ModelRefreshButton";
+export { refreshModels } from "../services/modelService";
 
 export function ModelsModule({ state, dispatch }: { state: any; dispatch: any }) {
   const groups = [
@@ -45,14 +24,7 @@ export function ModelsModule({ state, dispatch }: { state: any; dispatch: any })
           </div>
         </div>
         <div className="chip-row">
-          <button className="btn" onClick={() => refreshModels(dispatch)}>
-            Refresh models
-          </button>
-          <Chip tone={state.usingFallbackModels ? "warn" : "ok"}>
-            {state.usingFallbackModels
-              ? "static fallback active"
-              : "live discovery active"}
-          </Chip>
+          <ModelRefreshButton state={state} dispatch={dispatch} />
         </div>
       </div>
 

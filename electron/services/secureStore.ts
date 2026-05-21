@@ -98,8 +98,9 @@ export function deleteApiKey(): void {
 }
 
 export function isApiKeyConfigured(): boolean {
-  const store = readStore();
-  return !!store["apiKey"];
+  // Must test actual decryptability, not just raw byte presence.
+  // A corrupted or DPAPI-unreadable blob would pass the raw check but fail here.
+  return getApiKey() !== null;
 }
 
 export function isEncryptionAvailable(): boolean {
@@ -118,7 +119,9 @@ export function getSecureStoreStatus(): {
   corrupted: boolean;
   error: string | null;
 } {
-  readStore();
+  // Calling getApiKey() runs readStore() + decryption, capturing both
+  // file-read errors (via lastReadError reset) and DPAPI decrypt errors.
+  getApiKey();
   return {
     mode: getStorageMode(),
     encryptionAvailable: safeStorage.isEncryptionAvailable(),

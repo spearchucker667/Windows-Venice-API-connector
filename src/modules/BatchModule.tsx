@@ -3,6 +3,8 @@ import StorageService from "../services/storageService";
 import { veniceFetch } from "../services/veniceClient";
 import { extractImages } from "../utils/image";
 import { downloadImage } from "../utils/download";
+import { desktopFiles } from "../services/desktopBridge";
+import { IMAGE_BATCH_INTER_REQUEST_DELAY_MS } from "../constants/venice";
 import { Field } from "../components/Field";
 import { Chip } from "../components/Chip";
 import { Markdown } from "../utils/markdown";
@@ -113,6 +115,7 @@ export function BatchModule({ state, dispatch }: { state: any; dispatch: any }) 
             steps: Number(idraft.steps),
             cfg_scale: Number(idraft.cfg),
             safe_mode: !!idraft.safeMode,
+            hide_watermark: !!idraft.disableWatermark,
             return_binary: false,
           };
           if (idraft.negative.trim())
@@ -141,6 +144,7 @@ export function BatchModule({ state, dispatch }: { state: any; dispatch: any }) 
             cfg: idraft.cfg,
             steps: idraft.steps,
             safeMode: idraft.safeMode,
+            disableWatermark: !!idraft.disableWatermark,
             timestamp: Date.now(),
           });
 
@@ -161,7 +165,7 @@ export function BatchModule({ state, dispatch }: { state: any; dispatch: any }) 
       }
 
       if (i < newResults.length - 1 && !abortRef.current?.signal.aborted) {
-        await sleep(1500, abortRef.current.signal).catch(() => {});
+        await sleep(IMAGE_BATCH_INTER_REQUEST_DELAY_MS, abortRef.current.signal).catch(() => {});
       }
     }
 
@@ -180,19 +184,10 @@ export function BatchModule({ state, dispatch }: { state: any; dispatch: any }) 
     setIsRunning(false);
   }
 
-  function exportJson() {
+  async function exportJson() {
     if (!results.length) return;
-    const blob = new Blob([JSON.stringify(results, null, 2)], {
-      type: "application/json",
-    });
-    const blobUrl = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = blobUrl;
-    a.download = `venice-batch-${draft.type}-${Date.now()}.json`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+    const filename = `venice-batch-${draft.type}-${Date.now()}.json`;
+    await desktopFiles.exportJson(results, filename);
   }
 
   return (

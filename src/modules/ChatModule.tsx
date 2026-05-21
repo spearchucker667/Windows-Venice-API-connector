@@ -6,6 +6,7 @@ import { Markdown } from "../utils/markdown";
 import { copyText } from "../utils/download";
 import { Field } from "../components/Field";
 import { ModelSelect } from "../components/ModelSelect";
+import { ModelRefreshButton } from "../components/ModelRefreshButton";
 import { DiagPreview } from "../components/DiagnosticsPreview";
 import { StatusBlock } from "../components/StatusBlock";
 import { CollapsibleSection } from "../components/CollapsibleSection";
@@ -29,6 +30,10 @@ export function ChatModule({ state, dispatch }: { state: any; dispatch: any }) {
   );
   const [characterSlug, setCharacterSlug] = useState("");
   const [stream, setStream] = useState(false);
+  const [enableXSearch, setEnableXSearch] = useState(false);
+  const [stripThinking, setStripThinking] = useState(false);
+  const [disableThinking, setDisableThinking] = useState(false);
+  const [reasoningEffort, setReasoningEffort] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const abortRef = useRef<AbortController | null>(null);
@@ -71,10 +76,15 @@ export function ChatModule({ state, dispatch }: { state: any; dispatch: any }) {
         enable_web_search: webSearch,
         enable_web_scraping: !!webScraping,
         enable_web_citations: !!webCitations,
+        enable_x_search: enableXSearch,
+        strip_thinking_response: stripThinking,
+        disable_thinking: disableThinking,
       },
     };
     if (characterSlug.trim())
       payload.venice_parameters.character_slug = characterSlug.trim();
+    if (reasoningEffort)
+      payload.reasoning = { effort: reasoningEffort };
 
     abortRef.current = new AbortController();
 
@@ -93,6 +103,15 @@ export function ChatModule({ state, dispatch }: { state: any; dispatch: any }) {
             });
           },
         });
+        await StorageService.saveItem("chats", {
+          id: crypto.randomUUID(),
+          prompt: userMessage.content,
+          response: acc,
+          model: state.selectedChatModel,
+          timestamp: Date.now(),
+        });
+        const chats = await StorageService.getItems("chats");
+        dispatch({ type: "SET_CHATS", items: chats });
       } else {
         const { data } = await veniceFetch("/chat/completions", {
           method: "POST",
@@ -184,6 +203,10 @@ export function ChatModule({ state, dispatch }: { state: any; dispatch: any }) {
             </Field>
           </div>
 
+          <div style={{ marginTop: 8 }}>
+            <ModelRefreshButton state={state} dispatch={dispatch} />
+          </div>
+
           <div style={{ marginTop: 16 }}>
             <Field label="System prompt">
               <textarea
@@ -245,6 +268,58 @@ export function ChatModule({ state, dispatch }: { state: any; dispatch: any }) {
                     onChange={(e) => setStream(e.target.checked)}
                   />{" "}
                   Stream response
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid three" style={{ marginTop: 16 }}>
+            <Field label="Reasoning effort">
+              <select
+                value={reasoningEffort}
+                onChange={(e) => setReasoningEffort(e.target.value)}
+              >
+                <option value="">(model default)</option>
+                <option value="none">none</option>
+                <option value="minimal">minimal</option>
+                <option value="low">low</option>
+                <option value="medium">medium</option>
+                <option value="high">high</option>
+                <option value="xhigh">xhigh</option>
+                <option value="max">max</option>
+              </select>
+            </Field>
+            <div className="field">
+              <label>Reasoning / thinking</label>
+              <div className="chip-row">
+                <label className="switch">
+                  <input
+                    type="checkbox"
+                    checked={stripThinking}
+                    onChange={(e) => setStripThinking(e.target.checked)}
+                  />{" "}
+                  Strip &lt;think&gt; blocks
+                </label>
+                <label className="switch">
+                  <input
+                    type="checkbox"
+                    checked={disableThinking}
+                    onChange={(e) => setDisableThinking(e.target.checked)}
+                  />{" "}
+                  Disable thinking
+                </label>
+              </div>
+            </div>
+            <div className="field">
+              <label>Grok / xAI</label>
+              <div className="chip-row">
+                <label className="switch">
+                  <input
+                    type="checkbox"
+                    checked={enableXSearch}
+                    onChange={(e) => setEnableXSearch(e.target.checked)}
+                  />{" "}
+                  xAI web + X search
                 </label>
               </div>
             </div>

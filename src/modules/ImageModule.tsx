@@ -4,8 +4,10 @@ import { veniceFetch } from "../services/veniceClient";
 import { extractImages, galleryFilename } from "../utils/image";
 import { downloadImage } from "../utils/download";
 import { upscaleGalleryImage, saveImageRecord as saveRecordService, refreshGallery } from "../services/imageWorkflowService";
+import { IMAGE_BATCH_INTER_REQUEST_DELAY_MS } from "../constants/venice";
 import { Field } from "../components/Field";
 import { ModelSelect } from "../components/ModelSelect";
+import { ModelRefreshButton } from "../components/ModelRefreshButton";
 import { DiagPreview } from "../components/DiagnosticsPreview";
 import { StatusBlock } from "../components/StatusBlock";
 import { ImageActionModal } from "../components/ImageActionModal";
@@ -93,7 +95,6 @@ export function ImageModule({ state, dispatch }: { state: AppState; dispatch: Ap
     const batchCount = Number(draft.imageCount) || 1;
     const batchId = crypto.randomUUID();
     let successCount = 0;
-    const IMAGE_BATCH_INTER_REQUEST_DELAY_MS = 750;
     const delay = (ms: number, sig: AbortSignal) => new Promise<void>((resolve, reject) => {
       if (sig.aborted) return reject(new DOMException("Request aborted", "AbortError"));
       const timeout = setTimeout(resolve, ms);
@@ -320,6 +321,10 @@ export function ImageModule({ state, dispatch }: { state: AppState; dispatch: Ap
             />
           </Field>
 
+          <div style={{ marginBottom: 4 }}>
+            <ModelRefreshButton state={state} dispatch={dispatch} />
+          </div>
+
           <Field label="Prompt">
             <textarea
               value={draft.prompt}
@@ -357,6 +362,7 @@ export function ImageModule({ state, dispatch }: { state: AppState; dispatch: Ap
                   <input
                     type="number"
                     min="256"
+                    max="1280"
                     step="64"
                     value={draft.width}
                     onChange={(e) => patch({ width: e.target.value })}
@@ -366,6 +372,7 @@ export function ImageModule({ state, dispatch }: { state: AppState; dispatch: Ap
                   <input
                     type="number"
                     min="256"
+                    max="1280"
                     step="64"
                     value={draft.height}
                     onChange={(e) => patch({ height: e.target.value })}
@@ -378,7 +385,7 @@ export function ImageModule({ state, dispatch }: { state: AppState; dispatch: Ap
                   <input
                     type="number"
                     min="1"
-                    max="80"
+                    max="50"
                     value={draft.steps}
                     onChange={(e) => patch({ steps: e.target.value })}
                   />
@@ -588,7 +595,7 @@ export function ImageModule({ state, dispatch }: { state: AppState; dispatch: Ap
         onClose={() => setExpanded(null)}
         onDownload={async () => {
           if (!expanded) return;
-          await downloadImage(expanded.image, galleryFilename(expanded.prompt, expanded.timestamp));
+          await downloadImage(expanded.image, galleryFilename(expanded));
           dispatch({ type: "ADD_TOAST", toast: { id: crypto.randomUUID(), message: "Downloaded image", type: "info" } });
         }}
         onUpscale={upscaleCurrent}

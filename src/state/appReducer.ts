@@ -17,11 +17,11 @@ function classifyModel(model: any) {
   if (["embedding", "embeddings"].includes(type)) return "embeddings";
 
   if (/embed/.test(id + traits)) return "embeddings";
-  if (/image|sdxl|flux|fluently|lustify|pony|stable|diffusion|inpaint|upscale/.test(id + traits))
+  if (/image|sdxl|flux|fluently|lustify|pony|stable|diffusion|inpaint|upscale|banana/.test(id + traits))
     return "image";
   if (/audio|voice|speech|tts|asr|transcri|music/.test(id + traits)) return "audio";
   if (/video|wan|motion|animate/.test(id + traits)) return "video";
-  if (/llama|qwen|deepseek|mistral|grok|dolphin|venice|chat|text|coder|reason/.test(id + traits))
+  if (/llama|qwen|deepseek|mistral|grok|dolphin|venice|chat|text|coder|reason|zai|glm|kimi|gemma|gemini|hermes|openai/.test(id + traits))
     return "text";
   return "unknown";
 }
@@ -72,7 +72,7 @@ export const initialState = {
   models: withFallbackModels({}) as Record<string, import("../types/venice").ModelInfo[]>,
   usingFallbackModels: true,
   selectedChatModel: "venice-uncensored",
-  selectedImageModel: "fluently-xl",
+  selectedImageModel: "flux-dev",
   settings: {
     defaultSystemPrompt: DEFAULT_SYSTEM_PROMPT,
     includeVeniceSystemPrompt: true,
@@ -127,7 +127,7 @@ export const appReducer = produce((draft: typeof initialState, action: any) => {
       draft.models = models;
       draft.usingFallbackModels = !!action.fallback;
       draft.selectedChatModel = draft.selectedChatModel || models.text[0]?.id || "venice-uncensored";
-      draft.selectedImageModel = draft.selectedImageModel || models.image[0]?.id || "fluently-xl";
+      draft.selectedImageModel = draft.selectedImageModel || models.image[0]?.id || "flux-dev";
       draft.modelLoadError = action.error || "";
       break;
     }
