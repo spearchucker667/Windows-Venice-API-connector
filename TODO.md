@@ -35,25 +35,25 @@ This backlog reflects the current repository state. Completed items from earlier
 | SEC-001 | P0 | Done | Shared endpoint allowlist for IPC and web proxy | `src/shared/validation.ts`. |
 | SEC-002 | P0 | Done | Web proxy rejects proxy root and disallowed endpoints | `server.ts`, `server.test.ts`. |
 | SEC-003 | P0 | Done | Web proxy strips renderer-controlled forbidden headers | `server.ts`, `server.test.ts`. |
-| SEC-004 | P1 | Open | Add root private vulnerability reporting instructions if GitHub feature is enabled | Current fallback is issue-label routing. |
-| SEC-005 | P1 | Open | Run dependency audit before each public release | Use `npm audit` in an environment with `npm` available. |
-| SEC-006 | P2 | Open | Add more runtime validation for Venice API response shapes | Current app uses typed interfaces and targeted normalization. |
+| SEC-004 | P1 | Done | Root private vulnerability reporting instructions | `SECURITY.md` updated: GitHub private reporting link, supported versions, and `npm audit` gate documented. |
+| SEC-005 | P1 | Open | Run dependency audit before each public release | `npm audit` last run clean (0 vulnerabilities, 2026-05-21). Re-run before every release. |
+| SEC-006 | P2 | Done | Add runtime validation for Venice API response shapes | `src/utils/veniceValidation.ts` — validators for `/models`, `/image/generate`, `/image/upscale`, `/chat/completions`, `/augment/search`. Integrated into `modelService.ts`, `imageWorkflowService.ts`, and `SearchScrapeModule.tsx`. 24 tests added. |
 
 ## Accessibility and UX
 
 | ID | Priority | Status | Item | Notes |
 |----|----------|--------|------|-------|
-| A11Y-001 | P1 | Open | Audit modal focus trapping and keyboard flows | Focus on image preview and gallery actions. |
-| A11Y-002 | P1 | Open | Confirm toast and error announcements in screen readers | `ToastHost` and `StatusBlock`. |
-| A11Y-003 | P2 | Open | Add captions or labels to diagnostics tables where useful | Improves screen-reader navigation. |
-| UX-001 | P2 | Open | Add progress/cancel affordance for bulk gallery download | Current implementation delays between downloads. |
+| A11Y-001 | P1 | Done | Modal focus trapping and keyboard flows | `ImageActionModal.tsx`: Tab cycling and Escape were already in place. Added return-focus: captures `document.activeElement` before opening, restores it on close. |
+| A11Y-002 | P1 | Done | Toast and error announcements in screen readers | `ToastHost` uses `role="alert"` + `aria-live="assertive"` for errors and `role="status"` + `aria-live="polite"` for info/success. `StatusBlock` mirrors the same pattern. No changes required. |
+| A11Y-003 | P2 | Done | Captions/labels on diagnostics tables | Only one `<table>` exists in the codebase (`DiagnosticsModule`); it already carries `<caption className="sr-only">Venice API response headers</caption>`. No changes required. |
+| UX-001 | P2 | Done | Progress/cancel affordance for bulk gallery download | `imageWorkflowService.ts`: `downloadAllGallery` now accepts `onProgress` and `cancelSignal` options. `GalleryModule.tsx`: toolbar shows live `Saving N/M…` counter and a **Cancel** button while a bulk download is in progress. |
 
 ## Integration
 
 | ID | Priority | Status | Item | Notes |
 |----|----------|--------|------|-------|
 | API-001 | P1 | Open | Validate desktop support for file uploads through `/augment/text-parser` | Requires an Electron smoke test with a real Venice key. |
-| API-002 | P1 | Open | Cache `/models` with stale-while-revalidate behavior | Reduces redundant model catalog requests. |
+| API-002 | P1 | Done | Cache `/models` with stale-while-revalidate behavior | `modelService.ts`: cached models are served immediately (even when stale), with a background refresh triggered once the 5-minute TTL expires. Background refresh errors are swallowed silently when a cache hit was already dispatched. |
 | API-003 | P2 | Open | Consider additional Venice endpoints | Embeddings, audio, image edit, and usage endpoints are not currently allowlisted. |
 
 ## Verification Commands

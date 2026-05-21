@@ -1,5 +1,6 @@
 import { veniceFetch } from "./veniceClient";
 import { flattenModels } from "../state/appReducer";
+import { isValidModelListResponse } from "../utils/veniceValidation";
 
 const CACHE_KEY = "venice-forge-models-cache";
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
@@ -30,12 +31,16 @@ function writeCache(grouped: any): void {
 }
 
 export async function refreshModels(dispatch: any, force = false): Promise<void> {
-  if (!force) {
-    const cached = readCache();
-    if (cached) {
-      dispatch({ type: "SET_MODELS", models: cached.grouped, fallback: false });
-      return;
+  const cached = readCache();
+
+  // Serve cached data immediately (even if stale) to reduce perceived latency.
+  if (cached) {
+    dispatch({ type: "SET_MODELS", models: cached.grouped, fallback: false });
+    const isStale = Date.now() - cached.fetchedAt > CACHE_TTL_MS;
+    if (!force && !isStale) {
+      return; // Fresh — no background refresh needed.
     }
+    // Stale or forced: fall through to background refresh while cached UI is already shown.
   }
 
   try {
@@ -45,17 +50,23 @@ export async function refreshModels(dispatch: any, force = false): Promise<void>
       retry: true,
       dedupe: true,
     });
+    if (!isValidModelListResponse(data)) {
+      throw new Error("Unexpected /models response shape.");
+    }
     const grouped = flattenModels(data);
     writeCache(grouped);
     dispatch({ type: "SET_MODELS", models: grouped, fallback: false });
   } catch (err: any) {
-    dispatch({
-      type: "SET_MODELS",
-      models: undefined,
-      fallback: true,
-      error:
-        err.message ||
-        "Model discovery failed; using non-exhaustive static fallbacks.",
-    });
+    // If we already served cached data, swallow the error silently.
+    if (!cached) {
+      dispatch({
+        type: "SET_MODELS",
+        models: undefined,
+        fallback: true,
+        error:
+          err.message ||
+          "Model discovery failed; using non-exhaustive static fallbacks.",
+      });
+    }
   }
 }

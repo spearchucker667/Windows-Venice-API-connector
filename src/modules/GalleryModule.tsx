@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import StorageService from "../services/storageService";
 import { galleryFilename } from "../utils/image";
 import { downloadImage } from "../utils/download";
@@ -14,6 +14,8 @@ export function GalleryModule({ state, dispatch }: { state: AppState; dispatch: 
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
   const [upscalingId, setUpscalingId] = useState("");
+  const [downloadProgress, setDownloadProgress] = useState<{ current: number; total: number } | null>(null);
+  const cancelDownloadRef = useRef(false);
 
   async function remove(id: string) {
     const confirmed = window.confirm("Delete this image permanently? This cannot be undone.");
@@ -48,6 +50,28 @@ export function GalleryModule({ state, dispatch }: { state: AppState; dispatch: 
     }
   }
 
+  async function startDownloadAll() {
+    cancelDownloadRef.current = false;
+    setDownloadProgress({ current: 0, total: Math.min(state.gallery.length, 50) });
+    try {
+      await downloadAllGallery(
+        state.gallery,
+        (msg, type) => dispatch({ type: "ADD_TOAST", toast: { id: crypto.randomUUID(), message: msg, type } }),
+        {
+          onProgress: (current, total) => setDownloadProgress({ current, total }),
+          cancelSignal: cancelDownloadRef,
+        }
+      );
+    } finally {
+      setDownloadProgress(null);
+      cancelDownloadRef.current = false;
+    }
+  }
+
+  function cancelDownloadAll() {
+    cancelDownloadRef.current = true;
+  }
+
   return (
     <section className="content-card">
       <div className="toolbar">
@@ -60,13 +84,24 @@ export function GalleryModule({ state, dispatch }: { state: AppState; dispatch: 
         <div className="chip-row">
           <Chip>{state.gallery.length} images</Chip>
           <Chip>{state.chats?.length || 0} chats</Chip>
-          <button
-            className="btn"
-            onClick={() => downloadAllGallery(state.gallery, (msg, type) => dispatch({ type: "ADD_TOAST", toast: { id: crypto.randomUUID(), message: msg, type } }))}
-            disabled={!state.gallery.length}
-          >
-            Save all gallery
-          </button>
+          {downloadProgress ? (
+            <>
+              <Chip>
+                Saving {downloadProgress.current}/{downloadProgress.total}…
+              </Chip>
+              <button className="btn danger sm" onClick={cancelDownloadAll}>
+                Cancel
+              </button>
+            </>
+          ) : (
+            <button
+              className="btn"
+              onClick={startDownloadAll}
+              disabled={!state.gallery.length}
+            >
+              Save all gallery
+            </button>
+          )}
           <button
             className="btn danger"
             onClick={clearImages}

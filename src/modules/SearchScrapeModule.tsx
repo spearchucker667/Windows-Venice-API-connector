@@ -5,6 +5,7 @@ import { StatusBlock } from "../components/StatusBlock";
 import { Chip } from "../components/Chip";
 import { DiagPreview } from "../components/DiagnosticsPreview";
 import { copyText } from "../utils/download";
+import { isValidSearchResponse } from "../utils/veniceValidation";
 
 /** Allow only http/https URLs; return "#" for anything else (javascript:, data:, etc.). */
 function safeHref(url: string | undefined): string {
@@ -47,6 +48,10 @@ export function SearchScrapeModule({ state, dispatch }: { state: any; dispatch: 
         signal: abortRef.current.signal,
         dispatch,
       });
+      if (!isValidSearchResponse(data)) {
+        setSearchResults([]);
+        return;
+      }
       const results =
         data?.results ||
         data?.data ||

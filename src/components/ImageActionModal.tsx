@@ -21,14 +21,20 @@ export function ImageActionModal({
 }: ImageActionModalProps) {
   const downloadRef = useRef<HTMLButtonElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
+  const returnFocusRef = useRef<Element | null>(null);
 
   useEffect(() => {
     if (image) {
+      // Capture the element that triggered the modal so we can return focus on close.
+      returnFocusRef.current = document.activeElement;
       document.body.style.overflow = "hidden";
-      // Focus first action
       setTimeout(() => downloadRef.current?.focus(), 50);
     } else {
       document.body.style.overflow = "";
+      if (returnFocusRef.current instanceof HTMLElement) {
+        returnFocusRef.current.focus();
+      }
+      returnFocusRef.current = null;
     }
     return () => {
       document.body.style.overflow = "";

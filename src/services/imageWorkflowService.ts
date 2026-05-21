@@ -4,6 +4,7 @@ import { GalleryImage } from "../types/storage";
 import { veniceFetch } from "./veniceClient";
 import { extractImages, galleryFilename } from "../utils/image";
 import { downloadImage } from "../utils/download";
+import { isValidImageResponse } from "../utils/veniceValidation";
 
 export const refreshGallery = async (dispatch: AppDispatch) => {
   const items = await StorageService.getItems("images");
@@ -45,6 +46,9 @@ export const upscaleGalleryImage = async (
       dispatch,
     });
 
+    if (!isValidImageResponse(data)) {
+      throw new Error("Upscaler returned an unexpected response shape.");
+    }
     const images = extractImages(data);
     if (!images.length) throw new Error("No image data returned from upscaler.");
 
@@ -72,22 +76,41 @@ export const upscaleGalleryImage = async (
   }
 };
 
-export const downloadAllGallery = async (items: GalleryImage[], addToast: (msg: string, type: 'info'|'success'|'error') => void) => {
+export interface DownloadAllOptions {
+  onProgress?: (current: number, total: number) => void;
+  cancelSignal?: { current: boolean };
+}
+
+export const downloadAllGallery = async (
+  items: GalleryImage[],
+  addToast: (msg: string, type: "info" | "success" | "error") => void,
+  options: DownloadAllOptions = {}
+) => {
+  const { onProgress, cancelSignal } = options;
+
   if (!items.length) {
     addToast("No images to download.", "info");
     return;
   }
-  
+
+  const max = Math.min(items.length, 50);
   if (items.length > 50) {
     addToast("Downloading first 50 images. Large downloads may take time.", "info");
   }
 
-  // To prevent freezing the UI, download them with a small delay
-  const max = Math.min(items.length, 50);
+  let downloaded = 0;
   for (let i = 0; i < max; i++) {
+    if (cancelSignal?.current) {
+      addToast(`Download cancelled. Saved ${downloaded} of ${max} images.`, "info");
+      return;
+    }
     const item = items[i];
     await downloadImage(item.image, galleryFilename(item));
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    downloaded++;
+    onProgress?.(downloaded, max);
+    if (i < max - 1) {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    }
   }
-  addToast(`Saved ${max} images.`, "success");
+  addToast(`Saved ${downloaded} images.`, "success");
 };
