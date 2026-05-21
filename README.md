@@ -1,5 +1,16 @@
 # Venice Forge
 
+[![CI](https://github.com/spearchucker667/Test-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/spearchucker667/Test-ai/actions/workflows/ci.yml)
+[![Windows Release](https://github.com/spearchucker667/Test-ai/actions/workflows/windows-release.yml/badge.svg)](https://github.com/spearchucker667/Test-ai/actions/workflows/windows-release.yml)
+[![Release](https://img.shields.io/github/v/release/spearchucker667/Test-ai?include_prereleases&label=release)](https://github.com/spearchucker667/Test-ai/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Node 20/22](https://img.shields.io/badge/node-20%20%7C%2022-339933.svg)](package.json)
+[![TypeScript strict](https://img.shields.io/badge/typescript-strict-3178c6.svg)](tsconfig.json)
+[![Electron 42](https://img.shields.io/badge/electron-42-47848f.svg)](package.json)
+[![Venice API](https://img.shields.io/badge/API-Venice.ai-111827.svg)](https://docs.venice.ai/)
+
+> Release ribbon: Windows-first desktop app, MIT licensed, CI-backed, and packaged as NSIS installer plus portable `.exe`.
+
 Venice Forge is a Windows-first Electron desktop app for the Venice API. It provides a private AI creation studio with chat, image generation, batch prompting, web research, model discovery, a local gallery, data import/export, diagnostics, and Windows `.exe` packaging.
 
 <img width="2816" height="1536" alt="Gemini_Generated_Image_3tkcjm3tkcjm3tkc" src="https://github.com/user-attachments/assets/079845cb-0eb2-4ba1-858a-189a1d90f6b7" />
@@ -18,6 +29,21 @@ See [docs/ABOUT.md](docs/ABOUT.md) for project background and architecture overv
 | Library | Gallery | Local image library with download, upscale, and bulk-export |
 | Config | Settings | API key management, theme, model defaults, data import/export |
 | Status | Diagnostics | Transport mode, runtime info, rate-limit headers, and log access |
+
+## Repository Map
+
+The full public file tree and ownership map live in [docs/REPOSITORY_TREE.md](docs/REPOSITORY_TREE.md).
+
+```text
+.
+├── electron/              # Electron main, preload, IPC validation, secure storage
+├── src/                   # React renderer, modules, services, state, types, utilities
+├── scripts/               # Build and release verification helpers
+├── docs/                  # Architecture, release, security, legal, repo tree
+├── .github/               # CI, release automation, ownership, issue/PR templates
+├── server.ts              # Express web proxy for development web mode
+└── package.json           # Commands, dependencies, version metadata
+```
 
 ## Requirements
 
@@ -98,6 +124,12 @@ Production CSP does not allow localhost networking. Navigation is blocked except
 
 See [docs/SECURITY.md](docs/SECURITY.md) for the full security model.
 
+## Legal and Terms
+
+Venice Forge is an independent open-source client for the Venice API. It is not endorsed by, sponsored by, or affiliated with Venice.ai, Inc. Users are responsible for complying with the current [Venice Terms of Service](https://venice.ai/legal/tos), [Venice privacy information](https://venice.ai/privacy), and [Venice API documentation](https://docs.venice.ai/) when using their own API keys.
+
+See [docs/LEGAL.md](docs/LEGAL.md) for the public-readiness legal notes, trademark notice, privacy limits, and release disclaimers.
+
 ## Troubleshooting
 
 | Symptom | Fix |
@@ -122,6 +154,9 @@ See [docs/SECURITY.md](docs/SECURITY.md) for the full security model.
 - [docs/ABOUT.md](docs/ABOUT.md) — Project background and architecture
 - [docs/SECURITY.md](docs/SECURITY.md) — Full security model
 - [docs/RELEASE.md](docs/RELEASE.md) — Release checklist
+- [docs/LEGAL.md](docs/LEGAL.md) — Legal, TOS, and public release notes
+- [docs/REPOSITORY_TREE.md](docs/REPOSITORY_TREE.md) — Repository structure and ownership map
+- [SUPPORT.md](SUPPORT.md) — Support and issue routing
 - [CHANGELOG.md](CHANGELOG.md) — Version history
 - [CONTRIBUTING.md](CONTRIBUTING.md) — How to contribute
 - [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) — Community standards

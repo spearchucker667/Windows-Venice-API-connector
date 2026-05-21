@@ -1,6 +1,6 @@
 {
-  "name": "",
-  "description": "",
+  "name": "Venice Forge",
+  "description": "Windows-first Electron desktop app and local web development proxy for private Venice API creation workflows.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": []
 }

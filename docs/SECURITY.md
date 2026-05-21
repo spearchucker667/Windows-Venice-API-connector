@@ -30,6 +30,8 @@ Validation rejects unsupported methods, endpoints not in the allowlist, unexpect
 
 Web development mode uses the Express `/api/venice` proxy from `server.ts` and requires `.env`. The same endpoint allowlist is enforced in both Electron IPC and the web proxy to prevent drift.
 
+The web proxy also strips renderer-controlled `Authorization`, `Cookie`, and `Host` headers before forwarding requests. It then injects the server-side Venice bearer token and pins the outbound host to `api.venice.ai` (or the configured `VENICE_API_HOST` override). The proxy root `/api/venice` is rejected because it is not an allowlisted Venice endpoint.
+
 ## Web Proxy Security Headers
 
 The Express proxy adds the following headers to every response:
@@ -44,6 +46,8 @@ The Express proxy adds the following headers to every response:
 On Windows, the API key is stored only when Electron `safeStorage` encryption is available. If Windows encryption is unavailable, saving fails with a user-readable error. On non-Windows platforms, plaintext fallback is disabled unless `VENICE_FORGE_ALLOW_PLAINTEXT_KEY_STORAGE=true` is explicitly set.
 
 The key is never exported, imported, written to IndexedDB, copied into diagnostics, or exposed to the renderer.
+
+Venice's API documentation also treats API keys as secrets and warns against exposing them in client-side code. Venice Forge's split Electron/web transport is designed around that boundary.
 
 ## CSP and Navigation
 
@@ -70,7 +74,8 @@ A circuit breaker trips after five consecutive upstream 5xx or network errors an
 - Unencrypted IndexedDB contents for images, chats, and non-secret settings.
 - Unsigned installer trust warnings.
 - Venice account misuse if the user pastes a compromised key.
+- Upstream Venice API behavior, model behavior, pricing, account status, or terms changes.
 
 ## Reporting a Vulnerability
 
-If you discover a security issue, please report it by opening a GitHub issue with the label **security**. Do not include exploit details in a public issue; request a private discussion first.
+If you discover a security issue, follow the root [SECURITY.md](../SECURITY.md). Do not include exploit details, API keys, bearer tokens, `.env` contents, certificates, or private logs in a public issue.

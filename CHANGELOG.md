@@ -8,8 +8,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Venice 
 
 ## [Unreleased]
 
+### Added
+- Added README release ribbon and badges for CI, Windows release, latest GitHub release, license, Node support, TypeScript strict mode, Electron, and Venice API.
+- Added `docs/REPOSITORY_TREE.md` with a public repository map and segment ownership notes.
+- Added `docs/LEGAL.md` with Venice.ai TOS/privacy/API links, affiliation notice, API key handling notes, and release disclaimers.
+- Added root `SECURITY.md`, `SUPPORT.md`, GitHub issue templates, pull request template, and Dependabot configuration.
+
 ### Changed
-- Updated all supporting documentation (README, ABOUT, SECURITY, RELEASE, CHANGELOG, CONTRIBUTING, CODE_OF_CONDUCT, LICENSE).
+- Updated all supporting documentation to match the current app status and public release process.
+- Windows release workflow now generates and uploads SHA-256 checksum sidecar files for `.exe` artifacts.
+- Updated `metadata.json` to describe Venice Forge instead of the previous empty/generated metadata.
+
+### Security
+- Documented web proxy forbidden-header stripping and proxy-root rejection.
+- Added Venice.ai TOS, privacy, and API documentation coverage for public releases.
 
 ---
 
@@ -67,6 +79,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Venice 
 - `npm run clean`, `npm run typecheck`, `npm run verify:dist` convenience scripts.
 - `.env.example` with all configurable environment variables documented.
 
-[Unreleased]: https://github.com/spearchucker667/Test-ai/compare/v1.0.1...HEAD
-[1.0.1]: https://github.com/spearchucker667/Test-ai/compare/v1.0.0...v1.0.1
-[1.0.0]: https://github.com/spearchucker667/Test-ai/releases/tag/v1.0.0
+[Unreleased]: #unreleased
+[1.0.1]: #101--2026-05-20
+[1.0.0]: #100--2026-05-20

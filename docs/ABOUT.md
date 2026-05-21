@@ -6,6 +6,14 @@ Venice Forge is a **private AI creation studio** built as a Windows-first Electr
 
 The project ships as both a packaged Electron desktop app (Windows `.exe`) and a Vite/Express web application for local development.
 
+Current public readiness status:
+
+- Source is MIT licensed and suitable for public repository browsing.
+- CI runs typecheck, tests, and build on Node 20 and 22.
+- Windows release automation builds NSIS and portable `.exe` artifacts.
+- Root support, security, contribution, code of conduct, issue template, PR template, and Dependabot metadata are present.
+- Legal/TOS notes are maintained in [LEGAL.md](LEGAL.md).
+
 ## Goals
 
 - **Privacy by default.** The Venice API is privacy-preserving by design. Venice Forge keeps API keys out of the renderer process, never persists keys in plaintext, and never exports them.
@@ -47,6 +55,7 @@ Web mode (development only):
 | IPC bridge | Electron preload + `ipcMain` | Renderer ↔ main transport |
 | Web proxy | Express + http-proxy-middleware | Dev/web mode proxy |
 | Packaging | electron-builder | NSIS installer + portable exe |
+| Automation | GitHub Actions + Dependabot | CI, Windows release, dependency updates |
 
 ### Application Tabs
 
@@ -92,11 +101,14 @@ User input
 - Venice Forge does not encrypt IndexedDB contents at rest (images, chat history).
 - Venice Forge is not a multi-user or server-deployed application; it is a single-user desktop tool.
 - Venice Forge does not support Linux or macOS native packaging in the current release.
+- Venice Forge is not an official Venice.ai product and does not replace Venice's legal terms, privacy notices, or API documentation.
 
 ## Further Reading
 
 - [README.md](../README.md) — Setup and usage
 - [docs/SECURITY.md](SECURITY.md) — Full security model
 - [docs/RELEASE.md](RELEASE.md) — Release and signing process
+- [docs/LEGAL.md](LEGAL.md) — Legal and Venice terms coverage
+- [docs/REPOSITORY_TREE.md](REPOSITORY_TREE.md) — Repository structure
 - [CONTRIBUTING.md](../CONTRIBUTING.md) — How to contribute
 - [CHANGELOG.md](../CHANGELOG.md) — Version history

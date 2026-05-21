@@ -5,7 +5,8 @@
 1. Update `version` in `package.json`.
 2. Run `npm install` so `package-lock.json` stays in sync.
 3. Update `CHANGELOG.md` with the new version section.
-4. Confirm `README.md` and this checklist match the release.
+4. Confirm `README.md`, [LEGAL.md](LEGAL.md), [SECURITY.md](SECURITY.md), [REPOSITORY_TREE.md](REPOSITORY_TREE.md), and this checklist match the release.
+5. Confirm public-facing badges and GitHub templates still point at `spearchucker667/Test-ai`.
 
 ## Local Build
 
@@ -25,6 +26,8 @@ Expected artifacts:
 
 - `release/Venice-Forge-<version>-x64-Setup.exe`
 - `release/Venice-Forge-<version>-x64-Portable.exe`
+- `release/Venice-Forge-<version>-x64-Setup.exe.sha256`
+- `release/Venice-Forge-<version>-x64-Portable.exe.sha256`
 
 ## Signing
 
@@ -46,6 +49,8 @@ Triggers:
 
 The workflow runs `npm ci`, typecheck, tests, build, `dist:win`, `verify:dist`, and uploads `release/*.exe`.
 
+It also generates SHA-256 checksum sidecar files for each `.exe` artifact and uploads them with the release artifact bundle.
+
 ## Smoke Test
 
 - [ ] Fresh launch routes to API key setup when no key exists.
@@ -61,6 +66,9 @@ The workflow runs `npm ci`, typecheck, tests, build, `dist:win`, `verify:dist`, 
 - [ ] Open logs folder works.
 - [ ] Setup installer installs and uninstalls without deleting user data.
 - [ ] Portable exe launches without installation.
+- [ ] SHA-256 checksum files match the final uploaded `.exe` files.
+- [ ] Release notes state whether artifacts are signed or unsigned.
+- [ ] Legal/TOS notes in [LEGAL.md](LEGAL.md) still link to current Venice pages.
 
 ## Publish
 

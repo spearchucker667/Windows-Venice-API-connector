@@ -6,6 +6,13 @@ Thank you for your interest in contributing to **Venice Forge**! This document p
 
 Please read and follow our [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
+## Public Repository Expectations
+
+- Keep pull requests focused and reviewable.
+- Do not commit secrets, `.env` files, generated release artifacts, or local logs.
+- Keep README, [docs/ABOUT.md](docs/ABOUT.md), [docs/SECURITY.md](docs/SECURITY.md), [docs/RELEASE.md](docs/RELEASE.md), and [docs/LEGAL.md](docs/LEGAL.md) current when behavior, packaging, or legal assumptions change.
+- Treat all Venice API keys as secrets. Never expose them to renderer code, frontend bundles, issue screenshots, or test fixtures.
+
 ## Getting Started
 
 ### Prerequisites
@@ -77,9 +84,9 @@ All three commands must pass before opening a PR.
 
 If you discover a security vulnerability, **do not open a public issue**. Instead:
 
-1. Open a GitHub issue with the label `security`.
-2. Request a private discussion in the issue body.
-3. Wait for maintainer contact before sharing exploit details.
+1. Follow [SECURITY.md](SECURITY.md).
+2. Request a private maintainer discussion before sharing exploit details.
+3. Never post API keys, bearer tokens, `.env` contents, certificates, or private logs.
 
 See [docs/SECURITY.md](docs/SECURITY.md) for the full security model.
 
@@ -91,10 +98,12 @@ See [docs/SECURITY.md](docs/SECURITY.md) for the full security model.
 - [ ] New code includes tests where applicable
 - [ ] Documentation updated (README, AGENTS.md, etc.)
 - [ ] CHANGELOG.md updated under `[Unreleased]`
+- [ ] Legal/TOS notes reviewed if Venice API behavior, privacy, or release claims changed
+- [ ] Markdown links checked when docs changed
 
 ## Questions?
 
-Open a [GitHub Discussion](https://github.com/spearchucker667/Test-ai/discussions) or reach out via an issue.
+Use [SUPPORT.md](SUPPORT.md) for issue routing.
 
 ---
 

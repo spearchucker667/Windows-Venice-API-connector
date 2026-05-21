@@ -3,10 +3,19 @@
   "productName": "Venice Forge",
   "description": "Private AI creation studio desktop app powered by the Venice API.",
   "author": "fayeblade (@spearchucker667)",
+  "license": "MIT",
   "private": true,
   "version": "1.0.1",
   "type": "module",
   "main": "dist-electron/main.js",
+  "homepage": "https://github.com/spearchucker667/Test-ai#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spearchucker667/Test-ai.git"
+  },
+  "bugs": {
+    "url": "https://github.com/spearchucker667/Test-ai/issues"
+  },
   "scripts": {
     "dev": "tsx server.ts",
     "dev:web": "tsx server.ts",

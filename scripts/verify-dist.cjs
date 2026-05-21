@@ -4,6 +4,8 @@ const path = require("path");
 
 const root = path.join(__dirname, "..");
 const releaseDir = path.join(root, "release");
+const packageJson = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
+const escapedVersion = packageJson.version.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 function requireFile(filePath, minBytes) {
   if (!fs.existsSync(filePath)) throw new Error(`Missing ${path.relative(root, filePath)}`);
@@ -22,12 +24,16 @@ try {
   requireFile(path.join(root, "build", "icon.ico"), 1024);
 
   const files = fs.readdirSync(releaseDir);
-  const setup = files.find((name) => /^Venice-Forge-\d+\.\d+\.\d+-x64-Setup\.exe$/.test(name));
-  const portable = files.find((name) => /^Venice-Forge-\d+\.\d+\.\d+-x64-Portable\.exe$/.test(name));
+  const setupPattern = new RegExp(`^Venice-Forge-${escapedVersion}-x64-Setup\\.exe$`);
+  const portablePattern = new RegExp(`^Venice-Forge-${escapedVersion}-x64-Portable\\.exe$`);
+  const setup = files.find((name) => setupPattern.test(name));
+  const portable = files.find((name) => portablePattern.test(name));
   if (!setup) throw new Error("Missing NSIS setup exe in release/.");
   if (!portable) throw new Error("Missing portable exe in release/.");
   requireFile(path.join(releaseDir, setup), 1024 * 1024);
   requireFile(path.join(releaseDir, portable), 1024 * 1024);
+  requireFile(path.join(releaseDir, `${setup}.sha256`), 64);
+  requireFile(path.join(releaseDir, `${portable}.sha256`), 64);
 
   console.log(`[verify:dist] OK setup=${setup} portable=${portable}`);
 } catch (err) {

@@ -10,6 +10,40 @@ import { VENICE_API_HOST, VENICE_API_BASE_PATH } from "./src/shared/apiConfig";
 
 dotenv.config();
 
+type VeniceProxyRequest = {
+  method?: string;
+  body?: unknown;
+};
+
+type VeniceProxyOutboundRequest = {
+  removeHeader(name: string): void;
+  setHeader(name: string, value: string | number): void;
+  write(chunk: Buffer): void;
+};
+
+const FORBIDDEN_RENDERER_PROXY_HEADERS = ["Authorization", "Cookie", "Host"] as const;
+
+export function applyVeniceProxyHeaders(
+  proxyReq: VeniceProxyOutboundRequest,
+  req: VeniceProxyRequest
+) {
+  for (const header of FORBIDDEN_RENDERER_PROXY_HEADERS) {
+    proxyReq.removeHeader(header);
+  }
+
+  proxyReq.setHeader("Authorization", `Bearer ${process.env.VENICE_API_KEY}`);
+  proxyReq.setHeader("Host", VENICE_API_HOST);
+
+  if (req.method !== "GET" && req.body && Buffer.isBuffer(req.body)) {
+    proxyReq.removeHeader("Transfer-Encoding");
+    proxyReq.setHeader("Content-Length", req.body.length);
+    proxyReq.write(req.body);
+  } else if (req.method === "GET") {
+    proxyReq.removeHeader("Content-Length");
+    proxyReq.removeHeader("Transfer-Encoding");
+  }
+}
+
 export function createServerApp() {
   const app = express();
   app.disable("x-powered-by");
@@ -126,7 +160,7 @@ export function createServerApp() {
     
     // Check if path matches any allowed endpoint
     const isAllowed = ALLOWED_VENICE_ENDPOINTS.includes(req.path as any);
-    if (!isAllowed && req.path !== "/") {
+    if (!isAllowed) {
        return res.status(403).json({ error: `Endpoint ${req.path} not allowed` });
     }
     next();
@@ -148,18 +182,7 @@ export function createServerApp() {
       },
       on: {
         proxyReq: (proxyReq: any, req: any, res: any) => {
-          proxyReq.setHeader(
-            "Authorization",
-            `Bearer ${process.env.VENICE_API_KEY}`
-          );
-          if (req.method !== "GET" && req.body && Buffer.isBuffer(req.body)) {
-            proxyReq.removeHeader("Transfer-Encoding");
-            proxyReq.setHeader("Content-Length", req.body.length);
-            proxyReq.write(req.body);
-          } else if (req.method === "GET") {
-            proxyReq.removeHeader("Content-Length");
-            proxyReq.removeHeader("Transfer-Encoding");
-          }
+          applyVeniceProxyHeaders(proxyReq, req);
         },
         proxyRes: (proxyRes: any, req: any, res: any) => {
           // Forward rate-limit headers so the client can respect them.

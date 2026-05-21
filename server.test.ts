@@ -11,7 +11,7 @@ vi.mock("http-proxy-middleware", () => ({
   },
 }));
 
-import { createServerApp } from "./server";
+import { applyVeniceProxyHeaders, createServerApp } from "./server";
 
 describe("server.ts health endpoint", () => {
   it("should return 200 and status ok on /health", async () => {
@@ -40,6 +40,11 @@ describe("server.ts proxy validation", () => {
 
   it("should block disallowed endpoints", async () => {
     const res = await request(app).get("/api/venice/admin/users");
+    expect(res.status).toBe(403);
+  });
+
+  it("should block the proxy root because it is not an allowlisted Venice endpoint", async () => {
+    const res = await request(app).get("/api/venice");
     expect(res.status).toBe(403);
   });
 
@@ -84,6 +89,33 @@ describe("server.ts proxy validation", () => {
     expect(res.headers["x-frame-options"]).toBe("DENY");
     expect(res.headers["referrer-policy"]).toBe("no-referrer");
     expect(res.headers["content-security-policy"]).toBeTruthy();
+  });
+});
+
+describe("server.ts proxy header sanitization", () => {
+  it("should strip renderer-controlled forbidden headers before proxying", () => {
+    process.env.VENICE_API_KEY = "fixture";
+    const proxyReq = {
+      removeHeader: vi.fn(),
+      setHeader: vi.fn(),
+      write: vi.fn(),
+    };
+
+    applyVeniceProxyHeaders(proxyReq, {
+      method: "POST",
+      body: Buffer.from("{}"),
+    });
+
+    expect(proxyReq.removeHeader).toHaveBeenCalledWith("Authorization");
+    expect(proxyReq.removeHeader).toHaveBeenCalledWith("Cookie");
+    expect(proxyReq.removeHeader).toHaveBeenCalledWith("Host");
+    expect(proxyReq.setHeader).toHaveBeenCalledWith(
+      "Authorization",
+      "Bearer fixture"
+    );
+    expect(proxyReq.setHeader).toHaveBeenCalledWith("Host", "api.venice.ai");
+
+    delete process.env.VENICE_API_KEY;
   });
 });
 

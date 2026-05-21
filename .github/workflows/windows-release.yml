@@ -42,6 +42,14 @@ jobs:
           WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
           WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
 
+      - name: Generate SHA-256 checksums
+        shell: pwsh
+        run: |
+          Get-ChildItem release -Filter *.exe | ForEach-Object {
+            $hash = Get-FileHash -Algorithm SHA256 $_.FullName
+            "$($hash.Hash)  $($_.Name)" | Set-Content -NoNewline -Encoding ascii "$($_.FullName).sha256"
+          }
+
       - name: Verify release artifacts
         run: npm run verify:dist
 
@@ -49,5 +57,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: venice-forge-windows-${{ github.ref_name }}
-          path: release/*.exe
+          path: |
+            release/*.exe
+            release/*.sha256
           if-no-files-found: error
