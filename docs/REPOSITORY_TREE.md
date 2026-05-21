@@ -27,7 +27,9 @@ This document is the public map for the Venice Forge repository. It reflects the
 │   ├── LEGAL.md
 │   ├── RELEASE.md
 │   ├── REPOSITORY_TREE.md
-│   └── SECURITY.md
+│   ├── SECURITY.md
+│   ├── Venice_swagger_api.yaml
+│   └── venice_llm_info.md
 ├── electron/
 │   ├── ipc/
 │   ├── services/

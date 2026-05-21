@@ -57,7 +57,15 @@ This backlog reflects the current repository state. Completed items from earlier
 | API-003 | P2 | Open | Consider additional Venice endpoints | Embeddings, audio, image edit, and usage endpoints are not currently allowlisted. |
 | API-004 | P1 | Done | Venice API full spec alignment | Completed review of full Swagger YAML + LLM info docs. Fixes: (1) `normalizeError` now covers 404 (`model/resource not found`) and 413 (`payload too large`); (2) `/image/upscale` request body no longer sends `model` or `return_binary` — both are outside the `additionalProperties: false` schema; (3) upscale binary PNG responses (`{ dataUrl }` web, `{ dataBase64 }` Electron) handled correctly in `isValidImageResponse`, `extractImages`, and `normalizeImageData`; (4) `x-ratelimit-type`, `x-venice-model-deprecation-date`, and all content safety headers tracked in diagnostics. `?type=all` query param on `/models` confirmed valid. |
 
-## Verification Commands
+## Bug Fixes (Session)
+
+| ID | Priority | Status | Item | Notes |
+|----|----------|--------|------|-------|
+| BUG-004 | P0 | Done | `enable_web_search` sent as boolean instead of string enum | `payloadBuilders.ts`: now passes string value directly (`"off"` default). Root cause of all `/chat/completions` HTTP 400s. |
+| BUG-005 | P0 | Done | Venice `DetailedError` (Zod) not parsed — fell through to "Unknown Venice API error" | `src/services/veniceClient.ts` + `electron/services/veniceClient.ts`: both now extract `details._errors` and field-level errors. |
+| BUG-006 | P1 | Done | Every failed request produced two diagnostic log entries | `veniceFetchDesktop` now sets the error message in the initial dispatch; catch block skips re-dispatch when `err.diagnostics` is set. |
+
+
 
 ```bash
 npm run typecheck

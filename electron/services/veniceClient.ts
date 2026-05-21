@@ -240,12 +240,18 @@ export async function performVeniceRequest(
 
 export function readResponseError(response: VeniceIpcResponse): string {
   const body = response.body as any;
-  return String(
-    body?.error?.message ||
-      body?.error ||
-      body?.message ||
-      body?.detail ||
-      response.statusText ||
-      `HTTP ${response.status}`
-  );
+  const top = body?.error?.message || body?.error || body?.message;
+  if (top) return String(top);
+  // Venice DetailedError (Zod): { details: { _errors?: string[], field?: { _errors: string[] } } }
+  const details = body?.details;
+  if (details && typeof details === "object") {
+    if (Array.isArray(details._errors) && details._errors.length) return String(details._errors[0]);
+    for (const key of Object.keys(details)) {
+      if (key === "_errors") continue;
+      const errs = details[key]?._errors;
+      if (Array.isArray(errs) && errs.length) return `${key}: ${String(errs[0])}`;
+    }
+    return "Request validation failed";
+  }
+  return String(body?.detail || response.statusText || `HTTP ${response.status}`);
 }

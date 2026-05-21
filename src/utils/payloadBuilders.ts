@@ -8,7 +8,8 @@ export interface ChatMessage {
 
 export interface ChatSettings {
   includeVeniceSystemPrompt?: boolean;
-  webSearch?: boolean;
+  /** Venice API expects "auto" | "off" | "on" — not a boolean. */
+  webSearch?: string;
   webScraping?: boolean;
   webCitations?: boolean;
 }
@@ -33,7 +34,8 @@ export function buildChatPayload(
     messages,
     venice_parameters: {
       include_venice_system_prompt: !!settings.includeVeniceSystemPrompt,
-      enable_web_search: !!settings.webSearch,
+      // Venice requires string enum "auto" | "off" | "on" — never a boolean.
+      enable_web_search: settings.webSearch || "off",
       enable_web_scraping: !!settings.webScraping,
       enable_web_citations: !!settings.webCitations,
       enable_x_search: !!options.enableXSearch,

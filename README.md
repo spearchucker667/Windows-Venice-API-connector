@@ -134,6 +134,7 @@ See [docs/LEGAL.md](docs/LEGAL.md) for the public-readiness legal notes, tradema
 | Packaging failure | `npm run clean && npm install && npm run dist:win` |
 | SmartScreen warning | Expected for unsigned local builds; see [docs/RELEASE.md](docs/RELEASE.md) for signing |
 | No API key prompt at launch | Open **Config**, save a key, then test connection |
+| `400` on chat/image | Usually a request schema mismatch — ensure the model ID is valid and all API parameters are correct strings |
 | `401` / `403` | Invalid key or insufficient key scope |
 | `429` | Venice rate limit; wait for the reset period shown in the Status tab |
 | Transport failure | Open **Status**, copy diagnostics, inspect the logs folder |

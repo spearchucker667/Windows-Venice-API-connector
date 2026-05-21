@@ -94,14 +94,21 @@ export function normalizeError(status: number | null, rawMessage: string) {
 }
 
 function readDesktopErrorBody(body: any): string {
-  return String(
-    body?.error?.message ||
-      body?.error ||
-      body?.message ||
-      body?.detail ||
-      body?.text ||
-      "Unknown Venice API error"
-  );
+  // Standard Venice error: { error: string } or { error: { message: string } }
+  const top = body?.error?.message || body?.error || body?.message;
+  if (top) return String(top);
+  // Venice DetailedError (Zod): { details: { _errors?: string[], field?: { _errors: string[] } } }
+  const details = body?.details;
+  if (details && typeof details === "object") {
+    if (Array.isArray(details._errors) && details._errors.length) return String(details._errors[0]);
+    for (const key of Object.keys(details)) {
+      if (key === "_errors") continue;
+      const errs = details[key]?._errors;
+      if (Array.isArray(errs) && errs.length) return `${key}: ${String(errs[0])}`;
+    }
+    return "Request validation failed";
+  }
+  return String(body?.detail || body?.text || "Unknown Venice API error");
 }
 
 interface SerializedFormDataEntry {
@@ -177,20 +184,20 @@ async function veniceFetchDesktop(
         signal
       );
       diagHeaders = response.headers || {};
+      const errorMsg = response.ok ? "" : normalizeError(response.status, readDesktopErrorBody(response.body));
       const diag = summarizeDiagnostics({
         endpoint,
         method,
         status: response.status,
         ok: response.ok,
         headers: diagHeaders,
-        error: "",
+        error: errorMsg,
         startedAt,
         endedAt: nowIso(),
       });
       dispatch?.({ type: "SET_DIAGNOSTICS", diagnostics: diag });
 
       if (!response.ok) {
-        const normalized = normalizeError(response.status, readDesktopErrorBody(response.body));
         const retryable = [429, 500, 503].includes(response.status);
         if (retryable && attempt < maxAttempts - 1) {
           await sleep(
@@ -201,9 +208,9 @@ async function veniceFetchDesktop(
           );
           continue;
         }
-        const error: any = new Error(normalized);
+        const error: any = new Error(errorMsg);
         error.status = response.status;
-        error.diagnostics = diag;
+        error.diagnostics = diag; // marks as already dispatched
         throw error;
       }
 
@@ -213,19 +220,22 @@ async function veniceFetchDesktop(
       const normalized = err.message || "Desktop Venice transport failed.";
       lastError = new Error(normalized);
       lastError.status = err.status || response?.status || null;
-      dispatch?.({
-        type: "SET_DIAGNOSTICS",
-        diagnostics: summarizeDiagnostics({
-          endpoint,
-          method,
-          status: lastError.status,
-          ok: false,
-          headers: diagHeaders,
-          error: normalized,
-          startedAt,
-          endedAt: nowIso(),
-        }),
-      });
+      // Skip re-dispatch for HTTP errors already dispatched in the try block.
+      if (!err.diagnostics) {
+        dispatch?.({
+          type: "SET_DIAGNOSTICS",
+          diagnostics: summarizeDiagnostics({
+            endpoint,
+            method,
+            status: lastError.status,
+            ok: false,
+            headers: diagHeaders,
+            error: normalized,
+            startedAt,
+            endedAt: nowIso(),
+          }),
+        });
+      }
 
       const isNetworkFailure = lastError.status == null || lastError.status === 0;
       if (([429, 500, 503].includes(lastError.status) || isNetworkFailure) && attempt < maxAttempts - 1) {
