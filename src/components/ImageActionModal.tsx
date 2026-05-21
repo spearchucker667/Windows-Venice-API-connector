@@ -93,7 +93,7 @@ export function ImageActionModal({
         <div className="modal-side pad">
           <div className="toolbar" style={{ borderBottom: "none", padding: 0 }}>
             <h2 id="modal-title">Image details</h2>
-              <button className="btn outline sm" onClick={onClose} aria-label="Close modal">
+              <button className="btn sm" onClick={onClose} aria-label="Close modal">
                 Close
               </button>
             </div>
@@ -147,7 +147,7 @@ export function ImageActionModal({
             </div>
 
             <div className="grid two" style={{ marginTop: "auto", paddingTop: 16 }}>
-              <button ref={downloadRef} className="btn outline" onClick={onDownload}>
+              <button ref={downloadRef} className="btn" onClick={onDownload}>
                 Download
               </button>
               <button
@@ -158,9 +158,9 @@ export function ImageActionModal({
                 {isUpscaling ? "Upscaling..." : image.upscaled ? "Already upscaled" : "Enhance & upscale"}
               </button>
               <button
-                className="btn outline"
+                className="btn danger"
                 onClick={onDelete}
-                style={{ color: "var(--error)", gridColumn: "1 / -1" }}
+                style={{ gridColumn: "1 / -1" }}
               >
                 Delete
               </button>
