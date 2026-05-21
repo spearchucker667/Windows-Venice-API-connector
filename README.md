@@ -9,10 +9,6 @@
 [![Electron 42](https://img.shields.io/badge/electron-42-47848f.svg)](package.json)
 [![Venice API](https://img.shields.io/badge/API-Venice.ai-111827.svg)](https://docs.venice.ai/)
 
-> Release ribbon: Windows-first desktop app, MIT licensed, CI-backed, and packaged as NSIS installer plus portable `.exe`.
-
-Venice Forge is a Windows-first Electron desktop app for the Venice API. It provides a private AI creation studio with chat, image generation, batch prompting, web research, model discovery, a local gallery, data import/export, diagnostics, and Windows `.exe` packaging.
-
 <img width="2816" height="1536" alt="Gemini_Generated_Image_3tkcjm3tkcjm3tkc" src="https://github.com/user-attachments/assets/079845cb-0eb2-4ba1-858a-189a1d90f6b7" />
 
 See [docs/ABOUT.md](docs/ABOUT.md) for project background and architecture overview.
