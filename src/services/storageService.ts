@@ -65,7 +65,7 @@ const StorageService = {
           if (failCount > 0) {
             console.warn(
               `[storageService] ${failCount} record(s) in "${store}" could not be decrypted and were skipped. ` +
-              "This may indicate key-store loss, data corruption, or a browser/profile reset. The records are still stored on disk."
+              "This may indicate key-store loss, data corruption, or a browser/profile reset. The records are still persisted in IndexedDB."
             );
           }
           results = decrypted.filter(Boolean);
