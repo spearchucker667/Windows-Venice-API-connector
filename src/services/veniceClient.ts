@@ -523,13 +523,21 @@ export async function veniceStreamChat(
     return;
   }
 
+  // REL-001: always enforce a ceiling timeout on the streaming fetch so a stalled
+  // SSE connection cannot block the web-mode renderer indefinitely. 5 minutes is
+  // generous for even the longest streaming completions.
+  const STREAM_TIMEOUT_MS = 300_000;
+  const streamSignal = signal
+    ? AbortSignal.any([signal, AbortSignal.timeout(STREAM_TIMEOUT_MS)])
+    : AbortSignal.timeout(STREAM_TIMEOUT_MS);
+
   const response = await fetch(`${PROXY_BASE_PATH}/chat/completions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(payload),
-    signal,
+    signal: streamSignal,
   });
 
   const headers = parseDiagnosticsHeaders(response);

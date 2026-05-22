@@ -59,6 +59,15 @@ const StorageService = {
                return await decryptData(row);
             })
           );
+          // BUG-001: surface silent decrypt failures so the user is aware data
+          // could not be read (e.g. after an OS credential change).
+          const failCount = decrypted.filter((v) => v === null).length;
+          if (failCount > 0) {
+            console.warn(
+              `[storageService] ${failCount} record(s) in "${store}" could not be decrypted and were skipped. ` +
+              "This may indicate a key rotation or corruption. The records are still stored on disk."
+            );
+          }
           results = decrypted.filter(Boolean);
         }
         resolve(results.sort((a: any, b: any) => (b.timestamp || 0) - (a.timestamp || 0)));
