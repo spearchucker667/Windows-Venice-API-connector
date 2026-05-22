@@ -57,7 +57,7 @@ export function ConfirmModal({
       }
       if (e.key !== "Tab" || !modalRef.current) return;
       const focusable = modalRef.current.querySelectorAll<HTMLElement>(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        'button, [href], input, select, textarea, [contenteditable], [tabindex]:not([tabindex="-1"])'
       );
       const first = focusable[0];
       const last = focusable[focusable.length - 1];

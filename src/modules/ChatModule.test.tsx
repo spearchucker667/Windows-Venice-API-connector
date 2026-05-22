@@ -30,9 +30,8 @@ vi.mock("../services/modelService", () => ({ refreshModels: vi.fn() }));
 // jsdom stubs
 // ---------------------------------------------------------------------------
 
-// jsdom does not implement scrollIntoView; provide a no-op so the useEffect
-// inside ChatModule does not throw.
-window.HTMLElement.prototype.scrollIntoView = vi.fn();
+// jsdom does not implement scrollIntoView. The stub is set in beforeEach and
+// removed in afterEach to prevent leaking into other test files.
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -47,9 +46,7 @@ function renderChat(stateOverride: object = {}) {
   return render(<ChatModule state={state} dispatch={mockDispatch} />);
 }
 
-// Send button selector: exact text "Send" as the primary action button.
 const sendBtnSelector = { name: /^send$/i };
-// The prompt textarea has aria-label "User prompt".
 const promptSelector = { name: /^user prompt$/i };
 
 // ---------------------------------------------------------------------------
@@ -59,10 +56,14 @@ const promptSelector = { name: /^user prompt$/i };
 describe("ChatModule", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Restore stub before each test since afterEach removes it.
+    window.HTMLElement.prototype.scrollIntoView = vi.fn();
   });
 
   afterEach(() => {
     cleanup();
+    // Remove the scrollIntoView stub to prevent leaking into other test files.
+    delete (window.HTMLElement.prototype as any).scrollIntoView;
   });
 
   it("renders the prompt textarea and send button", () => {

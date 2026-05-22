@@ -127,12 +127,12 @@ export function registerIpcHandlers(): void {
       if (Buffer.byteLength(data, "utf-8") > MAX_JSON_FILE_BYTES) {
         throw new Error("Export data is too large.");
       }
-      const resolvedPath = path.basename(
+      const sanitizedFilename = path.basename(
         typeof defaultPath === "string" ? defaultPath : "venice-forge-export.json"
       );
       const result = await dialog.showSaveDialog({
         title: "Export Venice Forge data",
-        defaultPath: resolvedPath,
+        defaultPath: sanitizedFilename,
         filters: [{ name: "JSON", extensions: ["json"] }],
       });
       if (result.canceled || !result.filePath) return { ok: false, canceled: true };

@@ -44,12 +44,18 @@ export function isTrustedExternalUrl(url: string): boolean {
  * attacker-controlled links from silently navigating the user to phishing sites
  * or local-network admin pages.
  */
+const MAX_DISPLAY_URL_LENGTH = 60;
+const TRUNCATE_URL_LENGTH = MAX_DISPLAY_URL_LENGTH - 3; // room for ellipsis
+
 function promptExternalLink(win: BrowserWindow, url: string): void {
   let displayUrl: string;
   try {
     const parsed = new URL(url);
-    const path = parsed.pathname.length > 60 ? `${parsed.pathname.slice(0, 57)}…` : parsed.pathname;
-    displayUrl = `${parsed.protocol}//${parsed.host}${path}`;
+    const pathname =
+      parsed.pathname.length > MAX_DISPLAY_URL_LENGTH
+        ? `${parsed.pathname.slice(0, TRUNCATE_URL_LENGTH)}…`
+        : parsed.pathname;
+    displayUrl = `${parsed.protocol}//${parsed.host}${pathname}`;
   } catch {
     displayUrl = url.slice(0, 120);
   }
@@ -65,9 +71,15 @@ function promptExternalLink(win: BrowserWindow, url: string): void {
       detail: displayUrl,
     })
     .then(({ response }) => {
-      if (response === 0) shell.openExternal(url).catch(() => {});
+      if (response === 0) {
+        shell.openExternal(url).catch((err) => {
+          logError("shell.openExternal failed", String(err));
+        });
+      }
     })
-    .catch(() => {});
+    .catch((err) => {
+      logError("promptExternalLink dialog error", String(err));
+    });
 }
 
 function isAllowedAppNavigation(url: string): boolean {
@@ -190,14 +202,14 @@ if (!gotLock) {
       if (isTrustedExternalUrl(url)) {
         const win = BrowserWindow.fromWebContents(contents);
         if (win) promptExternalLink(win, url);
-        else shell.openExternal(url).catch(() => {});
+        else shell.openExternal(url).catch((err) => logError("shell.openExternal fallback failed", String(err)));
       }
     });
     contents.setWindowOpenHandler(({ url }) => {
       if (isTrustedExternalUrl(url)) {
         const win = BrowserWindow.fromWebContents(contents);
         if (win) promptExternalLink(win, url);
-        else shell.openExternal(url).catch(() => {});
+        else shell.openExternal(url).catch((err) => logError("shell.openExternal fallback failed", String(err)));
       }
       return { action: "deny" };
     });
