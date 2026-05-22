@@ -50,8 +50,6 @@ export default function App() {
       setBridgeReady(true);
       if (isElectron()) {
         desktopApiKey.isConfigured().then(setApiKeyConfigured).catch(() => setApiKeyConfigured(false));
-      } else {
-        setApiKeyConfigured(null); // web mode – key handled server-side
       }
     });
     return () => { mounted = false; };
@@ -70,9 +68,14 @@ export default function App() {
         if (!mounted) return;
         dispatch({ type: "SET_GALLERY", items: images });
         dispatch({ type: "SET_CHATS", items: chats });
-        const latestSettings = settingsItems[0]?.value;
+        const latestSettings = settingsItems.find(i => i.id === "app-settings")?.value;
         if (latestSettings)
           dispatch({ type: "SET_SETTINGS", settings: latestSettings });
+        
+        if (!isElectron()) {
+          const hasKey = settingsItems.some(i => i.id === "venice-api-key" && !!i.value);
+          setApiKeyConfigured(hasKey);
+        }
       } catch (err) {
         console.warn("IndexedDB init failed", err);
         dispatch({

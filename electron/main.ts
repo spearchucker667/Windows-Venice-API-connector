@@ -11,10 +11,13 @@ const allowProdDevTools = process.env.VENICE_FORGE_DEBUG_DEVTOOLS === "true";
 
 function rendererCsp(): string {
   const connectSrc = isDev ? "'self' http://localhost:5173 ws://localhost:5173" : "'self'";
+  const styleSrc = isDev ? "'self' 'unsafe-inline' http://localhost:5173" : "'self' 'unsafe-inline'";
+  const scriptSrc = isDev ? "'self' 'unsafe-inline' 'unsafe-eval' http://localhost:5173" : "'self'";
+
   return [
     "default-src 'self'",
-    "script-src 'self'",
-    "style-src 'self' 'unsafe-inline'",
+    `script-src ${scriptSrc}`,
+    `style-src ${styleSrc}`,
     "img-src 'self' data: blob:",
     `connect-src ${connectSrc}`,
     "font-src 'self' data:",

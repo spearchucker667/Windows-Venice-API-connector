@@ -2,6 +2,8 @@
 // Electron vs. web mode abstraction — never call window.veniceForge directly from modules.
 import "../types/desktop";
 import type { VeniceForgeDiagnostics, VeniceForgeRequest, VeniceForgeResponse } from "../types/desktop";
+import StorageService from "./storageService";
+import { veniceFetch } from "./veniceClient";
 
 export function isElectron(): boolean {
   return typeof window !== "undefined" && window.veniceForge?.isDesktop === true;
@@ -55,21 +57,33 @@ export const desktopVenice = {
 };
 
 export const desktopApiKey = {
-  isConfigured(): Promise<boolean> {
-    if (!isElectron()) return Promise.resolve(false);
-    return window.veniceForge!.apiKey.isConfigured();
+  async isConfigured(): Promise<boolean> {
+    if (isElectron()) return window.veniceForge!.apiKey.isConfigured();
+    const items = await StorageService.getItems("settings");
+    return items.some((item) => item.id === "venice-api-key" && !!item.value);
   },
-  set(key: string): Promise<{ ok: boolean }> {
-    if (!isElectron()) return Promise.resolve({ ok: false });
-    return window.veniceForge!.apiKey.set(key);
+  async set(key: string): Promise<{ ok: boolean }> {
+    if (isElectron()) return window.veniceForge!.apiKey.set(key);
+    await StorageService.saveItem("settings", {
+      id: "venice-api-key",
+      value: key,
+      timestamp: Date.now(),
+    });
+    return { ok: true };
   },
-  delete(): Promise<{ ok: boolean }> {
-    if (!isElectron()) return Promise.resolve({ ok: false });
-    return window.veniceForge!.apiKey.delete();
+  async delete(): Promise<{ ok: boolean }> {
+    if (isElectron()) return window.veniceForge!.apiKey.delete();
+    await StorageService.deleteItem("settings", "venice-api-key");
+    return { ok: true };
   },
-  test(): Promise<{ ok: boolean; status?: number; message: string }> {
-    if (!isElectron()) return Promise.resolve({ ok: false, message: "Not in desktop mode" });
-    return window.veniceForge!.apiKey.test();
+  async test(): Promise<{ ok: boolean; status?: number; message: string }> {
+    if (isElectron()) return window.veniceForge!.apiKey.test();
+    try {
+      const { response } = await veniceFetch("/models", { retry: false });
+      return { ok: response.ok, status: response.status, message: response.statusText };
+    } catch (err: any) {
+      return { ok: false, status: err.status, message: err.message };
+    }
   },
 };
 
