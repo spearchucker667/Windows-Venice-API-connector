@@ -1,3 +1,6 @@
+/** @fileoverview Bootstraps the Venice Forge Electron main process, creates the
+ *  BrowserWindow with security hardening, and manages navigation guards. */
+
 // Code Owner: fayeblade (@spearchucker667)
 // Primary maintainer and security gatekeeper for the Electron main process.
 import { app, BrowserWindow, dialog, shell } from "electron";
@@ -6,9 +9,13 @@ import { fileURLToPath } from "url";
 import { registerIpcHandlers } from "./ipc/handlers";
 import { logError, logInfo } from "./services/logger";
 
+/** Indicates whether the app is running in development mode. */
 const isDev = !app.isPackaged;
+
+/** Whether to allow DevTools in packaged production builds. */
 const allowProdDevTools = process.env.VENICE_FORGE_DEBUG_DEVTOOLS === "true";
 
+/** Builds the Content-Security-Policy header string for the renderer. */
 function rendererCsp(): string {
   const connectSrc = isDev ? "'self' http://localhost:5173 ws://localhost:5173" : "'self'";
   const styleSrc = isDev ? "'self' 'unsafe-inline' http://localhost:5173" : "'self' 'unsafe-inline'";
@@ -29,9 +36,13 @@ function rendererCsp(): string {
   ].join("; ");
 }
 
-// DSC-001: Any https: URL is allowed to open externally via the OS browser.
-// The security boundary is that external links never load inside the Electron
-// BrowserWindow — they are always delegated to shell.openExternal.
+/** Determines whether a URL is a trusted external https: link.
+ *  DSC-001: Any https: URL is allowed to open externally via the OS browser.
+ *  The security boundary is that external links never load inside the Electron
+ *  BrowserWindow — they are always delegated to shell.openExternal.
+ *  @param url The URL to evaluate.
+ *  @returns True when the URL uses the https: protocol.
+ */
 export function isTrustedExternalUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
@@ -41,14 +52,15 @@ export function isTrustedExternalUrl(url: string): boolean {
   }
 }
 
-/**
- * SEC-001: Show a native OS dialog asking the user to confirm before opening
- * any external https: URL in the system browser. This prevents AI-generated or
- * attacker-controlled links from silently navigating the user to phishing sites
- * or local-network admin pages.
- */
+/** Maximum length for displaying a URL in the external link confirmation dialog. */
 const MAX_DISPLAY_URL_LENGTH = 60;
 
+/** Prompts the user with a native dialog before opening an external URL.
+ *  SEC-001: Prevents AI-generated or attacker-controlled links from silently
+ *  navigating the user to phishing sites or local-network admin pages.
+ *  @param win The parent BrowserWindow.
+ *  @param url The external URL to potentially open.
+ */
 function promptExternalLink(win: BrowserWindow, url: string): void {
   let displayUrl: string;
   try {
@@ -87,6 +99,7 @@ function promptExternalLink(win: BrowserWindow, url: string): void {
     });
 }
 
+/** Validates that a navigation URL stays within the allowed app boundaries. */
 function isAllowedAppNavigation(url: string): boolean {
   try {
     const parsed = new URL(url);
@@ -103,6 +116,7 @@ function isAllowedAppNavigation(url: string): boolean {
   }
 }
 
+/** Creates the main BrowserWindow with preload, CSP, and navigation guards. */
 function createWindow(): BrowserWindow {
   const preloadPath = path.join(__dirname, "preload.js");
   const win = new BrowserWindow({
@@ -161,6 +175,7 @@ function createWindow(): BrowserWindow {
   return win;
 }
 
+/** Registers IPC handlers and creates the main application window. */
 async function bootstrap(): Promise<void> {
   registerIpcHandlers();
   logInfo("Venice Forge startup", {
@@ -174,6 +189,7 @@ async function bootstrap(): Promise<void> {
   createWindow();
 }
 
+/** Prevents multiple application instances from running simultaneously. */
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {
   app.quit();
