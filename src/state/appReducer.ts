@@ -1,7 +1,15 @@
+/** @fileoverview Global application reducer and state helpers for Venice Forge. */
+
 import { FALLBACK_MODELS, DEFAULT_SYSTEM_PROMPT } from "../constants/venice";
 import { produce } from "immer";
 import type { AppAction } from "../types/app";
 
+/**
+ * Determines the model category from its metadata.
+ *
+ * @param model Raw model object from the API.
+ * @returns The inferred category, e.g. "text", "image", or "unknown".
+ */
 function classifyModel(model: any) {
   const id = String(model.id || model.model || "").toLowerCase();
   const type = String(
@@ -27,6 +35,12 @@ function classifyModel(model: any) {
   return "unknown";
 }
 
+/**
+ * Normalizes a raw model list into grouped categories.
+ *
+ * @param payload Raw API response or array of models.
+ * @returns Record mapping categories to arrays of normalized models.
+ */
 export function flattenModels(payload: any) {
   const list = Array.isArray(payload?.data)
     ? payload.data
@@ -53,6 +67,12 @@ export function flattenModels(payload: any) {
   return groups;
 }
 
+/**
+ * Injects fallback models into empty category groups.
+ *
+ * @param groups Model groups from flattenModels.
+ * @returns A new groups object with fallback models where needed.
+ */
 export function withFallbackModels(groups: Record<string, any[]>) {
   const next: Record<string, any[]> = {
     text: [],
@@ -68,6 +88,12 @@ export function withFallbackModels(groups: Record<string, any[]>) {
   return next;
 }
 
+/**
+ * Coerces a web search setting to a canonical value.
+ *
+ * @param value Raw setting value, which may be a boolean or string.
+ * @returns The normalized setting: "off", "on", or "auto".
+ */
 function normalizeWebSearchSetting(value: unknown): "off" | "on" | "auto" {
   if (value === true) return "on";
   if (value === false) return "off";
@@ -75,6 +101,7 @@ function normalizeWebSearchSetting(value: unknown): "off" | "on" | "auto" {
   return "off";
 }
 
+/** Initial application state used to bootstrap the store. */
 export const initialState = {
   activeTab: "chat",
   models: withFallbackModels({}) as Record<string, import("../types/venice").ModelInfo[]>,
@@ -128,6 +155,13 @@ export const initialState = {
   toasts: [] as import("../types/app").ToastMessage[],
 };
 
+/**
+ * Applies an action to the application state.
+ *
+ * @param state The current immutable state.
+ * @param action The dispatched action.
+ * @returns The next immutable state.
+ */
 export const appReducer = produce((draft: typeof initialState, action: AppAction) => {
   switch (action.type) {
     case "SET_TAB":

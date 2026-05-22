@@ -1,3 +1,6 @@
+/** @fileoverview Performs HTTPS requests to the Venice API from the Electron
+ *  main process, including streaming chat and multipart form data support. */
+
 import https from "https";
 import { app } from "electron";
 import type { IncomingHttpHeaders } from "http";
@@ -6,10 +9,16 @@ import { logError, setLastApiError } from "./logger";
 import { validateVeniceIpcRequest, type VeniceIpcRequest } from "../ipc/validation";
 import { VENICE_API_HOST, VENICE_API_BASE_PATH, VENICE_API_TIMEOUT_MS } from "../../src/shared/apiConfig";
 
+/** Hostname for the Venice API. */
 const VENICE_HOST = VENICE_API_HOST;
+
+/** Base path prefix for Venice API endpoints. */
 const VENICE_BASE_PATH = VENICE_API_BASE_PATH;
+
+/** Tracks active requests so they can be aborted by signal ID. */
 const activeRequests = new Map<string, { destroy: () => void }>();
 
+/** Describes a single entry within a serialized FormData payload. */
 interface SerializedFormDataEntry {
   name: string;
   value: string;
@@ -18,14 +27,24 @@ interface SerializedFormDataEntry {
   _isFile?: boolean;
 }
 
+/** Describes a FormData object serialized from the renderer for multipart upload. */
 interface SerializedFormData {
   _isSerializedFormData: true;
   entries: SerializedFormDataEntry[];
 }
+
+/** Removes carriage returns, newlines, and quotes from a multipart token.
+ *  @param value The raw token string.
+ *  @returns A sanitized token safe for multipart headers.
+ */
 export function sanitizeMultipartToken(value: string): string {
   return value.replace(/[\r\n"]/g, "").trim();
 }
 
+/** Validates and normalizes a multipart content-type string.
+ *  @param value The raw content-type value.
+ *  @returns A valid MIME type or application/octet-stream fallback.
+ */
 export function sanitizeMultipartContentType(value: string | undefined): string {
   const sanitized = sanitizeMultipartToken(value || "");
   return /^[a-zA-Z0-9!#$&^_.+-]+\/[a-zA-Z0-9!#$&^_.+-]+$/.test(sanitized)
@@ -33,6 +52,10 @@ export function sanitizeMultipartContentType(value: string | undefined): string 
     : "application/octet-stream";
 }
 
+/** Builds a multipart form-data body from a serialized FormData description.
+ *  @param serialized The serialized FormData structure.
+ *  @returns The assembled body buffer and boundary string.
+ */
 export function buildMultipartBody(serialized: SerializedFormData): { body: Buffer; boundary: string } {
   const boundary = `----VeniceForgeBoundary${Math.random().toString(36).slice(2)}`;
   const parts: Buffer[] = [];
@@ -57,6 +80,7 @@ export function buildMultipartBody(serialized: SerializedFormData): { body: Buff
   return { body: Buffer.concat(parts), boundary };
 }
 
+/** Describes the standard shape of a Venice API response returned to the renderer. */
 export interface VeniceIpcResponse {
   ok: boolean;
   status: number;
@@ -66,6 +90,10 @@ export interface VeniceIpcResponse {
   contentType: string;
 }
 
+/** Strips sensitive headers from an incoming HTTP response.
+ *  @param headers The raw response headers.
+ *  @returns A sanitized record of safe headers.
+ */
 function sanitizeHeaders(headers: IncomingHttpHeaders): Record<string, string> {
   const result: Record<string, string> = {};
   for (const [key, value] of Object.entries(headers)) {
@@ -76,6 +104,11 @@ function sanitizeHeaders(headers: IncomingHttpHeaders): Record<string, string> {
   return result;
 }
 
+/** Parses an HTTP response body based on its content-type.
+ *  @param buffer The raw response bytes.
+ *  @param contentType The declared content-type header.
+ *  @returns Parsed JSON, plain text, or base64-encoded data.
+ */
 function parseBody(buffer: Buffer, contentType: string): unknown {
   const text = buffer.toString("utf-8");
   if (contentType.includes("application/json")) {
@@ -89,6 +122,10 @@ function parseBody(buffer: Buffer, contentType: string): unknown {
   return { dataBase64: buffer.toString("base64") };
 }
 
+/** Extracts the text delta from a server-sent event data payload.
+ *  @param data The raw SSE data line.
+ *  @returns The extracted content delta, if any.
+ */
 function extractStreamDelta(data: string): string {
   try {
     const json = JSON.parse(data);
@@ -103,6 +140,11 @@ function extractStreamDelta(data: string): string {
   }
 }
 
+/** Parses SSE-formatted lines and invokes a callback for each text delta.
+ *  @param buffer The accumulated SSE buffer.
+ *  @param onDelta Callback invoked for each valid delta.
+ *  @returns The remaining unparsed buffer and concatenated text.
+ */
 function parseSseLines(buffer: string, onDelta: (delta: string) => void): { buffer: string; text: string } {
   const lines = buffer.split(/\r?\n/);
   const tail = lines.pop() || "";
@@ -121,6 +163,10 @@ function parseSseLines(buffer: string, onDelta: (delta: string) => void): { buff
   return { buffer: tail, text };
 }
 
+/** Aborts an active Venice request by its signal ID.
+ *  @param signalId The unique identifier for the active request.
+ *  @returns An object indicating whether an active request was found and destroyed.
+ */
 export function abortVeniceRequest(signalId: string): { ok: boolean } {
   const active = activeRequests.get(signalId);
   if (!active) return { ok: false };
@@ -129,6 +175,11 @@ export function abortVeniceRequest(signalId: string): { ok: boolean } {
   return { ok: true };
 }
 
+/** Sends a validated Venice API request and returns the parsed response.
+ *  @param rawRequest The raw request payload to validate and send.
+ *  @param options Optional callbacks for streaming deltas.
+ *  @returns A promise resolving with the Venice API response.
+ */
 export async function performVeniceRequest(
   rawRequest: unknown,
   options: { onDelta?: (delta: string) => void } = {}
@@ -251,6 +302,10 @@ export async function performVeniceRequest(
   });
 }
 
+/** Extracts a human-readable error message from a Venice API response.
+ *  @param response The Venice response to inspect.
+ *  @returns The most specific error message available.
+ */
 export function readResponseError(response: VeniceIpcResponse): string {
   const body = response.body as any;
   const top = body?.error?.message || body?.error || body?.message;

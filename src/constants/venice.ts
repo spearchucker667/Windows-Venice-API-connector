@@ -1,3 +1,6 @@
+/** @fileoverview Application constants for fallback models, tabs, diagnostics headers, and database configuration. */
+
+/** Default models used when the Venice API model list is unavailable. */
 export const FALLBACK_MODELS = {
   text: [
     { id: "venice-uncensored", type: "text", name: "venice-uncensored", traits: ["fallback"] },
@@ -27,6 +30,7 @@ export const FALLBACK_MODELS = {
   unknown: []
 };
 
+/** Ordered list of application tabs with their display labels. */
 export const TABS = [
   ["chat", "Prompt"],
   ["image", "Create"],
@@ -38,6 +42,7 @@ export const TABS = [
   ["diagnostics", "Status"]
 ];
 
+/** Response header names captured for diagnostics. */
 export const DIAG_HEADER_NAMES = [
   "CF-RAY",
   "x-venice-version",
@@ -62,10 +67,17 @@ export const DIAG_HEADER_NAMES = [
   "x-venice-is-adult-model-content-violation"
 ];
 
+/** Default system prompt applied to new chat conversations. */
 export const DEFAULT_SYSTEM_PROMPT = "You are a precise, useful AI assistant inside Venice Forge.";
 
+/** IndexedDB object store names used by the application. */
 export const STORE_NAMES = ["images", "chats", "settings", "diagnostics"];
+
+/** Name of the IndexedDB database. */
 export const DB_NAME = "venice_canvas_studio_v1";
+
+/** Version of the IndexedDB schema. */
 export const DB_VERSION = 1;
 
+/** Delay between batched image generation requests to avoid rate limits. */
 export const IMAGE_BATCH_INTER_REQUEST_DELAY_MS = 750;

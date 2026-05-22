@@ -1,11 +1,15 @@
+/** @fileoverview Core application type definitions for state, actions, and UI models. */
+
 import { DiagnosticsEntry, ModelInfo } from "./venice";
 import { GalleryImage } from "./storage";
 
+/** Represents a single message in a chat conversation. */
 export interface ChatRecord {
   role: "user" | "assistant" | "system";
   content: string;
 }
 
+/** Captures the current image generation form state. */
 export interface ImageDraft {
   prompt: string;
   negative: string;
@@ -26,6 +30,7 @@ export interface ImageDraft {
   batchQueueStatus: string;
 }
 
+/** Captures the current batch job form state. */
 export interface BatchDraft {
   type: "text" | "image";
   prompts: string;
@@ -33,6 +38,7 @@ export interface BatchDraft {
   systemPrompt: string;
 }
 
+/** User-configurable settings persisted across sessions. */
 export interface AppSettings {
   apiKey?: string;
   defaultSystemPrompt: string;
@@ -44,6 +50,7 @@ export interface AppSettings {
   customModels: string[];
 }
 
+/** Describes a transient toast notification shown to the user. */
 export interface ToastMessage {
   id: string;
   message: string;
@@ -53,8 +60,10 @@ export interface ToastMessage {
 
 import { initialState } from "../state/appReducer";
 
+/** Inferred shape of the global application state. */
 export type AppState = typeof initialState;
 
+/** Discriminated union of all actions accepted by the application reducer. */
 export type AppAction =
   | { type: "SET_TAB"; tab: string }
   | { type: "TOGGLE_SOURCE_PANEL" }
@@ -72,4 +81,5 @@ export type AppAction =
   | { type: "ADD_TOAST"; toast: ToastMessage }
   | { type: "REMOVE_TOAST"; id: string };
 
+/** Dispatch function type for the global application reducer. */
 export type AppDispatch = React.Dispatch<AppAction>;

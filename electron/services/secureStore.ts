@@ -1,28 +1,32 @@
+/** @fileoverview Manages encrypted storage of the Venice API key using Electron
+ *  safeStorage (DPAPI on Windows, Keychain on macOS, Secret Service on Linux). */
+
 // Code Owner: fayeblade (@spearchucker667)
-/**
- * SecureStore: Stores the Venice API key encrypted using Electron's safeStorage
- * (DPAPI on Windows, Keychain on macOS, Secret Service on Linux).
- * On Windows, safeStorage is required. Plaintext fallback is allowed only on
- * non-Windows platforms when VENICE_FORGE_ALLOW_PLAINTEXT_KEY_STORAGE=true.
- *
- * The key is NEVER exposed to the renderer process.
- */
 import { app, safeStorage } from "electron";
 import fs from "fs";
 import path from "path";
 
+/** Name of the JSON file used for secure preferences storage. */
 const STORE_FILE = "secure-prefs.json";
+
+/** Whether plaintext fallback is permitted when OS encryption is unavailable. */
 const ALLOW_PLAINTEXT_FALLBACK =
   process.env.VENICE_FORGE_ALLOW_PLAINTEXT_KEY_STORAGE === "true";
 
+/** Describes the current secure storage mode. */
 export type SecureStorageMode = "encrypted" | "unavailable" | "plaintext-fallback";
 
+/** Stores the last error encountered while reading or decrypting the preference file. */
 let lastReadError: string | null = null;
 
+/** Returns the absolute path to the secure preferences file. */
 function getStorePath(): string {
   return path.join(app.getPath("userData"), STORE_FILE);
 }
 
+/** Reads and parses the secure preferences file.
+ *  @returns A record of string key-value pairs.
+ */
 function readStore(): Record<string, string> {
   try {
     const raw = fs.readFileSync(getStorePath(), "utf-8");
@@ -43,6 +47,9 @@ function readStore(): Record<string, string> {
   }
 }
 
+/** Persists the secure preferences object to disk with restricted permissions.
+ *  @param data The key-value record to write.
+ */
 function writeStore(data: Record<string, string>): void {
   fs.writeFileSync(getStorePath(), JSON.stringify(data, null, 2), {
     encoding: "utf-8",
@@ -52,6 +59,9 @@ function writeStore(data: Record<string, string>): void {
   });
 }
 
+/** Encrypts and stores the Venice API key using OS-level encryption when possible.
+ *  @param key The API key to store.
+ */
 export function setApiKey(key: string): void {
   const store = readStore();
   if (safeStorage.isEncryptionAvailable()) {
@@ -74,6 +84,9 @@ export function setApiKey(key: string): void {
   writeStore(store);
 }
 
+/** Retrieves and decrypts the stored Venice API key, if available.
+ *  @returns The decrypted key, or null if missing or corrupted.
+ */
 export function getApiKey(): string | null {
   const store = readStore();
   const raw = store["apiKey"];
@@ -91,6 +104,7 @@ export function getApiKey(): string | null {
   return raw;
 }
 
+/** Removes the stored Venice API key from secure preferences. */
 export function deleteApiKey(): void {
   const store = readStore();
   delete store["apiKey"];
@@ -98,22 +112,30 @@ export function deleteApiKey(): void {
   writeStore(store);
 }
 
+/** Checks whether a usable Venice API key is currently stored. */
 export function isApiKeyConfigured(): boolean {
   // Must test actual decryptability, not just raw byte presence.
   // A corrupted or DPAPI-unreadable blob would pass the raw check but fail here.
   return getApiKey() !== null;
 }
 
+/** Checks whether OS-level encryption is available on this platform. */
 export function isEncryptionAvailable(): boolean {
   return safeStorage.isEncryptionAvailable();
 }
 
+/** Determines the active secure storage mode based on platform and availability.
+ *  @returns The current storage mode identifier.
+ */
 export function getStorageMode(): SecureStorageMode {
   if (safeStorage.isEncryptionAvailable()) return "encrypted";
   if (process.platform !== "win32" && ALLOW_PLAINTEXT_FALLBACK) return "plaintext-fallback";
   return "unavailable";
 }
 
+/** Returns the current status of the secure store, including any corruption errors.
+ *  @returns A status object describing mode, availability, and errors.
+ */
 export function getSecureStoreStatus(): {
   mode: SecureStorageMode;
   encryptionAvailable: boolean;

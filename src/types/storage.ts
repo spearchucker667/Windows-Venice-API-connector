@@ -1,3 +1,6 @@
+/** @fileoverview Type definitions for IndexedDB storage records. */
+
+/** Describes a saved image record stored in the local gallery. */
 export interface GalleryImage {
   id: string;
   image: string;

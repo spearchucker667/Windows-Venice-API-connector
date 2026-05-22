@@ -1,7 +1,12 @@
+/** @fileoverview Unit tests for extracting human-readable error messages from
+ *  Venice API responses. */
+
 import { describe, it, expect } from 'vitest';
 import { readResponseError } from './veniceClient';
 
+/** Tests extraction of error details from Venice API response objects. */
 describe('readResponseError', () => {
+  /** Extracts a top-level error message string. */
   it('extracts top-level error message string', () => {
     const response = {
       body: { error: { message: 'Simple error' } },
@@ -11,6 +16,7 @@ describe('readResponseError', () => {
     expect(readResponseError(response)).toBe('Simple error');
   });
 
+  /** Stringifies object error messages to avoid "[object Object]" output. */
   it('stringifies object error message (Bug 3 Fix)', () => {
     const response = {
       body: { error: { code: 'invalid_request', detail: 'Something went wrong' } },
@@ -24,6 +30,7 @@ describe('readResponseError', () => {
     expect(result).toBe(JSON.stringify({ code: 'invalid_request', detail: 'Something went wrong' }));
   });
 
+  /** Extracts Zod-style validation errors from response details. */
   it('extracts Zod validation errors', () => {
     const response = {
       body: {
@@ -38,6 +45,7 @@ describe('readResponseError', () => {
     expect(readResponseError(response)).toBe('Root error');
   });
 
+  /** Falls back to status text when no structured error is present. */
   it('falls back to status text', () => {
     const response = {
       body: {},

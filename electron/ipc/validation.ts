@@ -1,3 +1,6 @@
+/** @fileoverview Validates IPC requests from the renderer to ensure they target
+ *  allowed Venice endpoints, methods, and payload sizes. */
+
 // Code Owner: fayeblade (@spearchucker667)
 // IPC input validation — critical security boundary between renderer and main process.
 export const MAX_VENICE_IPC_BODY_BYTES = 25 * 1024 * 1024;
@@ -10,6 +13,7 @@ import {
 } from "../../src/shared/validation";
 import { VENICE_API_HOST } from "../../src/shared/apiConfig";
 
+/** Describes a validated Venice IPC request ready for the main process. */
 export interface VeniceIpcRequest {
   endpoint: string;
   method: VeniceIpcMethod;
@@ -18,11 +22,16 @@ export interface VeniceIpcRequest {
   signalId?: string;
 }
 
+/** Computes the UTF-8 byte length of a request body. */
 function bodySizeBytes(body: unknown): number {
   if (body === undefined) return 0;
   return Buffer.byteLength(JSON.stringify(body), "utf-8");
 }
 
+/** Parses and validates that a Venice endpoint is relative and on the allowed origin.
+ *  @param endpoint The raw endpoint string from the renderer.
+ *  @returns A parsed URL constrained to the Venice API host.
+ */
 function parseEndpoint(endpoint: string): URL {
   if (!endpoint.startsWith("/")) throw new Error("Venice endpoint must be relative.");
   let parsed: URL;
@@ -37,6 +46,10 @@ function parseEndpoint(endpoint: string): URL {
   return parsed;
 }
 
+/** Validates that a user-provided API key is a non-empty string within length limits.
+ *  @param key The raw API key value to validate.
+ *  @returns The trimmed API key string.
+ */
 export function validateApiKeyInput(key: unknown): string {
   if (typeof key !== "string" || key.trim().length === 0) {
     throw new Error("Enter a Venice API key before saving.");
@@ -46,6 +59,10 @@ export function validateApiKeyInput(key: unknown): string {
   return trimmed;
 }
 
+/** Validates and sanitizes a Venice IPC request from the renderer.
+ *  @param input The raw request payload from IPC.
+ *  @returns A validated and sanitized request object.
+ */
 export function validateVeniceIpcRequest(input: unknown): VeniceIpcRequest {
   if (!input || typeof input !== "object") throw new Error("Venice request must be an object.");
   const request = input as Record<string, unknown>;
