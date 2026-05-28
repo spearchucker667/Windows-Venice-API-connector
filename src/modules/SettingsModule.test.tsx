@@ -49,6 +49,16 @@ vi.mock("../services/desktopBridge", () => ({
     exportJson: vi.fn().mockResolvedValue(true),
     importJsonString: vi.fn().mockResolvedValue(null),
   },
+  desktopUpdates: {
+    checkForUpdates: vi.fn().mockResolvedValue({ ok: true, version: "2.0.0" }),
+    downloadUpdate: vi.fn().mockResolvedValue({ ok: true }),
+    installUpdate: vi.fn().mockResolvedValue({ ok: true }),
+    onUpdateAvailable: vi.fn().mockReturnValue(vi.fn()),
+    onUpdateNotAvailable: vi.fn().mockReturnValue(vi.fn()),
+    onDownloadProgress: vi.fn().mockReturnValue(vi.fn()),
+    onUpdateDownloaded: vi.fn().mockReturnValue(vi.fn()),
+    onUpdateError: vi.fn().mockReturnValue(vi.fn()),
+  },
 }));
 
 // ---------------------------------------------------------------------------

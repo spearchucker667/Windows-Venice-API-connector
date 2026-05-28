@@ -29,8 +29,11 @@ const config = {
 
   asar: true,
 
-  // Publish disabled by default – configure your own publish target if needed
-  publish: null,
+  publish: {
+    provider: "github",
+    owner: "spearchucker667",
+    repo: "Windows-Venice-API-connector",
+  },
 
   win: {
     target: [

@@ -26,7 +26,7 @@ This backlog reflects the current repository state. Completed items from earlier
 | REL-003 | P1 | Done | SHA-256 checksum generation in release workflow | Checksums upload with `.exe` artifacts. |
 | REL-004 | P1 | Open | Smoke-test on a clean Windows VM before publishing a release | Follow [docs/RELEASE.md](docs/RELEASE.md). |
 | REL-005 | P2 | Open | Configure code signing for public distribution | Requires maintainer certificate secrets. |
-| REL-006 | P2 | Open | Add auto-update strategy | Currently a documented non-goal. |
+| REL-006 | P2 | Done | Add auto-update strategy | Added electron-updater and GitHub Releases integration. |
 
 ## Security and Privacy
 

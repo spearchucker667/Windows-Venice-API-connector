@@ -49,6 +49,7 @@
   },
   "dependencies": {
     "dotenv": "^16.4.5",
+    "electron-updater": "^6.8.3",
     "express": "^4.21.2",
     "http-proxy-middleware": "^4.0.0",
     "immer": "^11.1.8",

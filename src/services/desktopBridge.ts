@@ -226,3 +226,39 @@ export const desktopFiles = {
     return result.data;
   },
 };
+
+/** Handles application updates, falling back to no-op in web mode. */
+export const desktopUpdates = {
+  checkForUpdates(): Promise<{ ok: boolean; version?: string; error?: string }> {
+    if (!isElectron()) return Promise.resolve({ ok: false, error: "Auto-updates are only available in desktop mode." });
+    return window.veniceForge!.updates.checkForUpdates();
+  },
+  downloadUpdate(): Promise<{ ok: boolean; error?: string }> {
+    if (!isElectron()) return Promise.resolve({ ok: false, error: "Auto-updates are only available in desktop mode." });
+    return window.veniceForge!.updates.downloadUpdate();
+  },
+  installUpdate(): Promise<{ ok: boolean }> {
+    if (!isElectron()) return Promise.resolve({ ok: false });
+    return window.veniceForge!.updates.installUpdate();
+  },
+  onUpdateAvailable(callback: (info: unknown) => void): () => void {
+    if (!isElectron()) return () => {};
+    return window.veniceForge!.updates.onUpdateAvailable(callback);
+  },
+  onUpdateNotAvailable(callback: () => void): () => void {
+    if (!isElectron()) return () => {};
+    return window.veniceForge!.updates.onUpdateNotAvailable(callback);
+  },
+  onDownloadProgress(callback: (progress: unknown) => void): () => void {
+    if (!isElectron()) return () => {};
+    return window.veniceForge!.updates.onDownloadProgress(callback);
+  },
+  onUpdateDownloaded(callback: () => void): () => void {
+    if (!isElectron()) return () => {};
+    return window.veniceForge!.updates.onUpdateDownloaded(callback);
+  },
+  onUpdateError(callback: (error: string) => void): () => void {
+    if (!isElectron()) return () => {};
+    return window.veniceForge!.updates.onUpdateError(callback);
+  },
+};

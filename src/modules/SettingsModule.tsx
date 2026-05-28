@@ -6,7 +6,7 @@ import { Chip } from "../components/Chip";
 import { ModelSelect } from "../components/ModelSelect";
 import { StatusBlock } from "../components/StatusBlock";
 import { ConfirmModal } from "../components/ConfirmModal";
-import { isElectron, desktopApiKey, desktopApp, desktopFiles } from "../services/desktopBridge";
+import { isElectron, desktopApiKey, desktopApp, desktopFiles, desktopUpdates } from "../services/desktopBridge";
 import { createExportPayload, validateImportJson } from "../services/exportImport";
 
 interface SettingsModuleProps {
@@ -33,6 +33,54 @@ export function SettingsModule({ state, dispatch, apiKeyConfigured, onApiKeyChan
   // Desktop-only: API key entry
   const [apiKeyInput, setApiKeyInput] = useState("");
   const [apiKeyTesting, setApiKeyTesting] = useState(false);
+
+  // Desktop-only: Updates
+  const [updateStatus, setUpdateStatus] = useState<string>("");
+  const [isUpdateChecking, setIsUpdateChecking] = useState(false);
+  const [updateDownloaded, setUpdateDownloaded] = useState(false);
+
+  React.useEffect(() => {
+    if (!isElectron()) return;
+
+    const unsubs = [
+      desktopUpdates.onUpdateAvailable((info: any) => {
+        setUpdateStatus(`Update available: v${info?.version || "new"}`);
+        setIsUpdateChecking(false);
+      }),
+      desktopUpdates.onUpdateNotAvailable(() => {
+        setUpdateStatus("App is up to date.");
+        setIsUpdateChecking(false);
+      }),
+      desktopUpdates.onDownloadProgress((progress: any) => {
+        setUpdateStatus(`Downloading update: ${Math.round(progress?.percent || 0)}%`);
+      }),
+      desktopUpdates.onUpdateDownloaded(() => {
+        setUpdateStatus("Update downloaded and ready to install.");
+        setUpdateDownloaded(true);
+        setIsUpdateChecking(false);
+      }),
+      desktopUpdates.onUpdateError((err: string) => {
+        setUpdateStatus(`Update error: ${err}`);
+        setIsUpdateChecking(false);
+      }),
+    ];
+
+    return () => unsubs.forEach((unsub) => unsub());
+  }, []);
+
+  async function checkForUpdates() {
+    setIsUpdateChecking(true);
+    setUpdateStatus("Checking for updates...");
+    const res = await desktopUpdates.checkForUpdates();
+    if (!res.ok) {
+      setUpdateStatus(`Update check failed: ${res.error}`);
+      setIsUpdateChecking(false);
+    }
+  }
+
+  async function installUpdate() {
+    await desktopUpdates.installUpdate();
+  }
 
   function confirm(message: string, detail: string, action: () => Promise<void> | void) {
     setPendingConfirm({ message, detail, onConfirm: action });
@@ -269,6 +317,40 @@ export function SettingsModule({ state, dispatch, apiKeyConfigured, onApiKeyChan
             </div>
             <div className="notice small">
               Web mode uses the server .env key only. Manual local keys are desktop-only.
+            </div>
+          </div>
+        )}
+
+        {/* Application Updates (Desktop-only) */}
+        {isElectron() && (
+          <div className="panel pad">
+            <div className="panel-header">
+              <div className="panel-title">Application Updates</div>
+              <Chip tone={updateDownloaded ? "ok" : "neutral"}>
+                {updateDownloaded ? "Update Ready" : "System"}
+              </Chip>
+            </div>
+            <div className="notice small">
+              Checks for updates securely via GitHub Releases.
+            </div>
+            <div className="grid two" style={{ marginTop: 12 }}>
+              <Field label="Status">
+                <div style={{ marginTop: 8 }} className="small">
+                  {updateStatus || "Idle"}
+                </div>
+              </Field>
+              <Field label="Actions">
+                <div className="chip-row">
+                  <button className="btn" onClick={checkForUpdates} disabled={isUpdateChecking || updateDownloaded}>
+                    {isUpdateChecking ? "Checking…" : "Check for updates"}
+                  </button>
+                  {updateDownloaded && (
+                    <button className="btn primary" onClick={installUpdate}>
+                      Restart and Install
+                    </button>
+                  )}
+                </div>
+              </Field>
             </div>
           </div>
         )}

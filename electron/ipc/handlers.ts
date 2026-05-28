@@ -14,6 +14,7 @@ import { getLastApiError, getLogsDir, logError, openLogsFolder } from "../servic
 import { abortVeniceRequest, performVeniceRequest, readResponseError } from "../services/veniceClient";
 import { validateApiKeyInput, validateVeniceIpcRequest } from "./validation";
 import { redactErrorMessage } from "../../src/services/redaction";
+import { registerUpdateHandlers } from "./updates";
 
 /** Maximum size in bytes for JSON import and export files. */
 const MAX_JSON_FILE_BYTES = 25 * 1024 * 1024;
@@ -39,6 +40,8 @@ async function testVeniceConnection(): Promise<{ ok: boolean; status?: number; m
 
 /** Registers all IPC handlers used by the renderer process. */
 export function registerIpcHandlers(): void {
+  registerUpdateHandlers();
+
   ipcMain.handle("venice:request", async (_event, input: unknown) => {
     try {
       validateVeniceIpcRequest(input);

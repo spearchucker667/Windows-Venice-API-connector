@@ -67,6 +67,18 @@ export interface VeniceForgeFiles {
   loadJsonFile(): Promise<{ canceled: boolean; data?: string }>;
 }
 
+/** Exposes Auto-Update helpers available through the preload bridge. */
+export interface VeniceForgeUpdates {
+  checkForUpdates(): Promise<{ ok: boolean; version?: string; error?: string }>;
+  downloadUpdate(): Promise<{ ok: boolean; error?: string }>;
+  installUpdate(): Promise<{ ok: boolean }>;
+  onUpdateAvailable(callback: (info: unknown) => void): () => void;
+  onUpdateNotAvailable(callback: () => void): () => void;
+  onDownloadProgress(callback: (progress: unknown) => void): () => void;
+  onUpdateDownloaded(callback: () => void): () => void;
+  onUpdateError(callback: (error: string) => void): () => void;
+}
+
 /** Root interface for the Venice Forge preload bridge exposed on the window object. */
 export interface VeniceForge {
   readonly isDesktop: true;
@@ -74,6 +86,7 @@ export interface VeniceForge {
   apiKey: VeniceForgeApiKey;
   app: VeniceForgeApp;
   files: VeniceForgeFiles;
+  updates: VeniceForgeUpdates;
 }
 
 declare global {

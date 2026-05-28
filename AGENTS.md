@@ -38,6 +38,7 @@ Requirements: Node.js 20 or 22, npm 10+, Windows 10/11 for release builds.
 │   ├── preload.ts          # contextBridge API exposed to renderer
 │   ├── ipc/
 │   │   ├── handlers.ts     # ipcMain.handle registrations
+│   │   ├── updates.ts      # Auto-updater IPC channels and broadcasting
 │   │   ├── validation.ts   # Input validation for all Venice IPC requests
 │   │   └── validation.test.ts
 │   └── services/
@@ -245,6 +246,8 @@ npx vitest run src/services/exportImport.test.ts
 
 ### Known Limitations
 
+- Auto-updates are fetched securely via GitHub Releases.
+- Release signing is optional and not required for local builds.
 - IndexedDB contents are not encrypted at rest (except `chats` and `settings` via `cryptoService`).
 - Malware or a debugger running as the same OS user is out of scope.
 - Unsigned installers trigger Windows SmartScreen warnings.

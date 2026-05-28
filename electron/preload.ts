@@ -134,6 +134,53 @@ const veniceForge = {
       return ipcRenderer.invoke("app:loadJsonFile");
     },
   },
+
+  updates: {
+    checkForUpdates(): Promise<{ ok: boolean; version?: string; error?: string }> {
+      return ipcRenderer.invoke("app:checkForUpdates");
+    },
+    downloadUpdate(): Promise<{ ok: boolean; error?: string }> {
+      return ipcRenderer.invoke("app:downloadUpdate");
+    },
+    installUpdate(): Promise<{ ok: boolean }> {
+      return ipcRenderer.invoke("app:installUpdate");
+    },
+    onUpdateAvailable(callback: (info: unknown) => void) {
+      const listener = (_event: Electron.IpcRendererEvent, info: unknown) => callback(info);
+      ipcRenderer.on("updates:available", listener);
+      return () => {
+        ipcRenderer.removeListener("updates:available", listener);
+      };
+    },
+    onUpdateNotAvailable(callback: () => void) {
+      const listener = () => callback();
+      ipcRenderer.on("updates:not-available", listener);
+      return () => {
+        ipcRenderer.removeListener("updates:not-available", listener);
+      };
+    },
+    onDownloadProgress(callback: (progress: unknown) => void) {
+      const listener = (_event: Electron.IpcRendererEvent, progress: unknown) => callback(progress);
+      ipcRenderer.on("updates:progress", listener);
+      return () => {
+        ipcRenderer.removeListener("updates:progress", listener);
+      };
+    },
+    onUpdateDownloaded(callback: () => void) {
+      const listener = () => callback();
+      ipcRenderer.on("updates:downloaded", listener);
+      return () => {
+        ipcRenderer.removeListener("updates:downloaded", listener);
+      };
+    },
+    onUpdateError(callback: (error: string) => void) {
+      const listener = (_event: Electron.IpcRendererEvent, error: string) => callback(error);
+      ipcRenderer.on("updates:error", listener);
+      return () => {
+        ipcRenderer.removeListener("updates:error", listener);
+      };
+    },
+  },
 };
 
 contextBridge.exposeInMainWorld("veniceForge", veniceForge);

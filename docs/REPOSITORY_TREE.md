@@ -37,6 +37,7 @@ This document is the public map for the Venice Forge repository. It reflects the
 │   ├── main.ts
 │   └── preload.ts
 ├── scripts/
+│   ├── checksum-release.cjs
 │   ├── create-cjs-package.cjs
 │   ├── generate-placeholder-icon.cjs
 │   ├── verify-dist-mac.cjs

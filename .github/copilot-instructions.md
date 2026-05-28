@@ -70,6 +70,9 @@ POST /augment/scrape
 POST /augment/text-parser
 ```
 
+### Auto-Updates
+Auto-updates are fetched via GitHub Releases. The `electron/ipc/updates.ts` module securely exposes `checkForUpdates`, `downloadUpdate`, and `installUpdate` to the renderer while keeping download logic in the sandboxed main process.
+
 ---
 
 ## Key Conventions

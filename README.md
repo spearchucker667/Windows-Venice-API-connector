@@ -157,7 +157,7 @@ See [docs/LEGAL.md](docs/LEGAL.md) for the public-readiness legal notes, tradema
 
 ## Known Limitations
 
-- No auto-update is configured.
+- Auto-updates are fetched securely via GitHub Releases.
 - Release signing is optional and not required for local builds.
 - IndexedDB records are encrypted with a browser-managed AES-GCM key stored in same-origin IndexedDB. This reduces casual local inspection risk but is not equivalent to OS credential storage and does not protect against malware, XSS, same-origin compromise, browser profile compromise, or a compromised OS user. Export before risky upgrades.
 - Malware running as the same OS user is out of scope and may access user data or process memory.
