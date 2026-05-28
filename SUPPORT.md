@@ -16,7 +16,9 @@ For bugs, include:
 
 - App version from `package.json` or the Status tab.
 - Runtime mode: Electron desktop or web mode.
-- OS and Node.js version.
+- OS, Node.js version, and CPU Architecture (e.g., Apple Silicon vs Intel).
+- Artifact type (e.g., NSIS installer, Portable exe, macOS DMG, macOS ZIP).
+- For macOS locally built unsigned artifacts: Did you see Gatekeeper or quarantine errors?
 - Steps to reproduce.
 - Expected behavior and actual behavior.
 - Sanitized diagnostics from the Status tab.

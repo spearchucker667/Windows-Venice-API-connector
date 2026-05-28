@@ -46,15 +46,10 @@ jobs:
           WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
 
       - name: Generate SHA-256 checksums
-        shell: pwsh
-        run: |
-          Get-ChildItem release -Filter *.exe | ForEach-Object {
-            $hash = Get-FileHash -Algorithm SHA256 $_.FullName
-            "$($hash.Hash)  $($_.Name)" | Set-Content -NoNewline -Encoding ascii "$($_.FullName).sha256"
-          }
+        run: npm run checksum:release
 
       - name: Verify release artifacts
-        run: npm run verify:dist
+        run: npm run verify:dist:win
 
       - name: Upload release artifacts
         uses: actions/upload-artifact@v6

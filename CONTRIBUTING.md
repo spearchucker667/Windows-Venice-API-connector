@@ -19,7 +19,7 @@ Please read and follow our [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
 - Node.js 20 or 22
 - npm 10+
-- Windows 10/11 (for full Electron packaging tests)
+- Windows 10/11 or macOS 13+ (for full Electron packaging tests)
 - A Venice API key ([venice.ai](https://venice.ai))
 
 ### Development Setup
@@ -62,9 +62,15 @@ npm test
 
 # Build all targets
 npm run build
+
+# Validate icons and dist builds
+npm run verify:icon
+npm run dist:mac # or dist:win, depending on your OS
+npm run checksum:release
+npm run verify:dist:mac # or verify:dist:win
 ```
 
-All three commands must pass before opening a PR.
+All commands and validations must pass before opening a PR. Note that Windows releases must be validated on Windows, and macOS releases on macOS.
 
 ### Testing
 
@@ -95,6 +101,7 @@ See [docs/SECURITY.md](docs/SECURITY.md) for the full security model.
 - [ ] `npm run typecheck` passes
 - [ ] `npm test` passes
 - [ ] `npm run build` passes
+- [ ] Platform-specific packaging checks (`npm run verify:dist:win` or `npm run verify:dist:mac`) pass
 - [ ] New code includes tests where applicable
 - [ ] Documentation updated (README, AGENTS.md, etc.)
 - [ ] CHANGELOG.md updated under `[Unreleased]`

@@ -8,12 +8,21 @@ labels: bug
 
 Describe the bug in one or two sentences.
 
-## Environment
+### Environment Details
 
-- App version:
+- **OS / Version:** (e.g., Windows 11, macOS 14.2)
+- **Architecture:** (e.g., x64, Apple Silicon arm64)
+- **App Version:** (e.g., 1.0.1)
+- **Artifact Type:** (e.g., NSIS Setup, Portable .exe, macOS .dmg, macOS .zip)
+- **Signed / Unsigned:** (e.g., Local unsigned build, Release signed)
+
+### macOS Specific Questions (if applicable)
+
+- [ ] Did you see a Gatekeeper/quarantine warning?
+- [ ] Are you running Apple Silicon or Intel?
+- [ ] Was the app launched from the DMG or copied to Applications?
+
 - Runtime mode: Electron desktop / web mode
-- OS:
-- Node.js version:
 - Venice model or endpoint involved:
 
 ## Steps to Reproduce

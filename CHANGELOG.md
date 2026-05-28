@@ -1,6 +1,24 @@
 # Changelog
 
-All notable changes to Venice Forge are documented here.
+All notable changes to this project will be documented in this file.
+
+## [Unreleased]
+
+### Added
+- Dual-platform macOS + Windows packaging support.
+- Generated macOS `.icns` application icon.
+- Cross-platform checksum sidecar generation (`.sha256`) for distribution artifacts.
+- Cross-platform local testing and release verification scripts.
+- macOS release workflow (`macos-release.yml`) for `arm64` and `x64` builds.
+
+### Changed
+- Refactored `verify-dist` to support both Windows and macOS file validations.
+- `secureStore.ts` strictly enforces macOS Keychain encryption exactly like Windows DPAPI.
+
+### Security
+- Explicitly disabled plaintext API-key fallback on macOS.
+
+---
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Venice Forge uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 

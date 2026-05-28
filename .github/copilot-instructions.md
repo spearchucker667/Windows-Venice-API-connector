@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Venice Forge is a **Windows-first Electron desktop app** (also runnable as a Vite/Express web app) for the [Venice API](https://venice.ai). It provides chat, image generation, batch prompting, web research, model discovery, and a local image gallery — all privacy-focused with no telemetry.
+Venice Forge is a **dual-platform (Windows + macOS) Electron desktop app** (also runnable as a Vite/Express web app) for the [Venice API](https://venice.ai). It provides chat, image generation, batch prompting, web research, model discovery, and a local image gallery — all privacy-focused with no telemetry.
 
 Stack: React 19 + TypeScript strict + Tailwind CSS v4 + Vite 6 (renderer), Electron 42 (desktop), Express 4 (web proxy), Vitest 4 (tests), tsc (Electron main build), esbuild (Express server bundle).
 
@@ -107,6 +107,7 @@ Each tab is a self-contained module file in `src/modules/`. Modules receive `{ s
 - Do not add new IPC channels without adding them to `electron/preload.ts` and `electron/ipc/handlers.ts`, and validating inputs in `electron/ipc/validation.ts`.
 - Do not add new Venice endpoints without updating `src/shared/validation.ts`.
 - CSP is strict in production — no inline scripts, no external `connect-src`.
+- macOS requires `build/icon.icns` for packaging. Never weaken `safeStorage` — macOS Keychain and Windows DPAPI parity is required. Plaintext storage is completely disabled for Windows and macOS.
 
 ---
 
