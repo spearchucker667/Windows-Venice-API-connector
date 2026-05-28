@@ -44,9 +44,10 @@ const veniceForge = {
       const beforeUnload = () => {
         ipcRenderer.invoke("venice:abort", signalId).catch(() => {});
       };
-      (globalThis as any).addEventListener("beforeunload", beforeUnload);
+      const global = globalThis as typeof globalThis & { addEventListener(type: string, listener: () => void): void; removeEventListener(type: string, listener: () => void): void };
+      global.addEventListener("beforeunload", beforeUnload);
       return pending.finally(() => {
-        (globalThis as any).removeEventListener("beforeunload", beforeUnload);
+        global.removeEventListener("beforeunload", beforeUnload);
         ipcRenderer.removeListener("venice:streamDelta", listener);
       });
     },
