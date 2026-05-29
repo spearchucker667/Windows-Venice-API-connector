@@ -10,7 +10,8 @@
 [![Electron 42](https://img.shields.io/badge/electron-42-47848f.svg)](package.json)
 [![Venice API](https://img.shields.io/badge/API-Venice.ai-111827.svg)](https://docs.venice.ai/)
 
-<img width="2816" height="1536" alt="Gemini_Generated_Image_3tkcjm3tkcjm3tkc" src="https://github.com/user-attachments/assets/079845cb-0eb2-4ba1-858a-189a1d90f6b7" />
+<img width="1697" height="927" alt="ChatGPT Image May 28, 2026, 09_36_58 PM" src="https://github.com/user-attachments/assets/e992bed4-df0c-4693-a0c2-1b95e7ffc281" />
+
 
 See [docs/ABOUT.md](docs/ABOUT.md) for project background and architecture overview.
 
