@@ -4,30 +4,37 @@
 const ALGO = "AES-GCM";
 const KEY_NAME = "venice-forge-key";
 
+/** Promise latch ensuring only one key-generation sequence runs at a time. */
+let keyPromise: Promise<CryptoKey> | null = null;
+
 /**
  * Retrieves an existing AES-GCM key from IndexedDB or generates a new one.
  * @returns A promise resolving to the CryptoKey.
  */
 async function getOrCreateKey(): Promise<CryptoKey> {
-  const db = await openKeyDB();
-  const existing = await new Promise<any>((resolve, reject) => {
-    const tx = db.transaction("keys", "readonly");
-    const req = tx.objectStore("keys").get(KEY_NAME);
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-  if (existing) return existing.key;
-  const key = await crypto.subtle.generateKey(
-    { name: ALGO, length: 256 },
-    false,
-    ["encrypt", "decrypt"]
-  );
-  return new Promise<CryptoKey>((resolve, reject) => {
-    const tx = db.transaction("keys", "readwrite");
-    const putReq = tx.objectStore("keys").put({ id: KEY_NAME, key });
-    putReq.onsuccess = () => resolve(key);
-    putReq.onerror = () => reject(putReq.error);
-  });
+  if (keyPromise) return keyPromise;
+  keyPromise = (async () => {
+    const db = await openKeyDB();
+    const existing = await new Promise<any>((resolve, reject) => {
+      const tx = db.transaction("keys", "readonly");
+      const req = tx.objectStore("keys").get(KEY_NAME);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+    if (existing) return existing.key;
+    const key = await crypto.subtle.generateKey(
+      { name: ALGO, length: 256 },
+      false,
+      ["encrypt", "decrypt"]
+    );
+    return new Promise<CryptoKey>((resolve, reject) => {
+      const tx = db.transaction("keys", "readwrite");
+      const putReq = tx.objectStore("keys").put({ id: KEY_NAME, key });
+      putReq.onsuccess = () => resolve(key);
+      putReq.onerror = () => reject(putReq.error);
+    });
+  })();
+  return keyPromise;
 }
 
 /**

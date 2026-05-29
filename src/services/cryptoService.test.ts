@@ -50,4 +50,13 @@ describe("cryptoService", () => {
     const result = await decryptData(null);
     expect(result).toBeNull();
   });
+
+  /** BUG-001 regression: concurrent encrypt calls must not overwrite the key. */
+  it("survives concurrent encrypt calls without key overwrite", async () => {
+    const payloads = Array.from({ length: 10 }, (_, i) => ({ id: `race-${i}`, value: Math.random() }));
+    const encrypted = await Promise.all(payloads.map((p) => encryptData(p)));
+    const decrypted = await Promise.all(encrypted.map((e) => decryptData(e)));
+    expect(decrypted.every((d) => d !== null)).toBe(true);
+    expect(decrypted).toEqual(payloads);
+  });
 });
