@@ -1,10 +1,30 @@
 /** @fileoverview Unit tests for veniceClient utility functions. */
 
 import { describe, expect, it } from "vitest";
-import { summarizeDiagnostics, normalizeError, readWebErrorBody, extractModelName } from "./veniceClient";
+import { summarizeDiagnostics, normalizeError, readWebErrorBody, extractModelName, dedupeKey } from "./veniceClient";
 
 /** Tests for the veniceClient utility functions. */
 describe("veniceClient utilities", () => {
+  /** BUG-006 regression: dedupeKey must not throw on circular bodies. */
+  describe("dedupeKey", () => {
+    it("returns consistent keys for serialisable bodies", () => {
+      const key1 = dedupeKey("/models", "GET", { foo: "bar" });
+      const key2 = dedupeKey("/models", "GET", { foo: "bar" });
+      expect(key1).toBe(key2);
+    });
+
+    it("does not throw on circular bodies", () => {
+      const body: Record<string, unknown> = { a: 1 };
+      body.self = body;
+      expect(() => dedupeKey("/chat/completions", "POST", body)).not.toThrow();
+    });
+
+    it("treats undefined body as empty hash", () => {
+      const key = dedupeKey("/models", "GET", undefined);
+      expect(key).toBe("GET /models ");
+    });
+  });
+
   /** Tests for summarizeDiagnostics. */
   describe("summarizeDiagnostics", () => {
     /** Verifies latency computation from startedAt and endedAt timestamps. */

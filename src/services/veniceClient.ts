@@ -25,8 +25,17 @@ const inFlight = new Map<string, Promise<{ data: unknown; response: Response | V
  * @param body The request body.
  * @returns A string key suitable for deduplicating identical requests.
  */
-function dedupeKey(endpoint: string, method: string, body: unknown): string {
-  const bodyHash = body === undefined ? "" : JSON.stringify(body);
+/** @internal exported for testing */
+export function dedupeKey(endpoint: string, method: string, body: unknown): string {
+  let bodyHash = "";
+  if (body !== undefined) {
+    try {
+      bodyHash = JSON.stringify(body);
+    } catch {
+      // Circular or otherwise unserialisable body — skip deduplication
+      bodyHash = `[unhashable-${Date.now()}]`;
+    }
+  }
   return `${method} ${endpoint} ${bodyHash}`;
 }
 
