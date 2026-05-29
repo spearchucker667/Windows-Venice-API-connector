@@ -1,5 +1,7 @@
 /** @fileoverview Type definitions for the Electron preload bridge API. */
 
+import type { UpdateInfo, ProgressInfo } from "electron-updater";
+
 /** Manages the Venice API key in secure OS-level storage. */
 export interface VeniceForgeApiKey {
   isConfigured(): Promise<boolean>;
@@ -72,9 +74,9 @@ export interface VeniceForgeUpdates {
   checkForUpdates(): Promise<{ ok: boolean; version?: string; error?: string }>;
   downloadUpdate(): Promise<{ ok: boolean; error?: string }>;
   installUpdate(): Promise<{ ok: boolean }>;
-  onUpdateAvailable(callback: (info: unknown) => void): () => void;
+  onUpdateAvailable(callback: (info: UpdateInfo) => void): () => void;
   onUpdateNotAvailable(callback: () => void): () => void;
-  onDownloadProgress(callback: (progress: unknown) => void): () => void;
+  onDownloadProgress(callback: (progress: ProgressInfo) => void): () => void;
   onUpdateDownloaded(callback: () => void): () => void;
   onUpdateError(callback: (error: string) => void): () => void;
 }

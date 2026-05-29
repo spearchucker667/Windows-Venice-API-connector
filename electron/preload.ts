@@ -146,8 +146,8 @@ const veniceForge = {
     installUpdate(): Promise<{ ok: boolean }> {
       return ipcRenderer.invoke("app:installUpdate");
     },
-    onUpdateAvailable(callback: (info: unknown) => void) {
-      const listener = (_event: Electron.IpcRendererEvent, info: unknown) => callback(info);
+    onUpdateAvailable(callback: (info: import("electron-updater").UpdateInfo) => void) {
+      const listener = (_event: Electron.IpcRendererEvent, info: import("electron-updater").UpdateInfo) => callback(info);
       ipcRenderer.on("updates:available", listener);
       return () => {
         ipcRenderer.removeListener("updates:available", listener);
@@ -160,8 +160,8 @@ const veniceForge = {
         ipcRenderer.removeListener("updates:not-available", listener);
       };
     },
-    onDownloadProgress(callback: (progress: unknown) => void) {
-      const listener = (_event: Electron.IpcRendererEvent, progress: unknown) => callback(progress);
+    onDownloadProgress(callback: (progress: import("electron-updater").ProgressInfo) => void) {
+      const listener = (_event: Electron.IpcRendererEvent, progress: import("electron-updater").ProgressInfo) => callback(progress);
       ipcRenderer.on("updates:progress", listener);
       return () => {
         ipcRenderer.removeListener("updates:progress", listener);

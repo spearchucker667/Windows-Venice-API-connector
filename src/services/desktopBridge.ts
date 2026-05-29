@@ -241,7 +241,7 @@ export const desktopUpdates = {
     if (!isElectron()) return Promise.resolve({ ok: false });
     return window.veniceForge!.updates.installUpdate();
   },
-  onUpdateAvailable(callback: (info: unknown) => void): () => void {
+  onUpdateAvailable(callback: (info: import("electron-updater").UpdateInfo) => void): () => void {
     if (!isElectron()) return () => {};
     return window.veniceForge!.updates.onUpdateAvailable(callback);
   },
@@ -249,7 +249,7 @@ export const desktopUpdates = {
     if (!isElectron()) return () => {};
     return window.veniceForge!.updates.onUpdateNotAvailable(callback);
   },
-  onDownloadProgress(callback: (progress: unknown) => void): () => void {
+  onDownloadProgress(callback: (progress: import("electron-updater").ProgressInfo) => void): () => void {
     if (!isElectron()) return () => {};
     return window.veniceForge!.updates.onDownloadProgress(callback);
   },
