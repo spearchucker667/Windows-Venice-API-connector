@@ -262,12 +262,12 @@ export function ImageModule({ state, dispatch }: { state: AppState; dispatch: Ap
   }
 
   return (
-    <section className="flex flex-col h-full bg-zinc-950">
-      <div className="flex-none p-6 border-b border-white/5 bg-zinc-950/50 backdrop-blur-md">
+    <section className="flex flex-col h-full bg-bg">
+      <div className="flex-none p-6 border-b border-border/50 bg-bg/50 backdrop-blur-md">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-display font-semibold tracking-tight text-white">Image generation</h2>
-            <div className="text-sm text-zinc-400 mt-1">POST /image/generate. Images auto-save to IndexedDB gallery.</div>
+            <h2 className="text-2xl font-display font-semibold tracking-tight text-text-primary">Image generation</h2>
+            <div className="text-sm text-text-secondary mt-1">POST /image/generate. Images auto-save to IndexedDB gallery.</div>
           </div>
           <DiagPreview diagnostics={state.diagnostics} />
         </div>

@@ -103,6 +103,23 @@ describe("ChatModule", () => {
     });
   });
 
+  // BUG-051 regression guard: prompt validation warning must not appear after a valid send clears the input.
+  it("does not show prompt-empty validation after sending a non-empty prompt", async () => {
+    vi.mocked(veniceFetch).mockResolvedValue({
+      data: { choices: [{ message: { content: "All good" } }] },
+    } as any);
+
+    renderChat({ usingFallbackModels: false });
+
+    await userEvent.type(screen.getByRole("textbox", promptSelector), "Hello");
+    await userEvent.click(screen.getByRole("button", sendBtnSelector));
+
+    await waitFor(() => {
+      expect(veniceFetch).toHaveBeenCalled();
+    });
+    expect(screen.queryByText(/please enter a prompt before sending/i)).not.toBeInTheDocument();
+  });
+
   it("calls veniceStreamChat when streaming is enabled", async () => {
     vi.mocked(veniceStreamChat).mockResolvedValue(undefined);
 

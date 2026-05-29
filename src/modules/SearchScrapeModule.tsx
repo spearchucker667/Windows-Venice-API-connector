@@ -144,12 +144,12 @@ export function SearchScrapeModule({ state, dispatch }: ModuleProps) {
   }
 
   return (
-    <section className="flex flex-col h-full bg-zinc-950">
-      <div className="flex-none p-6 border-b border-white/5 bg-zinc-950/50 backdrop-blur-md">
+    <section className="flex flex-col h-full bg-bg">
+      <div className="flex-none p-6 border-b border-border/50 bg-bg/50 backdrop-blur-md">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-display font-semibold tracking-tight text-white">Search / scrape helper</h2>
-            <div className="text-sm text-zinc-400 mt-1">
+            <h2 className="text-2xl font-display font-semibold tracking-tight text-text-primary">Search / scrape helper</h2>
+            <div className="text-sm text-text-secondary mt-1">
               Experimental /augment/search, /augment/scrape, and browser FormData text-parser.
             </div>
           </div>
@@ -161,9 +161,9 @@ export function SearchScrapeModule({ state, dispatch }: ModuleProps) {
         <StatusBlock error={error} />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md flex flex-col gap-6">
-            <div className="flex items-center justify-between border-b border-white/10 pb-4">
-              <h3 className="text-lg font-medium text-white">Web search</h3>
+          <div className="rounded-2xl border border-border/50 bg-surface-elevated/40 p-6 backdrop-blur-md flex flex-col gap-6">
+            <div className="flex items-center justify-between border-b border-border/50 pb-4">
+              <h3 className="text-lg font-medium text-text-primary">Web search</h3>
               <Chip>$0.01-class utility</Chip>
             </div>
             <div className="flex flex-col gap-5">
@@ -172,14 +172,14 @@ export function SearchScrapeModule({ state, dispatch }: ModuleProps) {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="latest model routing best practices"
-                  className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-zinc-600 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all"
+                  className="w-full bg-surface/50 border border-border/50 rounded-lg px-4 py-2.5 text-text-primary placeholder-text-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
                 />
               </Field>
               <Field label="Provider">
                 <select
                   value={provider}
                   onChange={(e) => setProvider(e.target.value)}
-                  className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all appearance-none"
+                  className="w-full bg-surface/50 border border-border/50 rounded-lg px-4 py-2.5 text-text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all appearance-none"
                 >
                   <option value="brave">brave</option>
                   <option value="google">google</option>
@@ -195,33 +195,33 @@ export function SearchScrapeModule({ state, dispatch }: ModuleProps) {
               
               <div className="flex flex-col gap-4 mt-2">
                 {searchResults.map((r, idx) => (
-                  <div key={idx} className="rounded-xl bg-black/40 border border-white/5 p-4 transition-all hover:border-white/10">
+                  <div key={idx} className="rounded-xl bg-surface/50 border border-border/50 p-4 transition-all hover:border-border">
                     <div className="mb-1">
-                      <strong className="text-white text-sm">
+                      <strong className="text-text-primary text-sm">
                         {r.title || r.name || "Untitled result"}
                       </strong>
                     </div>
                     <div className="text-xs mb-2">
-                      <a href={safeHref(r.url || r.link)} target="_blank" rel="noreferrer" className="text-brand-400 hover:text-brand-300 break-all">
+                      <a href={safeHref(r.url || r.link)} target="_blank" rel="noreferrer" className="text-accent hover:text-accent-hover break-all">
                         {r.url || r.link}
                       </a>
                     </div>
-                    <div className="text-sm text-zinc-400 line-clamp-3">
+                    <div className="text-sm text-text-secondary line-clamp-3">
                       {r.snippet || r.content || r.description || ""}
                     </div>
-                    {r.date && <div className="text-[10px] text-zinc-600 uppercase tracking-wider mt-2">{r.date}</div>}
+                    {r.date && <div className="text-[10px] text-text-muted uppercase tracking-wider mt-2">{r.date}</div>}
                   </div>
                 ))}
                 {!searchResults.length && (
-                  <div className="text-sm text-zinc-500 p-4 rounded-xl bg-black/20 border border-white/5 text-center">No search results yet.</div>
+                  <div className="text-sm text-text-muted p-4 rounded-xl bg-surface/30 border border-border/50 text-center">No search results yet.</div>
                 )}
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md flex flex-col gap-6">
-            <div className="flex items-center justify-between border-b border-white/10 pb-4">
-              <h3 className="text-lg font-medium text-white">Web scrape</h3>
+          <div className="rounded-2xl border border-border/50 bg-surface-elevated/40 p-6 backdrop-blur-md flex flex-col gap-6">
+            <div className="flex items-center justify-between border-b border-border/50 pb-4">
+              <h3 className="text-lg font-medium text-text-primary">Web scrape</h3>
               <Chip>markdown output</Chip>
             </div>
             <div className="flex flex-col gap-5 flex-1">
@@ -230,7 +230,7 @@ export function SearchScrapeModule({ state, dispatch }: ModuleProps) {
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                   placeholder="https://example.com"
-                  className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-zinc-600 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all"
+                  className="w-full bg-surface/50 border border-border/50 rounded-lg px-4 py-2.5 text-text-primary placeholder-text-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
                 />
               </Field>
               <div className="flex flex-wrap gap-3">
@@ -253,21 +253,21 @@ export function SearchScrapeModule({ state, dispatch }: ModuleProps) {
                 value={scrapeOutput}
                 onChange={(e) => setScrapeOutput(e.target.value)}
                 placeholder="Scraped markdown/text output"
-                className="w-full flex-1 bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white placeholder-zinc-600 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all font-mono text-sm resize-y shadow-inner"
+                className="w-full flex-1 bg-surface/50 border border-border/50 rounded-xl px-5 py-4 text-text-primary placeholder-text-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all font-mono text-sm resize-y shadow-inner"
                 style={{ minHeight: 280 }}
               />
             </div>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md flex flex-col gap-6">
-          <div className="flex items-center justify-between border-b border-white/10 pb-4">
-            <h3 className="text-lg font-medium text-white">Text parser</h3>
+        <div className="rounded-2xl border border-border/50 bg-surface-elevated/40 p-6 backdrop-blur-md flex flex-col gap-6">
+          <div className="flex items-center justify-between border-b border-border/50 pb-4">
+            <h3 className="text-lg font-medium text-text-primary">Text parser</h3>
             <Chip>PDF / DOCX / XLSX / TXT</Chip>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="flex flex-col gap-5">
-              <div className="rounded-xl border border-brand-500/20 bg-brand-500/5 p-4 text-sm text-brand-200/80">
+              <div className="rounded-xl border border-accent/20 bg-accent/5 p-4 text-sm text-accent/80">
                 Uses multipart/form-data and intentionally does not set
                 Content-Type manually. File upload behavior may depend on the
                 Canvas host.
@@ -276,7 +276,7 @@ export function SearchScrapeModule({ state, dispatch }: ModuleProps) {
                 type="file"
                 accept=".pdf,.docx,.xlsx,.txt,text/plain,application/pdf"
                 onChange={(e) => setFile(e.target.files?.[0] || null)}
-                className="block w-full text-sm text-zinc-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-white/10 file:text-white hover:file:bg-white/20 transition-all cursor-pointer"
+                className="block w-full text-sm text-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-surface-elevated file:text-text-primary hover:file:bg-surface transition-all cursor-pointer"
               />
               <button
                 className="btn primary self-start"
@@ -290,7 +290,7 @@ export function SearchScrapeModule({ state, dispatch }: ModuleProps) {
               value={parserOutput}
               onChange={(e) => setParserOutput(e.target.value)}
               placeholder="Extracted text"
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white placeholder-zinc-600 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all font-mono text-sm resize-y shadow-inner"
+              className="w-full bg-surface/50 border border-border/50 rounded-xl px-5 py-4 text-text-primary placeholder-text-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all font-mono text-sm resize-y shadow-inner"
               style={{ minHeight: 220 }}
             />
           </div>

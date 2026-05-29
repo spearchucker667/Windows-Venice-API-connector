@@ -27,18 +27,18 @@ export function TabButton({
   };
 
   const baseClasses = "group relative flex items-center gap-3.5 rounded-xl border border-transparent bg-transparent text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] focus:outline-none w-full";
-  const layoutClasses = iconOnly 
-    ? "flex-col justify-center h-16 p-3 text-[11px] font-bold uppercase tracking-wider" 
+  const layoutClasses = iconOnly
+    ? "flex-col justify-center h-16 p-3 text-[11px] font-bold uppercase tracking-wider"
     : "px-5 py-3.5 text-left";
-    
+
   const stateClasses = active
-    ? "text-white border-brand-500/30 bg-gradient-to-r from-brand-500/20 to-brand-500/5 shadow-[inset_2px_0_0_#8b5cf6]"
-    : "text-zinc-400 hover:text-zinc-100 hover:bg-white/5 hover:translate-x-1";
+    ? "text-accent-fg border-accent/30 bg-gradient-to-r from-accent/20 to-accent/5 shadow-[inset_2px_0_0_var(--accent)]"
+    : "text-text-secondary hover:text-text-primary hover:bg-surface-elevated hover:translate-x-1";
 
   const iconBase = "grid place-items-center w-5 text-base transition-all duration-300";
   const iconState = active
-    ? "text-white drop-shadow-[0_0_12px_rgba(139,92,246,0.8)]"
-    : "group-hover:text-zinc-200";
+    ? "text-accent-fg drop-shadow-[0_0_12px_var(--glow)]"
+    : "group-hover:text-text-primary";
 
   return (
     <button

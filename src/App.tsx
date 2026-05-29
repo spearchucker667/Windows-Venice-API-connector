@@ -3,6 +3,7 @@
 import React, { useEffect, useReducer, useState, useRef } from "react";
 import { appReducer, initialState } from "./state/appReducer";
 import StorageService from "./services/storageService";
+import { applyTheme, BUILTIN_DARK, BUILTIN_LIGHT, BUILTIN_COPPER, type Theme } from "./theme";
 import { refreshModels } from "./services/modelService";
 import { ChatModule } from "./modules/ChatModule";
 import { ImageModule } from "./modules/ImageModule";
@@ -33,6 +34,32 @@ export default function App() {
   const [firstRunRouted, setFirstRunRouted] = useState(false);
   const [dbReady, setDbReady] = useState(false);
   const [settingsHydrated, setSettingsHydrated] = useState(false);
+
+  function getActiveTheme(settings: typeof initialState.settings): Theme {
+    if (settings.selectedThemeId === "custom" && settings.customTheme) {
+      return settings.customTheme;
+    }
+    if (settings.selectedThemeId === "builtin-light") return BUILTIN_LIGHT;
+    if (settings.selectedThemeId === "builtin-copper") return BUILTIN_COPPER;
+    return BUILTIN_DARK;
+  }
+
+  useEffect(() => {
+    if (!settingsHydrated) return;
+    const theme = getActiveTheme(state.settings);
+    applyTheme(theme);
+  }, [settingsHydrated, state.settings.selectedThemeId, state.settings.appearanceMode, state.settings.customTheme]);
+
+  useEffect(() => {
+    if (!settingsHydrated) return;
+    try {
+      localStorage.setItem("vf.theme.bootstrap", JSON.stringify({
+        selectedThemeId: state.settings.selectedThemeId,
+        appearanceMode: state.settings.appearanceMode,
+        customTheme: state.settings.customTheme,
+      }));
+    } catch {}
+  }, [settingsHydrated, state.settings.selectedThemeId, state.settings.appearanceMode, state.settings.customTheme]);
 
   // Network status listener
   useEffect(() => {
@@ -190,17 +217,17 @@ export default function App() {
   return (
     <div className="flex h-screen flex-col bg-transparent">
       {/* Header */}
-      <header className="relative z-20 flex h-16 items-center border-b border-white/5 bg-zinc-950/70 px-6 backdrop-blur-xl after:absolute after:-bottom-px after:left-0 after:right-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-brand-500/50 after:to-transparent">
+      <header className="relative z-20 flex h-16 items-center border-b border-border/50 bg-bg/70 px-6 backdrop-blur-xl after:absolute after:-bottom-px after:left-0 after:right-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-accent/50 after:to-transparent">
         <div className="flex w-full items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3.5">
-            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-brand-500 to-amber-500 text-lg font-extrabold text-white shadow-[0_2px_12px_rgba(139,92,246,0.4)] [text-shadow:0_1px_2px_rgba(0,0,0,0.3)]">
+            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-accent to-warning text-lg font-extrabold text-accent-fg shadow-[0_2px_12px_var(--glow)] [text-shadow:0_1px_2px_var(--overlay)]">
               V
             </div>
             <div>
-              <div className="whitespace-nowrap font-display text-lg font-bold tracking-tight text-white [text-shadow:0_0_16px_rgba(255,255,255,0.2)]">
+              <div className="whitespace-nowrap font-display text-lg font-bold tracking-tight text-text-primary [text-shadow:0_0_16px_var(--glow)]">
                 Venice Forge
               </div>
-              <div className="mt-0.5 hidden font-sans text-xs font-medium text-zinc-500 sm:block">
+              <div className="mt-0.5 hidden font-sans text-xs font-medium text-text-muted sm:block">
                 Private AI creation studio
               </div>
             </div>
@@ -217,7 +244,7 @@ export default function App() {
               {state.usingFallbackModels ? "Fallback models" : "Live Models"}
             </Chip>
             <button
-              className="inline-flex h-9 items-center justify-center gap-2 rounded-full border border-transparent bg-transparent px-4 text-sm font-medium text-zinc-100 transition-all duration-200 hover:border-white/10 hover:bg-white/5"
+              className="inline-flex h-9 items-center justify-center gap-2 rounded-full border border-transparent bg-transparent px-4 text-sm font-medium text-text-primary transition-all duration-200 hover:border-border hover:bg-surface-elevated"
               onClick={() => dispatch({ type: "SET_TAB", tab: "diagnostics" })}
               title="System Status"
             >
@@ -230,7 +257,7 @@ export default function App() {
       {/* Main Workspace */}
       <div className="flex flex-1 overflow-hidden">
         {/* Desktop Sidebar */}
-        <aside className="hidden w-[280px] min-w-[280px] flex-col justify-between border-r border-white/5 bg-zinc-950/40 p-4 backdrop-blur-md lg:flex">
+        <aside className="hidden w-[280px] min-w-[280px] flex-col justify-between border-r border-border/50 bg-bg/40 p-4 backdrop-blur-md lg:flex">
           <nav className="flex flex-col gap-2">
             {TABS.map(([id, label]) => (
               <TabButton
@@ -242,14 +269,14 @@ export default function App() {
               />
             ))}
           </nav>
-          <div className="rounded-xl border border-white/5 bg-[#12101b]/60 p-4 shadow-lg backdrop-blur-md">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">System</div>
-            <div className="mt-1 text-xs">{isElectron() ? "IPC Transport" : "Proxy Active"}</div>
+          <div className="rounded-xl border border-border/50 bg-surface/60 p-4 shadow-lg backdrop-blur-md">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-text-muted">System</div>
+            <div className="mt-1 text-xs text-text-secondary">{isElectron() ? "IPC Transport" : "Proxy Active"}</div>
           </div>
         </aside>
 
         {/* Mobile Nav Rail (tablet width) */}
-        <nav className="hidden w-20 min-w-[80px] flex-col items-center gap-3 border-r border-white/5 bg-zinc-950/70 py-4 backdrop-blur-xl md:flex lg:hidden overflow-y-auto">
+        <nav className="hidden w-20 min-w-[80px] flex-col items-center gap-3 border-r border-border/50 bg-bg/70 py-4 backdrop-blur-xl md:flex lg:hidden overflow-y-auto">
           {TABS.map(([id, label]) => (
             <TabButton
               key={id}
@@ -267,21 +294,21 @@ export default function App() {
         <main className="relative flex min-w-0 flex-1 flex-col overflow-y-auto bg-transparent">
           <ErrorBoundary>
             {isElectron() && apiKeyConfigured === false && (
-              <div className="m-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm leading-relaxed text-amber-200 shadow-sm">
+              <div className="m-4 rounded-xl border border-warning/30 bg-warning/10 p-4 text-sm leading-relaxed text-warning shadow-sm">
                 Venice Forge needs a Venice API key before model, chat, and image requests can run. Add it in Config, then use Test connection.
               </div>
             )}
             
             {/* Mobile horizontal tabs (small screens only) */}
-            <nav className="sticky top-0 z-10 flex gap-3 overflow-x-auto border-b border-white/5 bg-zinc-950/80 p-4 backdrop-blur-xl md:hidden">
+            <nav className="sticky top-0 z-10 flex gap-3 overflow-x-auto border-b border-border/50 bg-bg/80 p-4 backdrop-blur-xl md:hidden">
               {TABS.map(([id, label]) => (
                 <button
                   key={id}
                   onClick={() => dispatch({ type: "SET_TAB", tab: id })}
                   className={`shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-all ${
                     state.activeTab === id 
-                      ? "bg-brand-500/20 text-brand-100 border border-brand-500/30" 
-                      : "bg-transparent text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
+                      ? "bg-accent/20 text-accent-fg border border-accent/30" 
+                      : "bg-transparent text-text-secondary hover:bg-surface-elevated hover:text-text-primary"
                   }`}
                 >
                   {label}
@@ -310,7 +337,7 @@ export default function App() {
         <div
           role="status"
           aria-live="polite"
-          className="fixed bottom-0 left-0 right-0 z-[1000] bg-amber-500/90 px-4 py-3 text-center font-display text-[13px] font-bold uppercase tracking-widest text-white shadow-[0_-4px_20px_rgba(245,158,11,0.3)] backdrop-blur-xl"
+          className="fixed bottom-0 left-0 right-0 z-[1000] bg-warning/90 px-4 py-3 text-center font-display text-[13px] font-bold uppercase tracking-widest text-accent-fg shadow-[0_-4px_20px_var(--glow)] backdrop-blur-xl"
         >
           You are offline. API requests are unavailable until connectivity is restored.
         </div>

@@ -6,6 +6,7 @@ import { Chip } from "../components/Chip";
 import { ModelSelect } from "../components/ModelSelect";
 import { StatusBlock } from "../components/StatusBlock";
 import { ConfirmModal } from "../components/ConfirmModal";
+import { ThemeMaker } from "../components/ThemeMaker";
 import { isElectron, desktopApiKey, desktopApp, desktopFiles, desktopUpdates } from "../services/desktopBridge";
 import { createExportPayload, validateImportJson } from "../services/exportImport";
 import { VENICE_MAX_BODY_BYTES } from "../shared/limits";
@@ -263,12 +264,12 @@ export function SettingsModule({ state, dispatch, apiKeyConfigured, onApiKeyChan
   }
 
   return (
-    <section className="flex flex-col h-full bg-zinc-950">
-      <div className="flex-none p-6 border-b border-white/5 bg-zinc-950/50 backdrop-blur-md">
+    <section className="flex flex-col h-full bg-bg">
+      <div className="flex-none p-6 border-b border-border/50 bg-bg/50 backdrop-blur-md">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-display font-semibold tracking-tight text-white">Settings</h2>
-            <div className="text-sm text-zinc-400 mt-1">
+            <h2 className="text-2xl font-display font-semibold tracking-tight text-text-primary">Settings</h2>
+            <div className="text-sm text-text-secondary mt-1">
               {isElectron() ? "Desktop app configuration and API key management." : "Client-side prototype defaults and key safety status."}
             </div>
           </div>
@@ -286,14 +287,14 @@ export function SettingsModule({ state, dispatch, apiKeyConfigured, onApiKeyChan
 
         {/* API key management */}
         {isElectron() ? (
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md shadow-xl">
+          <div className="rounded-2xl border border-border/50 bg-surface-elevated/40 p-6 backdrop-blur-md shadow-xl">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium text-white">Venice API Key</h3>
+              <h3 className="text-lg font-medium text-text-primary">Venice API Key</h3>
               <Chip tone={apiKeyConfigured ? "ok" : "warn"}>
                 {apiKeyConfigured ? "Configured" : "Not set"}
               </Chip>
             </div>
-            <div className="text-sm text-zinc-400 mb-6 bg-zinc-900/50 rounded-lg p-3 border border-white/5">
+            <div className="text-sm text-text-secondary mb-6 bg-surface/50 rounded-lg p-3 border border-border/50">
               Your key is stored using OS-level encryption (Windows DPAPI / macOS Keychain) and is never exposed to the renderer.
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -305,7 +306,7 @@ export function SettingsModule({ state, dispatch, apiKeyConfigured, onApiKeyChan
                   placeholder="vn-…"
                   autoComplete="off"
                   spellCheck={false}
-                  className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-zinc-600 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all"
+                  className="w-full bg-surface/50 border border-border/50 rounded-lg px-4 py-2.5 text-text-primary placeholder-text-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
                 />
               </Field>
               <Field label="Actions">
@@ -324,12 +325,12 @@ export function SettingsModule({ state, dispatch, apiKeyConfigured, onApiKeyChan
             </div>
           </div>
         ) : (
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md shadow-xl">
+          <div className="rounded-2xl border border-border/50 bg-surface-elevated/40 p-6 backdrop-blur-md shadow-xl">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium text-white">Venice API Key</h3>
+              <h3 className="text-lg font-medium text-text-primary">Venice API Key</h3>
               <Chip tone="ok">Server key</Chip>
             </div>
-            <div className="text-sm text-zinc-400 bg-zinc-900/50 rounded-lg p-3 border border-white/5">
+            <div className="text-sm text-text-secondary bg-surface/50 rounded-lg p-3 border border-border/50">
               Web mode uses the server .env key only. Manual local keys are desktop-only.
             </div>
           </div>
@@ -337,19 +338,19 @@ export function SettingsModule({ state, dispatch, apiKeyConfigured, onApiKeyChan
 
         {/* Application Updates (Desktop-only) */}
         {isElectron() && (
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md shadow-xl">
+          <div className="rounded-2xl border border-border/50 bg-surface-elevated/40 p-6 backdrop-blur-md shadow-xl">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium text-white">Application Updates</h3>
+              <h3 className="text-lg font-medium text-text-primary">Application Updates</h3>
               <Chip tone={updateDownloaded ? "ok" : "neutral"}>
                 {updateDownloaded ? "Update Ready" : "System"}
               </Chip>
             </div>
-            <div className="text-sm text-zinc-400 mb-6 bg-zinc-900/50 rounded-lg p-3 border border-white/5">
+            <div className="text-sm text-text-secondary mb-6 bg-surface/50 rounded-lg p-3 border border-border/50">
               Checks for updates securely via GitHub Releases.
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Field label="Status">
-                <div className="mt-2 text-sm text-zinc-300">
+                <div className="mt-2 text-sm text-text-secondary">
                   {updateStatus || "Idle"}
                 </div>
               </Field>
@@ -374,7 +375,7 @@ export function SettingsModule({ state, dispatch, apiKeyConfigured, onApiKeyChan
             <select
               value={webSearch}
               onChange={(e) => setWebSearch(e.target.value)}
-              className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all appearance-none"
+              className="w-full bg-surface/50 border border-border/50 rounded-lg px-4 py-2.5 text-text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all appearance-none"
             >
               <option value="off">off</option>
               <option value="on">on</option>
@@ -410,11 +411,11 @@ export function SettingsModule({ state, dispatch, apiKeyConfigured, onApiKeyChan
               <textarea
                 readOnly
                 rows={7}
-                className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-sm text-emerald-400 font-mono focus:outline-none resize-none"
+                className="w-full bg-surface/50 border border-border/50 rounded-lg px-4 py-3 text-sm text-success font-mono focus:outline-none resize-none"
                 value={`VENICE_API_KEY="replace_with_your_venice_inference_key"\nMAX_PROXY_BODY_BYTES=${VENICE_MAX_BODY_BYTES}\nRATE_LIMIT_WINDOW_MS=60000\nRATE_LIMIT_MAX_REQUESTS=60\nDISABLE_HMR=false\nPORT=3000`}
               />
               <button
-                className="absolute top-2 right-2 bg-white/10 hover:bg-white/20 text-white rounded-md px-3 py-1.5 text-xs font-medium backdrop-blur-md transition-all opacity-0 group-hover:opacity-100"
+                className="absolute top-2 right-2 bg-surface-elevated hover:bg-surface text-text-primary rounded-md px-3 py-1.5 text-xs font-medium backdrop-blur-md transition-all opacity-0 group-hover:opacity-100"
                 onClick={() => {
                   navigator.clipboard.writeText(`VENICE_API_KEY="replace_with_your_venice_inference_key"\nMAX_PROXY_BODY_BYTES=${VENICE_MAX_BODY_BYTES}\nRATE_LIMIT_WINDOW_MS=60000\nRATE_LIMIT_MAX_REQUESTS=60\nDISABLE_HMR=false\nPORT=3000`);
                   setStatus("Copied to clipboard!");
@@ -423,7 +424,7 @@ export function SettingsModule({ state, dispatch, apiKeyConfigured, onApiKeyChan
                 Copy
               </button>
             </div>
-            <div className="text-xs text-zinc-500 mt-2">Only VENICE_API_KEY is sensitive. The other values are safe runtime defaults.</div>
+            <div className="text-xs text-text-muted mt-2">Only VENICE_API_KEY is sensitive. The other values are safe runtime defaults.</div>
           </Field>
         )}
 
@@ -431,43 +432,48 @@ export function SettingsModule({ state, dispatch, apiKeyConfigured, onApiKeyChan
           <textarea
             value={system}
             onChange={(e) => setSystem(e.target.value)}
-            className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-zinc-600 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all min-h-[120px]"
+            className="w-full bg-surface/50 border border-border/50 rounded-lg px-4 py-3 text-text-primary placeholder-text-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all min-h-[120px]"
           />
         </Field>
 
-        <div className="flex flex-wrap gap-6 p-4 rounded-xl border border-white/5 bg-white/5 backdrop-blur-sm">
+        <div className="rounded-2xl border border-border/50 bg-surface-elevated/40 p-6 backdrop-blur-md shadow-xl">
+          <h3 className="text-lg font-medium text-text-primary mb-4">Appearance</h3>
+          <ThemeMaker state={state} dispatch={dispatch} />
+        </div>
+
+        <div className="flex flex-wrap gap-6 p-4 rounded-xl border border-border/50 bg-surface-elevated/40 backdrop-blur-sm">
           <label className="flex items-center gap-3 cursor-pointer group">
             <input
               type="checkbox"
               checked={includePrompt}
               onChange={(e) => setIncludePrompt(e.target.checked)}
-              className="w-4 h-4 rounded border-white/20 bg-black/50 text-brand-500 focus:ring-brand-500/50"
+              className="w-4 h-4 rounded border-border/50 bg-surface/60 text-accent focus:ring-accent/50"
             />
-            <span className="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">Venice system prompt toggle</span>
+            <span className="text-sm font-medium text-text-secondary group-hover:text-text-primary transition-colors">Venice system prompt toggle</span>
           </label>
           <label className="flex items-center gap-3 cursor-pointer group">
             <input
               type="checkbox"
               checked={webScraping}
               onChange={(e) => setWebScraping(e.target.checked)}
-              className="w-4 h-4 rounded border-white/20 bg-black/50 text-brand-500 focus:ring-brand-500/50"
+              className="w-4 h-4 rounded border-border/50 bg-surface/60 text-accent focus:ring-accent/50"
             />
-            <span className="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">Web scraping default</span>
+            <span className="text-sm font-medium text-text-secondary group-hover:text-text-primary transition-colors">Web scraping default</span>
           </label>
           <label className="flex items-center gap-3 cursor-pointer group">
             <input
               type="checkbox"
               checked={webCitations}
               onChange={(e) => setWebCitations(e.target.checked)}
-              className="w-4 h-4 rounded border-white/20 bg-black/50 text-brand-500 focus:ring-brand-500/50"
+              className="w-4 h-4 rounded border-border/50 bg-surface/60 text-accent focus:ring-accent/50"
             />
-            <span className="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">Web citations default</span>
+            <span className="text-sm font-medium text-text-secondary group-hover:text-text-primary transition-colors">Web citations default</span>
           </label>
         </div>
 
         <StatusBlock success={status} error={statusError} />
 
-        <div className="flex flex-wrap gap-3 pt-6 border-t border-white/5">
+        <div className="flex flex-wrap gap-3 pt-6 border-t border-border/50">
           <button className="btn primary" onClick={saveDefaults}>
             Save settings
           </button>

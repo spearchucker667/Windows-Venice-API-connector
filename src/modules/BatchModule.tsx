@@ -229,12 +229,12 @@ export function BatchModule({ state, dispatch }: ModuleProps) {
   }
 
   return (
-    <section className="flex flex-col h-full bg-zinc-950">
-      <div className="flex-none p-6 border-b border-white/5 bg-zinc-950/50 backdrop-blur-md">
+    <section className="flex flex-col h-full bg-bg">
+      <div className="flex-none p-6 border-b border-border/50 bg-bg/50 backdrop-blur-md">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-display font-semibold tracking-tight text-white">Batch Processing</h2>
-            <div className="text-sm text-zinc-400 mt-1">
+            <h2 className="text-2xl font-display font-semibold tracking-tight text-text-primary">Batch Processing</h2>
+            <div className="text-sm text-text-secondary mt-1">
               Run multiple text or image prompts sequentially. Auto-saves to
               history/gallery.
             </div>
@@ -250,18 +250,18 @@ export function BatchModule({ state, dispatch }: ModuleProps) {
               <select
                 value={draft.type}
                 onChange={(e) => patch({ type: e.target.value as "text" | "image" })}
-                className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all appearance-none"
+                className="w-full bg-surface/50 border border-border/50 rounded-lg px-4 py-2.5 text-text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all appearance-none"
               >
                 <option value="text">Text (Chat Model)</option>
                 <option value="image">Image (Image Model)</option>
               </select>
             </Field>
 
-            <div className="rounded-xl border border-brand-500/20 bg-brand-500/5 p-4 text-sm text-brand-200/80">
-              <strong className="text-brand-300">Settings Inherited:</strong> Using your current settings from the{" "}
+            <div className="rounded-xl border border-accent/20 bg-accent/5 p-4 text-sm text-accent/80">
+              <strong className="text-accent">Settings Inherited:</strong> Using your current settings from the{" "}
               {draft.type === "text" ? "Chat/Settings" : "Image"} tabs.<br />
-              <div className="mt-2 text-zinc-400">Current Model:{" "}
-                <span className="font-mono text-white ml-1">
+              <div className="mt-2 text-text-secondary">Current Model:{" "}
+                <span className="font-mono text-text-primary ml-1">
                   {draft.type === "text"
                     ? state.selectedChatModel
                     : state.selectedImageModel}
@@ -278,13 +278,13 @@ export function BatchModule({ state, dispatch }: ModuleProps) {
                 }}
                 onBlur={() => { if (!draft.promptsText.trim()) setPromptsTouched(true); }}
                 placeholder="Enter multiple prompts here, one per line..."
-                className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white placeholder-zinc-600 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all font-mono text-sm resize-y shadow-inner"
+                className="w-full bg-surface/50 border border-border/50 rounded-xl px-5 py-4 text-text-primary placeholder-text-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all font-mono text-sm resize-y shadow-inner"
                 style={{ minHeight: "180px" }}
                 aria-invalid={promptsTouched && !draft.promptsText.trim()}
                 aria-describedby="batch-prompts-error"
               />
               {promptsTouched && !draft.promptsText.trim() && (
-                <div id="batch-prompts-error" className="mt-2 text-sm text-red-400" role="alert">
+                <div id="batch-prompts-error" className="mt-2 text-sm text-danger" role="alert">
                   Please enter at least one prompt before running the batch.
                 </div>
               )}
@@ -312,23 +312,23 @@ export function BatchModule({ state, dispatch }: ModuleProps) {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md flex flex-col gap-6">
-            <div className="flex items-center justify-between border-b border-white/10 pb-4">
-              <h3 className="text-lg font-medium text-white">Batch Results</h3>
+          <div className="rounded-2xl border border-border/50 bg-surface-elevated/40 p-6 backdrop-blur-md flex flex-col gap-6">
+            <div className="flex items-center justify-between border-b border-border/50 pb-4">
+              <h3 className="text-lg font-medium text-text-primary">Batch Results</h3>
               <Chip>{results.length} tasks</Chip>
             </div>
 
             {results.length === 0 && (
-              <div className="text-sm text-zinc-500 p-8 rounded-xl bg-black/20 border border-white/5 text-center">
+              <div className="text-sm text-text-muted p-8 rounded-xl bg-surface/30 border border-border/50 text-center">
                 Results will appear here once the batch starts.
               </div>
             )}
 
             <div className="flex flex-col gap-4">
               {results.map((r, i) => (
-                <div key={r.id} className="rounded-xl bg-black/40 border border-white/5 p-4 transition-all flex flex-col gap-3 relative overflow-hidden group">
+                <div key={r.id} className="rounded-xl bg-surface/50 border border-border/50 p-4 transition-all flex flex-col gap-3 relative overflow-hidden group">
                   <div className="flex items-center justify-between">
-                    <div className="text-xs font-semibold tracking-wider text-zinc-500 uppercase">Task {i + 1}</div>
+                    <div className="text-xs font-semibold tracking-wider text-text-muted uppercase">Task {i + 1}</div>
                     <Chip
                       tone={
                         r.status === "done"
@@ -343,14 +343,14 @@ export function BatchModule({ state, dispatch }: ModuleProps) {
                       {r.status}
                     </Chip>
                   </div>
-                  <div className="text-sm font-medium text-white break-words">{r.prompt}</div>
+                  <div className="text-sm font-medium text-text-primary break-words">{r.prompt}</div>
 
                   {r.status === "error" && (
-                    <div className="rounded border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs text-red-400 mt-1">{r.error}</div>
+                    <div className="rounded border border-danger/20 bg-danger/10 px-3 py-2 text-xs text-danger mt-1">{r.error}</div>
                   )}
 
                   {r.status === "done" && draft.type === "text" && r.result && (
-                    <div className="mt-2 pt-3 border-t border-white/5 prose prose-invert max-w-none text-sm leading-relaxed prose-p:my-2 prose-pre:bg-black/50 prose-pre:border prose-pre:border-white/10 prose-pre:rounded-xl">
+                    <div className="mt-2 pt-3 border-t border-border/50 prose prose-invert max-w-none text-sm leading-relaxed prose-p:my-2 prose-pre:bg-surface/60 prose-pre:border prose-pre:border-border/50 prose-pre:rounded-xl">
                       <Markdown text={r.result} />
                     </div>
                   )}
@@ -362,9 +362,9 @@ export function BatchModule({ state, dispatch }: ModuleProps) {
                       <img
                         src={r.result as string}
                         alt={r.prompt}
-                        className="rounded-lg object-cover max-w-[200px] border border-white/10 transition-transform duration-300 group-hover/img:scale-[1.02] shadow-lg"
+                        className="rounded-lg object-cover max-w-[200px] border border-border/50 transition-transform duration-300 group-hover/img:scale-[1.02] shadow-lg"
                       />
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 transition-opacity duration-300 rounded-lg flex items-center justify-center text-xs font-medium text-white backdrop-blur-sm pointer-events-none">
+                      <div className="absolute inset-0 bg-overlay/60 opacity-0 group-hover/img:opacity-100 transition-opacity duration-300 rounded-lg flex items-center justify-center text-xs font-medium text-text-primary backdrop-blur-sm pointer-events-none">
                         Tap to download
                       </div>
                     </div>

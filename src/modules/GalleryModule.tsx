@@ -90,12 +90,12 @@ export function GalleryModule({ state, dispatch }: { state: AppState; dispatch: 
   }
 
   return (
-    <section className="flex flex-col h-full bg-zinc-950">
-      <div className="flex-none p-6 border-b border-white/5 bg-zinc-950/50 backdrop-blur-md">
+    <section className="flex flex-col h-full bg-bg">
+      <div className="flex-none p-6 border-b border-border/50 bg-bg/50 backdrop-blur-md">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-display font-semibold tracking-tight text-white">Library</h2>
-            <div className="text-sm text-zinc-400 mt-1">
+            <h2 className="text-2xl font-display font-semibold tracking-tight text-text-primary">Library</h2>
+            <div className="text-sm text-text-secondary mt-1">
               Generated images are stored in IndexedDB, not localStorage.
             </div>
           </div>
@@ -136,14 +136,14 @@ export function GalleryModule({ state, dispatch }: { state: AppState; dispatch: 
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
           {state.gallery.map((item: GalleryImage, index: number) => (
-            <div className="group relative flex flex-col rounded-2xl border border-white/10 bg-white/5 overflow-hidden transition-all duration-300 hover:border-brand-500/50 hover:shadow-[0_8px_32px_rgba(139,92,246,0.15)]" key={item.id}>
+            <div className="group relative flex flex-col rounded-2xl border border-border/50 bg-surface-elevated/40 overflow-hidden transition-all duration-300 hover:border-accent/50 hover:shadow-[0_8px_32px_var(--glow)]" key={item.id}>
               <button
                 type="button"
                 onClick={() => setExpanded(item)}
                 aria-label={`View image details: ${item.prompt || "Generated image"}`}
                 aria-haspopup="dialog"
                 aria-expanded={expanded?.id === item.id}
-                className="w-full relative aspect-square overflow-hidden bg-black/50 outline-none"
+                className="w-full relative aspect-square overflow-hidden bg-surface/60 outline-none"
               >
                 <img
                   src={item.image}
@@ -152,16 +152,16 @@ export function GalleryModule({ state, dispatch }: { state: AppState; dispatch: 
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </button>
-              <div className="flex flex-col p-4 gap-3 bg-zinc-950/80 backdrop-blur-md">
-                <div className="flex items-center flex-wrap gap-2 text-sm text-zinc-200">
+              <div className="flex flex-col p-4 gap-3 bg-bg/80 backdrop-blur-md">
+                <div className="flex items-center flex-wrap gap-2 text-sm text-text-primary">
                   <strong className="font-semibold">{item.model}</strong>
                   {item.upscaled && <Chip className="scale-90 origin-left">upscaled</Chip>}
                   {item.batchCount && item.batchCount > 1 && <Chip className="scale-90 origin-left">Batch {item.batchIndex}/{item.batchCount}</Chip>}
                 </div>
-                <div className="text-[11px] font-medium tracking-wide text-zinc-500 uppercase">
+                <div className="text-[11px] font-medium tracking-wide text-text-muted uppercase">
                   {new Date(item.timestamp).toLocaleString()}
                 </div>
-                <div className="text-sm text-zinc-400 line-clamp-2" title={item.prompt}>{item.prompt}</div>
+                <div className="text-sm text-text-secondary line-clamp-2" title={item.prompt}>{item.prompt}</div>
                 <div className="flex flex-wrap gap-2 pt-2 mt-auto">
                   <button
                     className="btn sm"
@@ -194,29 +194,29 @@ export function GalleryModule({ state, dispatch }: { state: AppState; dispatch: 
         </div>
 
         {!state.gallery.length && (
-          <div className="rounded-2xl border border-brand-500/20 bg-brand-500/5 p-8 text-center text-sm text-brand-200/80 shadow-[inset_0_0_40px_rgba(139,92,246,0.05)]">
+          <div className="rounded-2xl border border-accent/20 bg-accent/5 p-8 text-center text-sm text-accent/80 shadow-[inset_0_0_40px_var(--glow)]">
             No saved images yet. Generate an image and it will auto-save here.
           </div>
         )}
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md shadow-xl mt-8">
+        <div className="rounded-2xl border border-border/50 bg-surface-elevated/40 p-6 backdrop-blur-md shadow-xl mt-8">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-medium text-white">Recent chat records</h3>
+            <h3 className="text-lg font-medium text-text-primary">Recent chat records</h3>
             <Chip>{state.chats?.length || 0}</Chip>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {(state.chats || []).slice(0, 8).map((c: any) => (
-              <div className="rounded-xl bg-black/40 border border-white/5 p-4 transition-all hover:border-white/10" key={c.id}>
-                <div className="text-sm text-zinc-300 mb-2">
-                  <strong className="text-white">{c.model}</strong>
-                  <span className="text-zinc-600 mx-2">·</span>
-                  <span className="text-zinc-500 text-xs">{new Date(c.timestamp).toLocaleString()}</span>
+              <div className="rounded-xl bg-surface/50 border border-border/50 p-4 transition-all hover:border-border" key={c.id}>
+                <div className="text-sm text-text-secondary mb-2">
+                  <strong className="text-text-primary">{c.model}</strong>
+                  <span className="text-text-muted mx-2">·</span>
+                  <span className="text-text-muted text-xs">{new Date(c.timestamp).toLocaleString()}</span>
                 </div>
-                <div className="text-sm text-zinc-400 line-clamp-2">{c.prompt}</div>
+                <div className="text-sm text-text-secondary line-clamp-2">{c.prompt}</div>
               </div>
             ))}
             {!(state.chats?.length) && (
-              <div className="col-span-full text-sm text-zinc-500 p-4 rounded-xl bg-black/20 border border-white/5 text-center">
+              <div className="col-span-full text-sm text-text-muted p-4 rounded-xl bg-surface/30 border border-border/50 text-center">
                 No saved chat completions yet.
               </div>
             )}

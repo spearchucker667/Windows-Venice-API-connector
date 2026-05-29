@@ -15,12 +15,12 @@ export function ModelsModule({ state, dispatch }: { state: any; dispatch: any })
     "unknown",
   ];
   return (
-    <section className="flex flex-col h-full bg-zinc-950">
-      <div className="flex-none p-6 border-b border-white/5 bg-zinc-950/50 backdrop-blur-md">
+    <section className="flex flex-col h-full bg-bg">
+      <div className="flex-none p-6 border-b border-border/50 bg-bg/50 backdrop-blur-md">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-display font-semibold tracking-tight text-white">Models</h2>
-            <div className="text-sm text-zinc-400 mt-1">
+            <h2 className="text-2xl font-display font-semibold tracking-tight text-text-primary">Models</h2>
+            <div className="text-sm text-text-secondary mt-1">
               GET /models grouped by model metadata, type, traits, and ID heuristics.
             </div>
           </div>
@@ -32,7 +32,7 @@ export function ModelsModule({ state, dispatch }: { state: any; dispatch: any })
 
       <div className="flex-1 overflow-y-auto p-6 space-y-8">
         {state.modelLoadError && (
-          <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400">
+          <div className="rounded-xl border border-danger/20 bg-danger/10 p-4 text-sm text-danger">
             {state.modelLoadError}
           </div>
         )}
@@ -60,26 +60,26 @@ export function ModelsModule({ state, dispatch }: { state: any; dispatch: any })
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {groups.map((group) => (
-            <div className="flex flex-col h-full rounded-2xl border border-white/10 bg-white/5 overflow-hidden" key={group}>
-              <div className="flex items-center justify-between p-4 border-b border-white/5 bg-black/20">
-                <strong className="text-sm font-semibold text-white capitalize">{group}</strong>
+            <div className="flex flex-col h-full rounded-2xl border border-border/50 bg-surface-elevated/40 overflow-hidden" key={group}>
+              <div className="flex items-center justify-between p-4 border-b border-border/50 bg-surface/30">
+                <strong className="text-sm font-semibold text-text-primary capitalize">{group}</strong>
                 <Chip>{state.models[group]?.length || 0}</Chip>
               </div>
               <div className="flex-1 overflow-y-auto p-2 max-h-[400px] space-y-2">
                 {(state.models[group] || []).map((m: any) => (
-                  <div className="rounded-xl p-3 bg-black/40 border border-transparent transition-all hover:border-white/10" key={`${group}-${m.id}`}>
-                    <div className="font-mono text-xs text-brand-300 font-medium mb-1 break-all">{m.id}</div>
-                    <div className="text-xs text-zinc-400">
+                  <div className="rounded-xl p-3 bg-surface/50 border border-transparent transition-all hover:border-border" key={`${group}-${m.id}`}>
+                    <div className="font-mono text-xs text-accent font-medium mb-1 break-all">{m.id}</div>
+                    <div className="text-xs text-text-secondary">
                       {m.name || m.display_name || ""}
                     </div>
-                    <div className="text-[10px] text-zinc-600 uppercase tracking-wider mt-1">
+                    <div className="text-[10px] text-text-muted uppercase tracking-wider mt-1">
                       {m.type || "unknown"}{" "}
                       {m.traits ? " · traits present" : ""}
                     </div>
                   </div>
                 ))}
                 {!state.models[group]?.length && (
-                  <div className="p-4 text-center text-sm text-zinc-500">No models discovered.</div>
+                  <div className="p-4 text-center text-sm text-text-muted">No models discovered.</div>
                 )}
               </div>
             </div>

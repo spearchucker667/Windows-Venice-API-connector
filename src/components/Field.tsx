@@ -2,7 +2,7 @@ import React, { useId } from 'react';
 
 export function Field({ label, children }: { label: string; children: React.ReactNode }) {
   const generatedId = useId();
-  
+
   let childWithId = children;
   let targetId: string | undefined = undefined;
 
@@ -14,7 +14,7 @@ export function Field({ label, children }: { label: string; children: React.Reac
 
   return (
     <div className="grid gap-2.5">
-      <label htmlFor={targetId} className="text-[11px] font-bold uppercase tracking-[0.1em] text-zinc-500 font-display">{label}</label>
+      <label htmlFor={targetId} className="text-[11px] font-bold uppercase tracking-[0.1em] text-text-muted font-display">{label}</label>
       {childWithId}
     </div>
   );

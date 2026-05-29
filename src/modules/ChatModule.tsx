@@ -76,8 +76,12 @@ export function ChatModule({ state, dispatch }: ModuleProps) {
   }, []);
 
   async function send() {
-    setPromptTouched(true);
-    if (!userPrompt.trim() || loading) return;
+    const trimmedPrompt = userPrompt.trim();
+    if (!trimmedPrompt || loading) {
+      if (!trimmedPrompt) setPromptTouched(true);
+      return;
+    }
+    setPromptTouched(false);
     if (state.usingFallbackModels) {
       setError("Fallback models are active. Please refresh the model catalog before sending requests.");
       return;
@@ -86,7 +90,7 @@ export function ChatModule({ state, dispatch }: ModuleProps) {
     setLoading(true);
     const runId = ++runIdRef.current;
 
-    const userMessage: ChatUiMessage = { id: crypto.randomUUID(), role: "user", content: userPrompt.trim() };
+    const userMessage: ChatUiMessage = { id: crypto.randomUUID(), role: "user", content: trimmedPrompt };
     const conversation = [
       { role: "system" as const, content: systemPrompt || DEFAULT_SYSTEM_PROMPT },
       ...messages.filter((m) => ["user", "assistant"].includes(m.role)),
@@ -221,12 +225,12 @@ export function ChatModule({ state, dispatch }: ModuleProps) {
     .find((m) => m.role === "assistant" && m.content);
 
   return (
-    <section className="flex flex-col h-full bg-zinc-950">
-      <div className="flex-none p-6 border-b border-white/5 bg-zinc-950/50 backdrop-blur-md">
+    <section className="flex flex-col h-full bg-bg">
+      <div className="flex-none p-6 border-b border-border/50 bg-bg/50 backdrop-blur-md">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-display font-semibold tracking-tight text-white">Chat</h2>
-            <div className="text-sm text-zinc-400 mt-1">
+            <h2 className="text-2xl font-display font-semibold tracking-tight text-text-primary">Chat</h2>
+            <div className="text-sm text-text-secondary mt-1">
               POST /chat/completions, non-streaming by default.
             </div>
           </div>
@@ -251,7 +255,7 @@ export function ChatModule({ state, dispatch }: ModuleProps) {
                 value={characterSlug}
                 onChange={(e) => setCharacterSlug(e.target.value)}
                 placeholder="alan-watts"
-                className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-zinc-600 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all"
+                className="w-full bg-surface/50 border border-border/50 rounded-lg px-4 py-2.5 text-text-primary placeholder-text-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
               />
             </Field>
           </div>
@@ -266,7 +270,7 @@ export function ChatModule({ state, dispatch }: ModuleProps) {
                 value={systemPrompt}
                 onChange={(e) => setSystemPrompt(e.target.value)}
                 rows={3}
-                className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-zinc-600 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all min-h-[80px]"
+                className="w-full bg-surface/50 border border-border/50 rounded-lg px-4 py-3 text-text-primary placeholder-text-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all min-h-[80px]"
               />
             </Field>
           </div>
@@ -276,7 +280,7 @@ export function ChatModule({ state, dispatch }: ModuleProps) {
               <select
                 value={webSearch}
                 onChange={(e) => setWebSearch(e.target.value)}
-                className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all appearance-none"
+                className="w-full bg-surface/50 border border-border/50 rounded-lg px-4 py-2.5 text-text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all appearance-none"
               >
                 <option value="off">off</option>
                 <option value="on">on</option>
@@ -284,48 +288,48 @@ export function ChatModule({ state, dispatch }: ModuleProps) {
               </select>
             </Field>
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">Venice parameters</label>
-              <div className="flex flex-col gap-3 p-3 rounded-xl border border-white/5 bg-white/5 backdrop-blur-sm">
+              <label className="block text-sm font-medium text-text-secondary mb-2">Venice parameters</label>
+              <div className="flex flex-col gap-3 p-3 rounded-xl border border-border/50 bg-surface-elevated/40 backdrop-blur-sm">
                 <label className="flex items-center gap-3 cursor-pointer group">
                   <input
                     type="checkbox"
                     checked={webScraping}
                     onChange={(e) => setWebScraping(e.target.checked)}
-                    className="w-4 h-4 rounded border-white/20 bg-black/50 text-brand-500 focus:ring-brand-500/50"
+                    className="w-4 h-4 rounded border-border/50 bg-surface/60 text-accent focus:ring-accent/50"
                   />
-                  <span className="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">Web scraping</span>
+                  <span className="text-sm font-medium text-text-secondary group-hover:text-text-primary transition-colors">Web scraping</span>
                 </label>
                 <label className="flex items-center gap-3 cursor-pointer group">
                   <input
                     type="checkbox"
                     checked={webCitations}
                     onChange={(e) => setWebCitations(e.target.checked)}
-                    className="w-4 h-4 rounded border-white/20 bg-black/50 text-brand-500 focus:ring-brand-500/50"
+                    className="w-4 h-4 rounded border-border/50 bg-surface/60 text-accent focus:ring-accent/50"
                   />
-                  <span className="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">Citations</span>
+                  <span className="text-sm font-medium text-text-secondary group-hover:text-text-primary transition-colors">Citations</span>
                 </label>
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">Response mode</label>
-              <div className="flex flex-col gap-3 p-3 rounded-xl border border-white/5 bg-white/5 backdrop-blur-sm">
+              <label className="block text-sm font-medium text-text-secondary mb-2">Response mode</label>
+              <div className="flex flex-col gap-3 p-3 rounded-xl border border-border/50 bg-surface-elevated/40 backdrop-blur-sm">
                 <label className="flex items-center gap-3 cursor-pointer group">
                   <input
                     type="checkbox"
                     checked={includeVeniceSystemPrompt}
                     onChange={(e) => setIncludeVeniceSystemPrompt(e.target.checked)}
-                    className="w-4 h-4 rounded border-white/20 bg-black/50 text-brand-500 focus:ring-brand-500/50"
+                    className="w-4 h-4 rounded border-border/50 bg-surface/60 text-accent focus:ring-accent/50"
                   />
-                  <span className="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">Include Venice system prompt</span>
+                  <span className="text-sm font-medium text-text-secondary group-hover:text-text-primary transition-colors">Include Venice system prompt</span>
                 </label>
                 <label className="flex items-center gap-3 cursor-pointer group">
                   <input
                     type="checkbox"
                     checked={stream}
                     onChange={(e) => setStream(e.target.checked)}
-                    className="w-4 h-4 rounded border-white/20 bg-black/50 text-brand-500 focus:ring-brand-500/50"
+                    className="w-4 h-4 rounded border-border/50 bg-surface/60 text-accent focus:ring-accent/50"
                   />
-                  <span className="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">Stream response</span>
+                  <span className="text-sm font-medium text-text-secondary group-hover:text-text-primary transition-colors">Stream response</span>
                 </label>
               </div>
             </div>
@@ -336,7 +340,7 @@ export function ChatModule({ state, dispatch }: ModuleProps) {
               <select
                 value={reasoningEffort}
                 onChange={(e) => setReasoningEffort(e.target.value)}
-                className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all appearance-none"
+                className="w-full bg-surface/50 border border-border/50 rounded-lg px-4 py-2.5 text-text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all appearance-none"
               >
                 <option value="">(model default)</option>
                 <option value="none">none</option>
@@ -349,39 +353,39 @@ export function ChatModule({ state, dispatch }: ModuleProps) {
               </select>
             </Field>
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">Reasoning / thinking</label>
-              <div className="flex flex-col gap-3 p-3 rounded-xl border border-white/5 bg-white/5 backdrop-blur-sm">
+              <label className="block text-sm font-medium text-text-secondary mb-2">Reasoning / thinking</label>
+              <div className="flex flex-col gap-3 p-3 rounded-xl border border-border/50 bg-surface-elevated/40 backdrop-blur-sm">
                 <label className="flex items-center gap-3 cursor-pointer group">
                   <input
                     type="checkbox"
                     checked={stripThinking}
                     onChange={(e) => setStripThinking(e.target.checked)}
-                    className="w-4 h-4 rounded border-white/20 bg-black/50 text-brand-500 focus:ring-brand-500/50"
+                    className="w-4 h-4 rounded border-border/50 bg-surface/60 text-accent focus:ring-accent/50"
                   />
-                  <span className="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">Strip &lt;think&gt; blocks</span>
+                  <span className="text-sm font-medium text-text-secondary group-hover:text-text-primary transition-colors">Strip &lt;think&gt; blocks</span>
                 </label>
                 <label className="flex items-center gap-3 cursor-pointer group">
                   <input
                     type="checkbox"
                     checked={disableThinking}
                     onChange={(e) => setDisableThinking(e.target.checked)}
-                    className="w-4 h-4 rounded border-white/20 bg-black/50 text-brand-500 focus:ring-brand-500/50"
+                    className="w-4 h-4 rounded border-border/50 bg-surface/60 text-accent focus:ring-accent/50"
                   />
-                  <span className="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">Disable thinking</span>
+                  <span className="text-sm font-medium text-text-secondary group-hover:text-text-primary transition-colors">Disable thinking</span>
                 </label>
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">Grok / xAI</label>
-              <div className="flex flex-col gap-3 p-3 rounded-xl border border-white/5 bg-white/5 backdrop-blur-sm">
+              <label className="block text-sm font-medium text-text-secondary mb-2">Grok / xAI</label>
+              <div className="flex flex-col gap-3 p-3 rounded-xl border border-border/50 bg-surface-elevated/40 backdrop-blur-sm">
                 <label className="flex items-center gap-3 cursor-pointer group">
                   <input
                     type="checkbox"
                     checked={enableXSearch}
                     onChange={(e) => setEnableXSearch(e.target.checked)}
-                    className="w-4 h-4 rounded border-white/20 bg-black/50 text-brand-500 focus:ring-brand-500/50"
+                    className="w-4 h-4 rounded border-border/50 bg-surface/60 text-accent focus:ring-accent/50"
                   />
-                  <span className="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">xAI web + X search</span>
+                  <span className="text-sm font-medium text-text-secondary group-hover:text-text-primary transition-colors">xAI web + X search</span>
                 </label>
               </div>
             </div>
@@ -393,20 +397,20 @@ export function ChatModule({ state, dispatch }: ModuleProps) {
             <div key={m.id || `${m.role}-${m.content?.slice(0, 8)}`} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
               <div className={`max-w-[85%] rounded-2xl px-5 py-4 shadow-sm backdrop-blur-md ${
                 m.role === 'user' 
-                  ? 'bg-brand-500 text-white rounded-tr-sm' 
-                  : 'bg-[#1a1728] border border-white/5 text-zinc-100 rounded-tl-sm shadow-[0_4px_24px_rgba(0,0,0,0.2)]'
+                  ? 'bg-accent text-text-primary rounded-tr-sm' 
+                  : 'bg-surface-elevated border border-border/50 text-text-primary rounded-tl-sm shadow-[0_4px_24px_var(--overlay)]'
               }`}>
-                <div className={`flex items-center gap-2 mb-2 text-xs font-semibold tracking-wider uppercase ${m.role === 'user' ? 'text-brand-200' : 'text-brand-400'}`}>
+                <div className={`flex items-center gap-2 mb-2 text-xs font-semibold tracking-wider uppercase ${m.role === 'user' ? 'text-accent' : 'text-accent'}`}>
                   <span>{m.role}</span>
                   {m.role === "assistant" && idx === messages.length - 1 && loading && (
                     <span className="flex items-center gap-1">
-                      <span className="w-1 h-1 bg-brand-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                      <span className="w-1 h-1 bg-brand-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                      <span className="w-1 h-1 bg-brand-400 rounded-full animate-bounce"></span>
+                      <span className="w-1 h-1 bg-accent rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                      <span className="w-1 h-1 bg-accent rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                      <span className="w-1 h-1 bg-accent rounded-full animate-bounce"></span>
                     </span>
                   )}
                 </div>
-                <div className="prose prose-invert max-w-none text-sm leading-relaxed prose-p:my-2 prose-pre:bg-black/50 prose-pre:border prose-pre:border-white/10 prose-pre:rounded-xl">
+                <div className="prose prose-invert max-w-none text-sm leading-relaxed prose-p:my-2 prose-pre:bg-surface/60 prose-pre:border prose-pre:border-border/50 prose-pre:rounded-xl">
                   <Markdown
                     text={
                       m.content ||
@@ -437,10 +441,10 @@ export function ChatModule({ state, dispatch }: ModuleProps) {
               onKeyDown={(e) => {
                 if ((e.metaKey || e.ctrlKey) && e.key === "Enter") send();
               }}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white placeholder-zinc-600 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all min-h-[100px] resize-y shadow-inner"
+              className="w-full bg-surface/50 border border-border/50 rounded-xl px-5 py-4 text-text-primary placeholder-text-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all min-h-[100px] resize-y shadow-inner"
             />
-            {promptTouched && !userPrompt.trim() && (
-              <div id="chat-prompt-error" className="mt-2 text-sm text-red-400" role="alert">
+            {promptTouched && !loading && !userPrompt.trim() && (
+              <div id="chat-prompt-error" className="mt-2 text-sm text-danger" role="alert">
                 Please enter a prompt before sending.
               </div>
             )}

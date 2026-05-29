@@ -37,6 +37,8 @@ export interface BatchDraft {
 }
 
 /** User-configurable settings persisted across sessions. API keys are stored separately via safeStorage and never written here. */
+import type { Theme } from "../theme/themeTypes";
+
 export interface AppSettings {
   defaultSystemPrompt: string;
   includeVeniceSystemPrompt: boolean;
@@ -45,6 +47,9 @@ export interface AppSettings {
   webCitations: boolean;
   theme: "dark" | "light" | "system";
   customModels: string[];
+  selectedThemeId: string;
+  appearanceMode: "dark" | "light";
+  customTheme: Theme | null;
 }
 
 /** Describes a transient toast notification shown to the user. */

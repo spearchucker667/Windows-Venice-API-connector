@@ -68,12 +68,12 @@ export function ImageGenerationForm({
           }}
           placeholder="Premium cinematic product render…"
           rows={4}
-          className="w-full resize-y rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white placeholder-zinc-600 shadow-inner transition-all focus:border-brand-500/50 focus:outline-none focus:ring-1 focus:ring-brand-500/30"
+          className="w-full resize-y rounded-xl border border-border/50 bg-surface/40 px-4 py-3 text-sm text-text-primary placeholder-text-muted shadow-inner transition-all focus:border-accent/50 focus:outline-none focus:ring-1 focus:ring-accent/30"
           aria-invalid={promptTouched && !draft.prompt.trim()}
           aria-describedby="image-prompt-error"
         />
         {promptTouched && !draft.prompt.trim() && (
-          <div id="image-prompt-error" className="mt-1.5 text-sm text-red-400 animate-[fadeIn_0.3s_ease]" role="alert">
+          <div id="image-prompt-error" className="mt-1.5 text-sm text-danger animate-[fadeIn_0.3s_ease]" role="alert">
             Please enter a prompt before generating.
           </div>
         )}
@@ -86,7 +86,7 @@ export function ImageGenerationForm({
               value={draft.negative}
               onChange={(e) => patch({ negative: e.target.value })}
               placeholder="low quality, blurry, distorted"
-              className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white placeholder-zinc-600 shadow-inner transition-all focus:border-brand-500/50 focus:outline-none focus:ring-1 focus:ring-brand-500/30"
+              className="w-full rounded-xl border border-border/50 bg-surface/40 px-4 py-3 text-sm text-text-primary placeholder-text-muted shadow-inner transition-all focus:border-accent/50 focus:outline-none focus:ring-1 focus:ring-accent/30"
             />
           </Field>
 
@@ -95,7 +95,7 @@ export function ImageGenerationForm({
               <select
                 value={draft.aspectRatio}
                 onChange={(e) => patch({ aspectRatio: e.target.value })}
-                className="w-full rounded-lg border border-white/10 bg-black/40 px-4 py-2.5 text-sm text-white transition-all focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 appearance-none"
+                className="w-full rounded-lg border border-border/50 bg-surface/50 px-4 py-2.5 text-sm text-text-primary transition-all focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent appearance-none"
               >
                 <option value="1:1">1:1</option>
                 <option value="16:9">16:9</option>
@@ -113,7 +113,7 @@ export function ImageGenerationForm({
                 step="64"
                 value={String(draft.width)}
                 onChange={(e) => patch({ width: Number(e.target.value) })}
-                className="w-full rounded-lg border border-white/10 bg-black/40 px-4 py-2.5 text-sm text-white transition-all focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                className="w-full rounded-lg border border-border/50 bg-surface/50 px-4 py-2.5 text-sm text-text-primary transition-all focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               />
             </Field>
             <Field label="Height">
@@ -124,7 +124,7 @@ export function ImageGenerationForm({
                 step="64"
                 value={String(draft.height)}
                 onChange={(e) => patch({ height: Number(e.target.value) })}
-                className="w-full rounded-lg border border-white/10 bg-black/40 px-4 py-2.5 text-sm text-white transition-all focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                className="w-full rounded-lg border border-border/50 bg-surface/50 px-4 py-2.5 text-sm text-text-primary transition-all focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               />
             </Field>
           </div>
@@ -137,7 +137,7 @@ export function ImageGenerationForm({
                 max="50"
                 value={draft.steps}
                 onChange={(e) => patch({ steps: e.target.value })}
-                className="w-full rounded-lg border border-white/10 bg-black/40 px-4 py-2.5 text-sm text-white transition-all focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                className="w-full rounded-lg border border-border/50 bg-surface/50 px-4 py-2.5 text-sm text-text-primary transition-all focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               />
             </Field>
             <Field label="CFG scale">
@@ -148,14 +148,14 @@ export function ImageGenerationForm({
                 step="0.5"
                 value={draft.cfg}
                 onChange={(e) => patch({ cfg: e.target.value })}
-                className="w-full rounded-lg border border-white/10 bg-black/40 px-4 py-2.5 text-sm text-white transition-all focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                className="w-full rounded-lg border border-border/50 bg-surface/50 px-4 py-2.5 text-sm text-text-primary transition-all focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               />
             </Field>
             <Field label="Style preset">
               <select
                 value={draft.style}
                 onChange={(e) => patch({ style: e.target.value })}
-                className="w-full rounded-lg border border-white/10 bg-black/40 px-4 py-2.5 text-sm text-white transition-all focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 appearance-none"
+                className="w-full rounded-lg border border-border/50 bg-surface/50 px-4 py-2.5 text-sm text-text-primary transition-all focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent appearance-none"
               >
                 <option value="">none</option>
                 <option value="3D Model">3D Model</option>
@@ -177,13 +177,13 @@ export function ImageGenerationForm({
                 value={draft.imageCount || 1}
                 onChange={(e) => patch({ imageCount: Number(e.target.value) })}
                 disabled={loading}
-                className="w-full rounded-lg border border-white/10 bg-black/40 px-4 py-2.5 text-sm text-white transition-all focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 appearance-none"
+                className="w-full rounded-lg border border-border/50 bg-surface/50 px-4 py-2.5 text-sm text-text-primary transition-all focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent appearance-none"
               >
                 {[...Array(10)].map((_, i) => (
                   <option key={i + 1} value={i + 1}>{i + 1}</option>
                 ))}
               </select>
-              <div className="mt-1 text-xs text-zinc-500">
+              <div className="mt-1 text-xs text-text-muted">
                 Creates up to 10 separate images from the same prompt. Large batches are queued to respect rate limits.
               </div>
             </Field>
@@ -194,21 +194,21 @@ export function ImageGenerationForm({
                     type="checkbox"
                     checked={draft.safeMode}
                     onChange={(e) => patch({ safeMode: e.target.checked })}
-                    className="h-4 w-4 rounded border-white/20 bg-black/50 text-brand-500 focus:ring-brand-500/50"
+                    className="h-4 w-4 rounded border-border/50 bg-surface/60 text-accent focus:ring-accent/50"
                   />
-                  <span className="text-sm text-zinc-300 group-hover:text-white transition-colors">safe_mode</span>
+                  <span className="text-sm text-text-secondary group-hover:text-text-primary transition-colors">safe_mode</span>
                 </label>
                 <label className="flex items-center gap-3 cursor-pointer group">
                   <input
                     type="checkbox"
                     checked={draft.disableWatermark}
                     onChange={(e) => patch({ disableWatermark: e.target.checked })}
-                    className="h-4 w-4 rounded border-white/20 bg-black/50 text-brand-500 focus:ring-brand-500/50"
+                    className="h-4 w-4 rounded border-border/50 bg-surface/60 text-accent focus:ring-accent/50"
                   />
-                  <span className="text-sm text-zinc-300 group-hover:text-white transition-colors">disable watermark</span>
+                  <span className="text-sm text-text-secondary group-hover:text-text-primary transition-colors">disable watermark</span>
                 </label>
               </div>
-              <div className="mt-1 text-xs text-zinc-500">
+              <div className="mt-1 text-xs text-text-muted">
                 Watermark disabling is sent only when supported by the selected Venice image endpoint/model.
               </div>
             </Field>

@@ -120,6 +120,9 @@ export const initialState = {
     webCitations: false,
     theme: "dark" as "dark" | "light" | "system",
     customModels: [] as string[],
+    selectedThemeId: "builtin-dark",
+    appearanceMode: "dark" as "dark" | "light",
+    customTheme: null as import("../theme/themeTypes").Theme | null,
   },
   diagnostics: null as any,
   diagnosticsLog: [] as any[],
@@ -222,6 +225,7 @@ export const appReducer = produce((draft: typeof initialState, action: AppAction
       // Explicit property whitelist to prevent prototype pollution.
       const allowedKeys: (keyof typeof draft.settings)[] = [
         "defaultSystemPrompt", "includeVeniceSystemPrompt", "webSearch", "webScraping", "webCitations", "theme", "customModels",
+        "selectedThemeId", "appearanceMode", "customTheme",
       ];
       for (const key of allowedKeys) {
         if (key in action.settings) {
@@ -255,6 +259,20 @@ export const appReducer = produce((draft: typeof initialState, action: AppAction
           if (key === "customModels") {
             if (Array.isArray(nextValue)) {
               draft.settings.customModels = nextValue.filter((m: unknown): m is string => typeof m === "string");
+            }
+            continue;
+          }
+          if (key === "selectedThemeId") {
+            if (typeof nextValue === "string") draft.settings.selectedThemeId = nextValue;
+            continue;
+          }
+          if (key === "appearanceMode") {
+            if (nextValue === "dark" || nextValue === "light") draft.settings.appearanceMode = nextValue;
+            continue;
+          }
+          if (key === "customTheme") {
+            if (nextValue === null || (typeof nextValue === "object" && "id" in (nextValue as object) && "tokens" in (nextValue as object))) {
+              draft.settings.customTheme = nextValue as import("../theme/themeTypes").Theme | null;
             }
             continue;
           }

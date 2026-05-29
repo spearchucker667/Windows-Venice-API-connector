@@ -12,9 +12,9 @@ export function ToastHost({ state, dispatch }: { state: AppState; dispatch: AppD
 }
 
 const toastStyles: Record<string, string> = {
-  error: "border-red-500/30 bg-red-500/20 text-red-100 shadow-[0_8px_24px_rgba(239,68,68,0.2)]",
-  success: "border-emerald-500/30 bg-emerald-500/20 text-emerald-100 shadow-[0_8px_24px_rgba(16,185,129,0.2)]",
-  info: "border-white/10 bg-zinc-800/80 text-zinc-100 shadow-[0_8px_24px_rgba(0,0,0,0.3)]",
+  error: "border-danger/30 bg-danger/20 text-danger",
+  success: "border-success/30 bg-success/20 text-success",
+  info: "border-border/50 bg-surface-elevated/80 text-text-primary shadow-sm",
 };
 
 function ToastItem({ toast, dispatch }: { toast: ToastMessage; dispatch: AppDispatch }) {

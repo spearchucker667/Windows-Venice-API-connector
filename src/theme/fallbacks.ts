@@ -1,0 +1,1 @@
+export const COLOR_INPUT_FALLBACK = "#000000";

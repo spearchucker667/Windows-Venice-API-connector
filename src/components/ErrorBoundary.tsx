@@ -26,9 +26,9 @@ export class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="m-8 rounded-2xl border border-red-500/20 bg-red-500/10 p-8 backdrop-blur-md shadow-lg">
-          <h2 className="text-xl font-display font-semibold text-red-400 mb-3">Something went wrong.</h2>
-          <p className="text-sm text-red-300/80 mb-6">{this.state.error?.message}</p>
+        <div className="m-8 rounded-2xl border border-danger/20 bg-danger/10 p-8 backdrop-blur-md shadow-lg">
+          <h2 className="text-xl font-display font-semibold text-danger mb-3">Something went wrong.</h2>
+          <p className="text-sm text-danger/80 mb-6">{this.state.error?.message}</p>
           <button className="btn primary" onClick={() => window.location.reload()}>Reload application</button>
         </div>
       );
