@@ -513,7 +513,7 @@
   - **Fix:** Add `verify:dist:portable` to `scripts/verify-dist-win.cjs` or create a dedicated script.
   - **Confidence:** [VERIFIED]
 
-- [ ] **[BUG-042] `isAllowedAppNavigation` path traversal check uses `path.normalize` without symlink resolution** `electron/main.ts:110`
+- [x] **[BUG-042] `isAllowedAppNavigation` path traversal check uses `path.normalize` without symlink resolution** `electron/main.ts:110`
   - **Type:** Security / Logic
   - **What:** `path.normalize` does not resolve symlinks. A symlink inside `dist/` pointing outside the root could bypass containment.
   - **Evidence:**
@@ -525,7 +525,7 @@
   - **Fix:** Use `fs.realpathSync` (with try/catch) before containment checks.
   - **Confidence:** [SUSPECTED → verify by creating a symlink escape in dist/]
 
-- [ ] **[BUG-043] `verify-dist-mac.cjs` artifact name pattern may not match `electron-builder` default zip naming** `scripts/verify-dist-mac.cjs:66`
+- [x] **[BUG-043] `verify-dist-mac.cjs` artifact name pattern may not match `electron-builder` default zip naming** `scripts/verify-dist-mac.cjs:66`
   - **Type:** Config / Build
   - **What:** The script expects `Venice-Forge-${version}-${arch}.zip`, but `electron-builder`'s default mac zip naming for x64 is `Venice Forge-${version}-mac.zip` (space, no arch suffix, `-mac` suffix). Only the DMG uses the custom `artifactName` template; zip files do not.
   - **Evidence:**
@@ -588,7 +588,7 @@
   - **Fix:** Clarify that the field is absent (defaults false), not explicitly disabled.
   - **Confidence:** [VERIFIED]
 
-- [ ] **[DOC-009] `docs/RELEASE.md` expected artifacts for macOS omit the `-mac` suffix on zip files** `docs/RELEASE.md:50`
+- [x] **[DOC-009] `docs/RELEASE.md` expected artifacts for macOS omit the `-mac` suffix on zip files** `docs/RELEASE.md:50`
   - **What:** The doc lists `Venice-Forge-<version>-arm64.zip` but `electron-builder` default naming produces `Venice Forge-<version>-arm64-mac.zip`.
   - **Fix:** Align expected artifact names with actual `electron-builder` output, or set `zip.artifactName` in the config.
   - **Confidence:** [SUSPECTED]
