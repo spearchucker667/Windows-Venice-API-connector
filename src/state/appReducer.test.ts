@@ -70,6 +70,18 @@ describe("appReducer", () => {
   });
 
   /**
+   * BUG-005 regression guard: null/undefined patch must not crash draft reducers.
+   */
+  it("ignores null or undefined patch in draft reducers", () => {
+    // @ts-expect-error deliberate invalid payload for robustness test
+    expect(() => appReducer(initialState, { type: "SET_CHAT_DRAFT", patch: null })).not.toThrow();
+    // @ts-expect-error deliberate invalid payload for robustness test
+    expect(() => appReducer(initialState, { type: "SET_IMAGE_DRAFT", patch: undefined })).not.toThrow();
+    // @ts-expect-error deliberate invalid payload for robustness test
+    expect(() => appReducer(initialState, { type: "SET_BATCH_DRAFT", patch: null })).not.toThrow();
+  });
+
+  /**
    * BUG-007 regression guard: coerces legacy boolean webSearch settings.
    *
    * Ensures true/false/invalid values become canonical "on"/"off" strings.

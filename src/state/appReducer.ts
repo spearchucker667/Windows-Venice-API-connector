@@ -283,13 +283,19 @@ export const appReducer = produce((draft: typeof initialState, action: AppAction
       draft.sourcePanelOpen = !draft.sourcePanelOpen;
       break;
     case "SET_CHAT_DRAFT":
-      Object.assign(draft.chatDraft, action.patch);
+      if (action.patch && typeof action.patch === "object") {
+        Object.assign(draft.chatDraft, action.patch);
+      }
       break;
     case "SET_IMAGE_DRAFT":
-      Object.assign(draft.imageDraft, action.patch);
+      if (action.patch && typeof action.patch === "object") {
+        Object.assign(draft.imageDraft, action.patch);
+      }
       break;
     case "SET_BATCH_DRAFT":
-      Object.assign(draft.batchDraft, action.patch);
+      if (action.patch && typeof action.patch === "object") {
+        Object.assign(draft.batchDraft, action.patch);
+      }
       break;
     case "SET_ONLINE":
       draft.isOnline = action.online;
