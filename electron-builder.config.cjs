@@ -77,9 +77,11 @@ const config = {
     icon: "build/icon.icns",
     category: "public.app-category.productivity",
     artifactName: "Venice-Forge-${version}-${arch}.${ext}",
-    // Hardened runtime is only valid when a signing identity is present.
-    // Ad-hoc / unsigned builds (CI without credentials, local dev) omit it.
-    ...(isCIRelease ? { hardenedRuntime: true } : {}),
+    // Hardened runtime requires a signing identity; ad-hoc/unsigned builds omit it.
+    // identity: null explicitly disables code signing when no cert is available.
+    ...(isCIRelease
+      ? { hardenedRuntime: true }
+      : { identity: null }),
   },
 
   dmg: {
