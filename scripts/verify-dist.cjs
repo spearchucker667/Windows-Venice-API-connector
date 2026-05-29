@@ -11,6 +11,6 @@ try {
   } else {
     console.log(`[verify:dist] Skipping verification on unsupported platform: ${platform}`);
   }
-} catch (err) {
+} catch {
   process.exit(1);
 }
