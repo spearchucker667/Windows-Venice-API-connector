@@ -7,6 +7,13 @@
  * Run: npm run dist:win or npm run dist:mac
  */
 
+const isCIRelease =
+  !!process.env.CSC_LINK &&
+  !!process.env.CSC_KEY_PASSWORD &&
+  !!process.env.APPLE_ID &&
+  !!process.env.APPLE_APP_SPECIFIC_PASSWORD &&
+  !!process.env.APPLE_TEAM_ID;
+
 /** @type {import('electron-builder').Configuration} */
 const config = {
   appId: "ai.venice.forge",
@@ -65,14 +72,13 @@ const config = {
   mac: {
     target: [
       { target: "dmg", arch: ["x64", "arm64"] },
-      { target: "zip", arch: ["x64", "arm64"] }
+      { target: "zip", arch: ["x64", "arm64"] },
     ],
     icon: "build/icon.icns",
     category: "public.app-category.productivity",
-    hardenedRuntime: true,
-    // Notarization credentials are provided via environment for public releases.
-    // Local unsigned builds will still work because electron-builder falls back
-    // to ad-hoc signing when no Apple Developer ID certificate is present.
+    // Hardened runtime is only valid when a signing identity is present.
+    // Ad-hoc / unsigned builds (CI without credentials, local dev) omit it.
+    ...(isCIRelease ? { hardenedRuntime: true } : {}),
   },
 
   zip: {
@@ -81,6 +87,7 @@ const config = {
 
   dmg: {
     artifactName: "Venice-Forge-${version}-${arch}.${ext}",
+    sign: false,
     contents: [
       {
         x: 130,
