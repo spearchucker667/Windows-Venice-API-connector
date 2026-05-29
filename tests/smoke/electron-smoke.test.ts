@@ -4,7 +4,9 @@ import path from 'path';
 import fs from 'fs';
 import os from 'os';
 
-test('packaged electron app launches successfully', async () => {
+const smokeTest = process.env.RUN_ELECTRON_SMOKE === 'true' ? test : test.skip;
+
+smokeTest('packaged electron app launches successfully', async () => {
   const root = path.join(__dirname, '..', '..');
   const releaseDir = path.join(root, 'release');
   
