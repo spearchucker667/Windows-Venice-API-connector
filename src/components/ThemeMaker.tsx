@@ -2,12 +2,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import { BUILTIN_DARK, BUILTIN_LIGHT, BUILTIN_COPPER, applyTheme, type Theme, type ThemeTokens } from "../theme";
 import { COLOR_INPUT_FALLBACK } from "../theme/fallbacks";
 import { ThemePreview } from "./ThemePreview";
-import type { AppState, AppDispatch } from "../types/app";
+import type { ModuleProps } from "../types/app";
 
-interface ThemeMakerProps {
-  state: AppState;
-  dispatch: AppDispatch;
-}
+type ThemeMakerProps = ModuleProps;
 
 const TOKEN_LABELS: Record<keyof ThemeTokens, string> = {
   background: "Background",

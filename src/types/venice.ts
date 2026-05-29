@@ -3,9 +3,21 @@
 /** Metadata for a single model returned by the Venice API. */
 export interface ModelInfo {
   id: string;
-  created: number;
-  object: string;
-  owned_by: string;
+  name?: string;
+  type?: string;
+  traits?: unknown;
+  isFallback?: boolean;
+  source?: "live" | "fallback" | string;
+  // Raw API fields
+  created?: number;
+  object?: string;
+  owned_by?: string;
+  model?: string;
+  display_name?: string;
+  model_type?: string;
+  modelType?: string;
+  capabilities?: unknown;
+  features?: unknown;
 }
 
 /** Groups of models by capability category. */
@@ -30,6 +42,7 @@ export interface DiagnosticsEntry {
   ok?: boolean;
   headers?: Record<string, string>;
   model?: string | null;
+  message?: string;
   startedAt?: string;
   endedAt?: string;
 }

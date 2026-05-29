@@ -4,23 +4,30 @@
 // Code Owner: fayeblade (@spearchucker667)
 // Primary maintainer and security gatekeeper for the Electron main process.
 import { app, BrowserWindow, dialog, shell } from "electron";
-import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { registerIpcHandlers } from "./ipc/handlers";
 import { logError, logInfo } from "./services/logger";
+import { checkPathContained } from "./utils/navigation";
 
 /** Indicates whether the app is running in development mode. */
 const isDev = !app.isPackaged;
 
 /** Whether to allow DevTools in packaged production builds. */
 const allowProdDevTools = process.env.VENICE_FORGE_DEBUG_DEVTOOLS === "true";
+if (allowProdDevTools) {
+  logInfo("VENICE_FORGE_DEBUG_DEVTOOLS is enabled — DevTools will be available in production builds.");
+}
 
-/** Builds the Content-Security-Policy header string for the renderer. */
+/** Builds the Content-Security-Policy header string for the renderer.
+ *  Production includes 'unsafe-inline' for scripts because index.html contains
+ *  an inline theme bootstrap script that must run before React mounts.
+ *  This is acceptable for a desktop app where the HTML is a local file.
+ */
 function rendererCsp(): string {
   const connectSrc = isDev ? "'self' http://localhost:5173 ws://localhost:5173" : "'self'";
   const styleSrc = isDev ? "'self' 'unsafe-inline' http://localhost:5173" : "'self' 'unsafe-inline'";
-  const scriptSrc = isDev ? "'self' 'unsafe-inline' 'unsafe-eval' http://localhost:5173" : "'self'";
+  const scriptSrc = isDev ? "'self' 'unsafe-inline' 'unsafe-eval' http://localhost:5173" : "'self' 'unsafe-inline'";
 
   return [
     "default-src 'self'",
@@ -107,21 +114,7 @@ function isAllowedAppNavigation(url: string): boolean {
     if (isDev) return parsed.origin === "http://localhost:5173";
     if (parsed.protocol !== "file:") return false;
     const rendererRoot = path.resolve(__dirname, "../../dist");
-    // Normalize to resolve "..", then realpath to resolve symlinks, then verify strict containment.
-    let targetPath: string;
-    try {
-      targetPath = fs.realpathSync(path.normalize(fileURLToPath(parsed)));
-    } catch {
-      return false;
-    }
-    let normalizedRoot: string;
-    try {
-      normalizedRoot = fs.realpathSync(path.normalize(rendererRoot));
-    } catch {
-      return false;
-    }
-    const indexHtml = path.join(normalizedRoot, "index.html");
-    return targetPath === indexHtml || targetPath.startsWith(`${normalizedRoot}${path.sep}`);
+    return checkPathContained(fileURLToPath(parsed), rendererRoot);
   } catch {
     return false;
   }

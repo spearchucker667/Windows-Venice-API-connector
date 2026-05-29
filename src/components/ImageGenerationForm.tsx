@@ -6,11 +6,11 @@ import { ModelSelect } from "./ModelSelect";
 import { ModelRefreshButton } from "./ModelRefreshButton";
 import { StatusBlock } from "./StatusBlock";
 import { CollapsibleSection } from "./CollapsibleSection";
-import { AppState, AppDispatch, ImageDraft } from "../types/app";
+import { ModuleProps, ImageDraft } from "../types/app";
 
-interface ImageGenerationFormProps {
-  state: AppState;
-  dispatch: AppDispatch;
+
+
+interface ImageGenerationFormProps extends ModuleProps {
   draft: ImageDraft;
   loading: boolean;
   error: string;

@@ -7,12 +7,12 @@ import { Chip } from "../components/Chip";
 import { StatusBlock } from "../components/StatusBlock";
 import { ImageActionModal } from "../components/ImageActionModal";
 import { ConfirmModal } from "../components/ConfirmModal";
-import { AppState, AppDispatch } from "../types/app";
+import { ModuleProps } from "../types/app";
 import { GalleryImage } from "../types/storage";
 
 type PendingConfirm = { message: string; detail?: string; onConfirm: () => Promise<void> | void };
 
-export function GalleryModule({ state, dispatch }: { state: AppState; dispatch: AppDispatch }) {
+export function GalleryModule({ state, dispatch }: ModuleProps) {
   const [expanded, setExpanded] = useState<GalleryImage | null>(null);
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
@@ -205,7 +205,7 @@ export function GalleryModule({ state, dispatch }: { state: AppState; dispatch: 
             <Chip>{state.chats?.length || 0}</Chip>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {(state.chats || []).slice(0, 8).map((c: any) => (
+            {(state.chats || []).slice(0, 8).map((c) => (
               <div className="rounded-xl bg-surface/50 border border-border/50 p-4 transition-all hover:border-border" key={c.id}>
                 <div className="text-sm text-text-secondary mb-2">
                   <strong className="text-text-primary">{c.model}</strong>

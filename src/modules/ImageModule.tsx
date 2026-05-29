@@ -16,10 +16,10 @@ import { DiagPreview } from "../components/DiagnosticsPreview";
 import { ImageActionModal } from "../components/ImageActionModal";
 import { ImageGenerationForm } from "../components/ImageGenerationForm";
 import { ImageGenerationPreview } from "../components/ImageGenerationPreview";
-import { AppState, AppDispatch, ImageDraft } from "../types/app";
+import { ModuleProps, ImageDraft } from "../types/app";
 import { GalleryImage } from "../types/storage";
 
-export function ImageModule({ state, dispatch }: { state: AppState; dispatch: AppDispatch }) {
+export function ImageModule({ state, dispatch }: ModuleProps) {
   const draft = state.imageDraft;
   const [loading, setLoading] = useState(false);
   const [upscaling, setUpscaling] = useState(false);

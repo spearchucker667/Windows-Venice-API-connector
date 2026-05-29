@@ -45,6 +45,7 @@ This document is the public map for the Venice Forge repository. It reflects the
 ├── electron/
 │   ├── ipc/
 │   ├── services/
+│   ├── utils/                # Shared utilities (download, image, markdown, payload builders, validation)                # Pure utilities (navigation containment checks)
 │   ├── main.ts
 │   └── preload.ts
 ├── scripts/
@@ -62,9 +63,10 @@ This document is the public map for the Venice Forge repository. It reflects the
 │   ├── services/
 │   ├── shared/
 │   ├── state/
-│   ├── theme/              # Token types, built-in palettes, applyTheme, contrast utilities
+│   ├── theme/                # Token types, built-in palettes, applyTheme, contrast utilities
 │   ├── types/
 │   ├── utils/
+│   ├── styles/               # Split CSS: theme vars, components, accessibility
 │   ├── App.tsx
 │   ├── index.css
 │   └── main.tsx

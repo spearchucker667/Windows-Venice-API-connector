@@ -1,10 +1,12 @@
 // Code Owner: fayeblade (@spearchucker667)
 // Root application shell — all state, routing, and bridge initialization lives here.
-import React, { useEffect, useReducer, useState, useRef } from "react";
+import React, { useEffect, useReducer, useState } from "react";
 import { appReducer, initialState } from "./state/appReducer";
 import StorageService from "./services/storageService";
-import { applyTheme, BUILTIN_DARK, BUILTIN_LIGHT, BUILTIN_COPPER, type Theme } from "./theme";
 import { refreshModels } from "./services/modelService";
+import { useNetworkStatus } from "./hooks/useNetworkStatus";
+import { useSettingsPersistence } from "./hooks/useSettingsPersistence";
+import { useThemeLifecycle } from "./hooks/useThemeLifecycle";
 import { ChatModule } from "./modules/ChatModule";
 import { ImageModule } from "./modules/ImageModule";
 import { BatchModule } from "./modules/BatchModule";
@@ -22,7 +24,7 @@ import { initDesktopBridge, isElectron, desktopApiKey } from "./services/desktop
 import { warn } from "./shared/logger";
 import { GalleryImage } from "./types/storage";
 
-type ChatHistoryRecord = { id: string; timestamp: number };
+
 type SettingsRecord = { id: string; timestamp: number; value?: Record<string, unknown> };
 
 export default function App() {
@@ -35,45 +37,8 @@ export default function App() {
   const [dbReady, setDbReady] = useState(false);
   const [settingsHydrated, setSettingsHydrated] = useState(false);
 
-  function getActiveTheme(settings: typeof initialState.settings): Theme {
-    if (settings.selectedThemeId === "custom" && settings.customTheme) {
-      return settings.customTheme;
-    }
-    if (settings.selectedThemeId === "builtin-light") return BUILTIN_LIGHT;
-    if (settings.selectedThemeId === "builtin-copper") return BUILTIN_COPPER;
-    return BUILTIN_DARK;
-  }
-
-  useEffect(() => {
-    if (!settingsHydrated) return;
-    const theme = getActiveTheme(state.settings);
-    applyTheme(theme);
-  }, [settingsHydrated, state.settings.selectedThemeId, state.settings.appearanceMode, state.settings.customTheme]);
-
-  useEffect(() => {
-    if (!settingsHydrated) return;
-    try {
-      localStorage.setItem("vf.theme.bootstrap", JSON.stringify({
-        selectedThemeId: state.settings.selectedThemeId,
-        appearanceMode: state.settings.appearanceMode,
-        customTheme: state.settings.customTheme,
-      }));
-    } catch {
-      // localStorage may be disabled or full — bootstrap cache is best-effort
-    }
-  }, [settingsHydrated, state.settings.selectedThemeId, state.settings.appearanceMode, state.settings.customTheme]);
-
-  // Network status listener
-  useEffect(() => {
-    const goOnline = () => dispatch({ type: "SET_ONLINE", online: true });
-    const goOffline = () => dispatch({ type: "SET_ONLINE", online: false });
-    window.addEventListener("online", goOnline);
-    window.addEventListener("offline", goOffline);
-    return () => {
-      window.removeEventListener("online", goOnline);
-      window.removeEventListener("offline", goOffline);
-    };
-  }, []);
+  useThemeLifecycle(state.settings, settingsHydrated);
+  useNetworkStatus(dispatch);
 
   // Initialise the desktop bridge (no-op in web mode)
   useEffect(() => {
@@ -119,7 +84,7 @@ export default function App() {
           StorageService.getItemsWithMeta("settings"),
         ]);
         const images = imagesResult.items as GalleryImage[];
-        const chats = chatsResult.items as ChatHistoryRecord[];
+        const chats = chatsResult.items as import("./types/storage").ChatHistoryItem[];
         const settingsItems = settingsResult.items as SettingsRecord[];
         const totalDecryptFailures =
           imagesResult.decryptFailures + chatsResult.decryptFailures + settingsResult.decryptFailures;
@@ -184,37 +149,7 @@ export default function App() {
     }
   }, [apiKeyConfigured, firstRunRouted]);
 
-  const settingsSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    if (!dbReady || !settingsHydrated) return;
-    if (settingsSaveTimeoutRef.current) {
-      clearTimeout(settingsSaveTimeoutRef.current);
-    }
-    settingsSaveTimeoutRef.current = setTimeout(() => {
-      StorageService.saveItem("settings", {
-        id: "app-settings",
-        value: state.settings,
-        timestamp: Date.now(),
-      }).catch((err) => {
-        warn("Settings save failed", err);
-        dispatch({
-          type: "ADD_TOAST",
-          toast: {
-            id: crypto.randomUUID(),
-            message: "Failed to save settings to local storage.",
-            type: "error",
-            duration: 5000,
-          },
-        });
-      });
-    }, 500);
-    return () => {
-      if (settingsSaveTimeoutRef.current) {
-        clearTimeout(settingsSaveTimeoutRef.current);
-      }
-    };
-  }, [dbReady, settingsHydrated, state.settings]);
+  useSettingsPersistence(state.settings, dbReady, settingsHydrated, dispatch);
 
   return (
     <div className="flex h-screen flex-col bg-transparent">

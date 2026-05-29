@@ -66,6 +66,74 @@ describe("export/import schema validation", () => {
     ).toThrow(/unexpected/i);
   });
 
+  /** Verifies that a custom theme round-trips through export and import intact. */
+  it("round-trips a custom theme through export and import", () => {
+    const customTheme = {
+      id: "custom",
+      name: "My Theme",
+      mode: "dark" as const,
+      tokens: {
+        background: "#0a0a0a",
+        surface: "#141414",
+        surfaceElevated: "#1e1e1e",
+        border: "#2a2a2a",
+        textPrimary: "#f0f0f0",
+        textSecondary: "#b0b0b0",
+        textMuted: "#666666",
+        accent: "#ff6600",
+        accentHover: "#ff8844",
+        accentForeground: "#ffffff",
+        success: "#3fb950",
+        warning: "#d29922",
+        danger: "#f85149",
+        info: "#58a6ff",
+        focusRing: "#ff6600",
+        overlay: "rgba(0,0,0,0.7)",
+        glow: "rgba(255,102,0,0.25)",
+      },
+    };
+
+    const payload = createExportPayload(
+      {
+        settings: [
+          {
+            id: "app-settings",
+            value: { theme: "dark", selectedThemeId: "custom", customTheme },
+            timestamp: 1,
+          },
+        ],
+      },
+      "1.0.0"
+    );
+
+    const imported = validateImportJson(JSON.stringify(payload));
+    const settingsValue = imported.payload.data.settings[0].value as Record<string, unknown>;
+    expect(settingsValue.selectedThemeId).toBe("custom");
+    expect(settingsValue.customTheme).toEqual(customTheme);
+  });
+
+  /** Verifies that malformed custom themes are sanitized to null on import. */
+  it("sanitizes malformed custom themes to null", () => {
+    const json = JSON.stringify({
+      version: EXPORT_SCHEMA_VERSION,
+      exportedAt: new Date().toISOString(),
+      appVersion: "1.0.0",
+      data: {
+        settings: [
+          {
+            id: "app-settings",
+            value: { selectedThemeId: "custom", customTheme: { id: 123, bad: true } },
+            timestamp: 1,
+          },
+        ],
+      },
+    });
+
+    const imported = validateImportJson(json);
+    const settingsValue = imported.payload.data.settings[0].value as Record<string, unknown>;
+    expect(settingsValue.customTheme).toBeNull();
+  });
+
   it("skips malformed record fields and non-finite timestamps", () => {
     const json = JSON.stringify({
       version: EXPORT_SCHEMA_VERSION,

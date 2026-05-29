@@ -3,7 +3,8 @@
 import { FALLBACK_MODELS, DEFAULT_SYSTEM_PROMPT } from "../constants/venice";
 import { produce } from "immer";
 import { warn } from "../shared/logger";
-import type { AppAction } from "../types/app";
+import type { AppAction, AppState } from "../types/app";
+import type { ModelInfo } from "../types/venice";
 
 /**
  * Determines the model category from its metadata.
@@ -11,7 +12,7 @@ import type { AppAction } from "../types/app";
  * @param model Raw model object from the API.
  * @returns The inferred category, e.g. "text", "image", or "unknown".
  */
-function classifyModel(model: any) {
+function classifyModel(model: ModelInfo) {
   const id = String(model.id || model.model || "").toLowerCase();
   const type = String(
     model.type || model.model_type || model.modelType || ""
@@ -42,13 +43,14 @@ function classifyModel(model: any) {
  * @param payload Raw API response or array of models.
  * @returns Record mapping categories to arrays of normalized models.
  */
-export function flattenModels(payload: any) {
-  const list = Array.isArray(payload?.data)
-    ? payload.data
-    : Array.isArray(payload)
-    ? payload
-    : [];
-  const groups: Record<string, any[]> = {
+export function flattenModels(payload: unknown) {
+  let list: unknown[] = [];
+  if (Array.isArray(payload)) {
+    list = payload;
+  } else if (payload && typeof payload === "object" && "data" in payload && Array.isArray((payload as Record<string, unknown>).data)) {
+    list = (payload as Record<string, unknown>).data as unknown[];
+  }
+  const groups: Record<string, ModelInfo[]> = {
     text: [],
     image: [],
     audio: [],
@@ -56,14 +58,15 @@ export function flattenModels(payload: any) {
     embeddings: [],
     unknown: [],
   };
-  list.forEach((m: any) => {
-    const normalized = {
-      ...m,
-      id: m.id || m.model || m.name || "unknown-model",
-      name: m.name || m.display_name || m.id || m.model || "unknown model",
-      type: m.type || m.model_type || m.modelType || classifyModel(m),
+  list.forEach((raw) => {
+    const m = raw as Record<string, unknown>;
+    const normalized: ModelInfo = {
+      ...(m as Record<string, unknown>),
+      id: String(m.id || m.model || m.name || "unknown-model"),
+      name: String(m.name || m.display_name || m.id || m.model || "unknown model"),
+      type: String(m.type || m.model_type || m.modelType || classifyModel(m as unknown as ModelInfo)),
       isFallback: false,
-      source: "live" as const,
+      source: "live",
     };
     groups[classifyModel(normalized)].push(normalized);
   });
@@ -76,8 +79,8 @@ export function flattenModels(payload: any) {
  * @param groups Model groups from flattenModels.
  * @returns A new groups object with fallback models where needed.
  */
-export function withFallbackModels(groups: Record<string, any[]>) {
-  const next: Record<string, any[]> = {
+export function withFallbackModels(groups: Record<string, ModelInfo[]>) {
+  const next: Record<string, ModelInfo[]> = {
     text: [],
     image: [],
     audio: [],
@@ -124,10 +127,10 @@ export const initialState = {
     appearanceMode: "dark" as "dark" | "light",
     customTheme: null as import("../theme/themeTypes").Theme | null,
   },
-  diagnostics: null as any,
-  diagnosticsLog: [] as any[],
-  gallery: [] as any[],
-  chats: [] as any[],
+  diagnostics: null as AppState["diagnostics"],
+  diagnosticsLog: [] as AppState["diagnosticsLog"],
+  gallery: [] as AppState["gallery"],
+  chats: [] as AppState["chats"],
   sourcePanelOpen: true,
   isOnline: typeof navigator !== "undefined" ? navigator.onLine : true,
   modelLoadError: "",
@@ -144,7 +147,7 @@ export const initialState = {
     currentImage: "",
     lastSavedImageId: null,
     imageCount: 1,
-    currentImages: [] as any[],
+    currentImages: [] as AppState["gallery"],
     currentBatchId: null as string | null,
     generationProgress: "",
     batchQueueStatus: "",
@@ -169,7 +172,7 @@ export const initialState = {
  * @param action The dispatched action.
  * @returns The next immutable state.
  */
-export const appReducer = produce((draft: typeof initialState, action: AppAction) => {
+export const appReducer = produce((draft: AppState, action: AppAction) => {
   switch (action.type) {
     case "SET_TAB":
       draft.activeTab = action.tab;
@@ -179,11 +182,11 @@ export const appReducer = produce((draft: typeof initialState, action: AppAction
       draft.models = models;
       draft.usingFallbackModels = !!action.fallback;
 
-      const chatModelExists = models.text.some((m: any) => m.id === draft.selectedChatModel);
-      const imageModelExists = models.image.some((m: any) => m.id === draft.selectedImageModel);
+      const chatModelExists = models.text.some((m) => m.id === draft.selectedChatModel);
+      const imageModelExists = models.image.some((m) => m.id === draft.selectedImageModel);
 
       if (!chatModelExists) {
-        const firstLive = models.text.find((m: any) => m.source === "live");
+        const firstLive = models.text.find((m) => m.source === "live");
         const fallback = models.text[0];
         draft.selectedChatModel = firstLive?.id || fallback?.id || "venice-uncensored";
         if (draft.selectedChatModel) {
@@ -197,7 +200,7 @@ export const appReducer = produce((draft: typeof initialState, action: AppAction
       }
 
       if (!imageModelExists) {
-        const firstLive = models.image.find((m: any) => m.source === "live");
+        const firstLive = models.image.find((m) => m.source === "live");
         const fallback = models.image[0];
         draft.selectedImageModel = firstLive?.id || fallback?.id || "flux-dev";
         if (draft.selectedImageModel) {
@@ -281,7 +284,11 @@ export const appReducer = produce((draft: typeof initialState, action: AppAction
       break;
     }
     case "SET_DIAGNOSTICS": {
-      const entry = {
+      const entry: import("../types/venice").DiagnosticsEntry = {
+        type: "info",
+        endpoint: "",
+        status: null,
+        latencyMs: null,
         ...action.diagnostics,
         id: crypto.randomUUID(),
         timestamp: Date.now(),

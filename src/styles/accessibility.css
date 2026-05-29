@@ -1,0 +1,19 @@
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+
+/* High contrast mode: stronger borders, reduced transparency, no blur */
+@media (prefers-contrast: more) {
+  :root {
+    --border: color-mix(in srgb, var(--text-primary) 50%, var(--background));
+  }
+  .btn, input, select, textarea {
+    border-width: 2px !important;
+  }
+  * { backdrop-filter: none !important; }
+}
+
+/* Reduced contrast / transparent mode preference: less glassmorphism */
+@media (prefers-contrast: less) {
+  * { backdrop-filter: none !important; }
+}

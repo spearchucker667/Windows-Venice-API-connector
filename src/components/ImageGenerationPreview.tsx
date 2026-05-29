@@ -3,11 +3,9 @@
 import React from "react";
 import { CollapsibleSection } from "./CollapsibleSection";
 import { GalleryImage } from "../types/storage";
-import { AppState, AppDispatch, ImageDraft } from "../types/app";
+import { ModuleProps, ImageDraft } from "../types/app";
 
-interface ImageGenerationPreviewProps {
-  state: AppState;
-  dispatch: AppDispatch;
+interface ImageGenerationPreviewProps extends ModuleProps {
   draft: ImageDraft;
   recentHistory: GalleryImage[];
   onExpand: (img: GalleryImage) => void;

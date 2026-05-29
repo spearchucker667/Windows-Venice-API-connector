@@ -1,5 +1,14 @@
 /** @fileoverview Type definitions for IndexedDB storage records. */
 
+/** Describes a saved chat history record stored in IndexedDB. */
+export interface ChatHistoryItem {
+  id: string;
+  prompt: string;
+  response: string;
+  model: string;
+  timestamp: number;
+}
+
 /** Describes a saved image record stored in the local gallery. */
 export interface GalleryImage {
   id: string;

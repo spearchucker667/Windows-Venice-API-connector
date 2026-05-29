@@ -1,0 +1,77 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { applyTheme, resolveInitialTheme } from "./applyTheme";
+import { BUILTIN_DARK, BUILTIN_LIGHT, BUILTIN_COPPER } from "./themes";
+
+describe("applyTheme", () => {
+  let setPropertySpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    setPropertySpy = vi.spyOn(document.documentElement.style, "setProperty").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    setPropertySpy.mockRestore();
+    delete document.documentElement.dataset.themeMode;
+  });
+
+  it("sets all 17 CSS variables on document.documentElement", () => {
+    applyTheme(BUILTIN_DARK);
+    expect(setPropertySpy).toHaveBeenCalledWith("--bg", BUILTIN_DARK.tokens.background);
+    expect(setPropertySpy).toHaveBeenCalledWith("--text-primary", BUILTIN_DARK.tokens.textPrimary);
+    expect(setPropertySpy).toHaveBeenCalledWith("--accent", BUILTIN_DARK.tokens.accent);
+    expect(setPropertySpy).toHaveBeenCalledWith("--glow", BUILTIN_DARK.tokens.glow);
+  });
+
+  it("sets data-theme-mode attribute", () => {
+    applyTheme(BUILTIN_LIGHT);
+    expect(document.documentElement.dataset.themeMode).toBe("light");
+  });
+
+  it("overwrites previous theme tokens when called again", () => {
+    applyTheme(BUILTIN_DARK);
+    applyTheme(BUILTIN_LIGHT);
+    expect(setPropertySpy).toHaveBeenCalledWith("--bg", BUILTIN_LIGHT.tokens.background);
+    expect(document.documentElement.dataset.themeMode).toBe("light");
+  });
+});
+
+describe("resolveInitialTheme", () => {
+  const originalMatchMedia = window.matchMedia;
+
+  afterEach(() => {
+    window.matchMedia = originalMatchMedia;
+  });
+
+  it("returns custom theme when selectedThemeId is 'custom' and customTheme is provided", () => {
+    const custom = { ...BUILTIN_DARK, id: "custom", name: "My Theme" };
+    const result = resolveInitialTheme({ selectedThemeId: "custom", customTheme: custom });
+    expect(result.id).toBe("custom");
+  });
+
+  it("returns BUILTIN_LIGHT when selectedThemeId is 'builtin-light'", () => {
+    expect(resolveInitialTheme({ selectedThemeId: "builtin-light" })).toBe(BUILTIN_LIGHT);
+  });
+
+  it("returns BUILTIN_COPPER when selectedThemeId is 'builtin-copper'", () => {
+    expect(resolveInitialTheme({ selectedThemeId: "builtin-copper" })).toBe(BUILTIN_COPPER);
+  });
+
+  it("returns BUILTIN_DARK when selectedThemeId is 'builtin-dark'", () => {
+    expect(resolveInitialTheme({ selectedThemeId: "builtin-dark" })).toBe(BUILTIN_DARK);
+  });
+
+  it("falls back to BUILTIN_DARK when prefers-color-scheme is dark", () => {
+    window.matchMedia = vi.fn().mockReturnValue({ matches: true });
+    expect(resolveInitialTheme({})).toBe(BUILTIN_DARK);
+  });
+
+  it("falls back to BUILTIN_LIGHT when prefers-color-scheme is light", () => {
+    window.matchMedia = vi.fn().mockReturnValue({ matches: false });
+    expect(resolveInitialTheme({})).toBe(BUILTIN_LIGHT);
+  });
+
+  it("returns BUILTIN_DARK when no bootstrap is provided and prefers-color-scheme is dark", () => {
+    window.matchMedia = vi.fn().mockReturnValue({ matches: true });
+    expect(resolveInitialTheme()).toBe(BUILTIN_DARK);
+  });
+});

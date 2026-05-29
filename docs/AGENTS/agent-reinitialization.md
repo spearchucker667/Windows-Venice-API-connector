@@ -145,7 +145,10 @@ No structural change claims above are based on unstated PR metadata. `[VERIFIED]
 | `src/services/veniceClient.ts` | Transport abstraction + retries + diagnostics + stream parsing + form serialization | Very high |
 | `src/theme/*.ts` | Theme token types, built-in palettes, CSS variable application, WCAG contrast utilities | Medium |
 | `src/state/appReducer.ts` | Global state transitions and model fallback behavior | High |
-| `src/App.tsx` | App bootstrapping, hydration, bridge init, tab routing, theme lifecycle | High |
+| `src/App.tsx` | App bootstrapping, hydration, bridge init, tab routing | High |
+| `src/hooks/useThemeLifecycle.ts` | Theme hydration, DOM application, bootstrap cache sync | Medium |
+| `src/hooks/useSettingsPersistence.ts` | Debounced IndexedDB settings save | Medium |
+| `src/hooks/useNetworkStatus.ts` | Browser online/offline event bridge | Low |
 | `src/theme/applyTheme.ts` | Maps semantic tokens to CSS variables and resolves initial theme | Medium |
 | `electron/main.ts` | Window security settings, CSP, navigation policy | Very high |
 | `electron/ipc/validation.ts` | Main security gate for renderer->main requests | Very high |

@@ -1,0 +1,34 @@
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Button system — used across all modules and components */
+.btn {
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  background: var(--surface);
+  border-radius: 9999px;
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+.btn:hover:not(:disabled) { background: var(--surface-elevated); border-color: var(--border); transform: translateY(-1px); }
+.btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-hover)); color: var(--accent-fg); border: 1px solid var(--border); box-shadow: 0 4px 16px var(--glow); }
+.btn.primary:hover:not(:disabled) { background: linear-gradient(135deg, var(--accent-hover), var(--accent)); box-shadow: 0 6px 20px var(--glow); }
+.btn.danger { border-color: var(--danger); color: var(--danger); background: color-mix(in srgb, var(--danger) 5%, transparent); }
+.btn.danger:hover:not(:disabled) { background: color-mix(in srgb, var(--danger) 15%, transparent); }
+.btn.ghost { border-color: transparent; background: transparent; }
+.btn.ghost:hover:not(:disabled) { background: var(--surface); }

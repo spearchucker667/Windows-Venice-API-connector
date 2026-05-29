@@ -60,22 +60,42 @@ export interface ToastMessage {
   duration?: number;
 }
 
-import { initialState } from "../state/appReducer";
-
-/** Inferred shape of the global application state. */
-export type AppState = typeof initialState;
+/** Explicit shape of the global application state. Defined here to break the circular
+ *  dependency between appReducer (which needs AppAction) and this file (which needed initialState). */
+export interface AppState {
+  activeTab: string;
+  models: Record<string, import("./venice").ModelInfo[]>;
+  usingFallbackModels: boolean;
+  selectedChatModel: string;
+  selectedImageModel: string;
+  settings: AppSettings;
+  diagnostics: import("./venice").DiagnosticsEntry | null;
+  diagnosticsLog: import("./venice").DiagnosticsEntry[];
+  gallery: import("./storage").GalleryImage[];
+  chats: import("./storage").ChatHistoryItem[];
+  sourcePanelOpen: boolean;
+  isOnline: boolean;
+  modelLoadError: string;
+  imageDraft: ImageDraft;
+  batchDraft: BatchDraft;
+  chatDraft: {
+    systemPrompt: string;
+    messages: ChatRecord[];
+  };
+  toasts: ToastMessage[];
+}
 
 /** Discriminated union of all actions accepted by the application reducer. */
 export type AppAction =
   | { type: "SET_TAB"; tab: string }
   | { type: "TOGGLE_SOURCE_PANEL" }
-  | { type: "SET_MODELS"; models: Record<string, unknown[]> | undefined; fallback?: boolean; error?: string }
+  | { type: "SET_MODELS"; models: Record<string, import("./venice").ModelInfo[]> | undefined; fallback?: boolean; error?: string }
   | { type: "SET_SELECTED_CHAT_MODEL"; model: string }
   | { type: "SET_SELECTED_IMAGE_MODEL"; model: string }
   | { type: "SET_SETTINGS"; settings: Partial<AppSettings> }
   | { type: "SET_DIAGNOSTICS"; diagnostics: Partial<DiagnosticsEntry> }
   | { type: "SET_GALLERY"; items: GalleryImage[] }
-  | { type: "SET_CHATS"; items: Array<Record<string, unknown>> }
+  | { type: "SET_CHATS"; items: import("./storage").ChatHistoryItem[] }
   | { type: "SET_CHAT_DRAFT"; patch: Partial<AppState['chatDraft']> }
   | { type: "SET_IMAGE_DRAFT"; patch: Partial<ImageDraft> }
   | { type: "SET_BATCH_DRAFT"; patch: Partial<BatchDraft> }

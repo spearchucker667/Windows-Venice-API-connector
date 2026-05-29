@@ -1,0 +1,67 @@
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import fs from "fs";
+import path from "path";
+import os from "os";
+import { checkPathContained } from "./utils/navigation";
+
+describe("checkPathContained", () => {
+  let tmpDir = "";
+  let rootDir = "";
+  let outsideFile = "";
+
+  beforeAll(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "vf-nav-test-"));
+    rootDir = path.join(tmpDir, "dist");
+    fs.mkdirSync(rootDir, { recursive: true });
+    fs.writeFileSync(path.join(rootDir, "index.html"), "<html></html>");
+    fs.mkdirSync(path.join(rootDir, "assets"), { recursive: true });
+    fs.writeFileSync(path.join(rootDir, "assets", "app.js"), "// app");
+    outsideFile = path.join(tmpDir, "outside-secret.txt");
+    fs.writeFileSync(outsideFile, "secret");
+  });
+
+  afterAll(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it("allows index.html inside the root", () => {
+    expect(checkPathContained(path.join(rootDir, "index.html"), rootDir)).toBe(true);
+  });
+
+  it("allows a regular file inside the root", () => {
+    expect(checkPathContained(path.join(rootDir, "assets", "app.js"), rootDir)).toBe(true);
+  });
+
+  it("blocks a file outside the root", () => {
+    expect(checkPathContained(outsideFile, rootDir)).toBe(false);
+  });
+
+  it("blocks a symlink that points outside the root", () => {
+    const symlinkPath = path.join(rootDir, "escape-link");
+    fs.symlinkSync(outsideFile, symlinkPath);
+    try {
+      expect(checkPathContained(symlinkPath, rootDir)).toBe(false);
+    } finally {
+      fs.unlinkSync(symlinkPath);
+    }
+  });
+
+  it("allows a symlink that points inside the root", () => {
+    const symlinkPath = path.join(rootDir, "internal-link");
+    fs.symlinkSync(path.join(rootDir, "assets", "app.js"), symlinkPath);
+    try {
+      expect(checkPathContained(symlinkPath, rootDir)).toBe(true);
+    } finally {
+      fs.unlinkSync(symlinkPath);
+    }
+  });
+
+  it("blocks path traversal via '..' sequences", () => {
+    const traversal = path.join(rootDir, "..", "outside-secret.txt");
+    expect(checkPathContained(traversal, rootDir)).toBe(false);
+  });
+
+  it("returns false for a non-existent path", () => {
+    expect(checkPathContained(path.join(rootDir, "does-not-exist.html"), rootDir)).toBe(false);
+  });
+});

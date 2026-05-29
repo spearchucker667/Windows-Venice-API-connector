@@ -10,11 +10,9 @@ import { ThemeMaker } from "../components/ThemeMaker";
 import { isElectron, desktopApiKey, desktopApp, desktopFiles, desktopUpdates } from "../services/desktopBridge";
 import { createExportPayload, validateImportJson } from "../services/exportImport";
 import { VENICE_MAX_BODY_BYTES } from "../shared/limits";
-import type { AppState, AppDispatch } from "../types/app";
+import type { ModuleProps } from "../types/app";
 
-interface SettingsModuleProps {
-  state: AppState;
-  dispatch: AppDispatch;
+interface SettingsModuleProps extends ModuleProps {
   apiKeyConfigured: boolean | null;
   onApiKeyChange: (configured: boolean) => void;
 }

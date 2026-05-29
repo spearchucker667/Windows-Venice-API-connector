@@ -120,25 +120,55 @@ function sanitizeRecord(store: ExportStore, value: unknown): Record<string, unkn
   if (store === "settings" && !isPlainObject(record.value)) return null;
 
   if (store === "settings") {
-    record.value = sanitizeSettingsValue(record.value);
+    // Pass the original un-redacted value so nested shapes (e.g. customTheme.tokens)
+    // are validated before redaction strips them.
+    const originalValue = (value as Record<string, unknown>).value;
+    record.value = sanitizeSettingsValue(originalValue);
   }
 
   return record;
 }
 
 /**
- * Sanitizes a settings value object by stripping secret fields.
+ * Validates that a value resembles a Theme object.
+ * @param value The value to test.
+ * @returns True if the value has the required Theme fields.
+ */
+function isValidTheme(value: unknown): boolean {
+  if (!isPlainObject(value)) return false;
+  const v = value as Record<string, unknown>;
+  return (
+    typeof v.id === "string" &&
+    typeof v.name === "string" &&
+    (v.mode === "dark" || v.mode === "light") &&
+    isPlainObject(v.tokens)
+  );
+}
+
+/**
+ * Sanitizes a settings value object by stripping secret fields and validating nested shapes.
  * @param value The raw settings value.
  * @returns A cleaned plain object safe for persistence.
  */
 function sanitizeSettingsValue(value: unknown): Record<string, unknown> {
   if (!isPlainObject(value)) return {};
+
+  // Preserve customTheme before redaction because redactSecrets treats the key "tokens"
+  // (inside the theme object) as a secret-bearing field and replaces it with "[REDACTED]".
+  const originalCustomTheme = (value as Record<string, unknown>).customTheme;
+
   const sanitized: Record<string, unknown> = {};
   for (const [key, entry] of Object.entries(redactSecrets(value))) {
     if (/api[-_ ]?key|authorization|password|secret|token/i.test(key)) continue;
     if (typeof entry === "function" || typeof entry === "symbol" || typeof entry === "undefined") continue;
     sanitized[key] = entry;
   }
+
+  // Restore and validate customTheme using the original un-redacted value.
+  if (originalCustomTheme !== undefined) {
+    sanitized.customTheme = isValidTheme(originalCustomTheme) ? originalCustomTheme : null;
+  }
+
   return sanitized;
 }
 

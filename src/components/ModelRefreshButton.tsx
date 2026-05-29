@@ -1,14 +1,9 @@
 import React, { useState } from "react";
 import { refreshModels } from "../services/modelService";
 import { Chip } from "./Chip";
-import { AppState, AppDispatch } from "../types/app";
+import { ModuleProps } from "../types/app";
 
-interface ModelRefreshButtonProps {
-  state: AppState;
-  dispatch: AppDispatch;
-}
-
-export function ModelRefreshButton({ state, dispatch }: ModelRefreshButtonProps) {
+export function ModelRefreshButton({ state, dispatch }: ModuleProps) {
   const [refreshing, setRefreshing] = useState(false);
 
   async function handleRefresh() {

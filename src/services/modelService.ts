@@ -5,6 +5,7 @@ import { flattenModels } from "../state/appReducer";
 import { isValidModelListResponse } from "../utils/veniceValidation";
 import { warn } from "../shared/logger";
 import type { AppDispatch } from "../types/app";
+import type { ModelInfo } from "../types/venice";
 
 /** localStorage key for the model cache. */
 const CACHE_KEY = "venice-forge-models-cache";
@@ -14,7 +15,7 @@ const CACHE_TTL_MS = 5 * 60 * 1000;
 
 /** Shape of the persisted model cache entry. */
 interface ModelsCache {
-  grouped: Record<string, unknown[]>;
+  grouped: Record<string, ModelInfo[]>;
   fetchedAt: number;
   isStale?: boolean;
 }
@@ -39,7 +40,7 @@ function readCache(): ModelsCache | null {
     if (!isValidGroupedModels(parsed.grouped)) return null;
     if (typeof parsed.fetchedAt !== "number" || !Number.isFinite(parsed.fetchedAt)) return null;
     const isStale = Date.now() - parsed.fetchedAt > CACHE_TTL_MS;
-    return { ...parsed, isStale };
+    return { ...parsed, grouped: parsed.grouped as Record<string, ModelInfo[]>, isStale };
   } catch {
     return null;
   }
@@ -49,7 +50,7 @@ function readCache(): ModelsCache | null {
  * Writes grouped model data to localStorage.
  * @param grouped The model groups to cache.
  */
-function writeCache(grouped: Record<string, unknown[]>): void {
+function writeCache(grouped: Record<string, ModelInfo[]>): void {
   try {
     window.localStorage.setItem(CACHE_KEY, JSON.stringify({ grouped, fetchedAt: Date.now() }));
   } catch (err) {

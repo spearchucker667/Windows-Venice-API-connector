@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
-import { AppState, AppDispatch, ToastMessage } from "../types/app";
+import { ModuleProps, ToastMessage, AppDispatch } from "../types/app";
 
-export function ToastHost({ state, dispatch }: { state: AppState; dispatch: AppDispatch }) {
+export function ToastHost({ state, dispatch }: ModuleProps) {
   return (
     <div className="fixed bottom-5 right-5 z-[9999] flex flex-col gap-2">
       {state.toasts?.map((toast) => (
