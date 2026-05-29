@@ -372,6 +372,14 @@ async function veniceFetchDesktop(
     headers = {} as Record<string, string>,
     isFormData = false,
     retry = true,
+  }: {
+    method?: "GET" | "POST";
+    body?: unknown;
+    signal?: AbortSignal;
+    dispatch?: AppDispatch;
+    headers?: Record<string, string>;
+    isFormData?: boolean;
+    retry?: boolean;
   } = {}
 ): Promise<{ data: unknown; response: VeniceForgeResponse; headers: Record<string, string>; diagnostics: Partial<DiagnosticsEntry> }> {
   // Serialize FormData before crossing the IPC boundary.
@@ -391,7 +399,7 @@ async function veniceFetchDesktop(
       response = await desktopVenice.request(
         {
           endpoint,
-          method: method as "GET" | "POST",
+          method,
           body: serializedBody,
           headers,
         },
@@ -513,6 +521,14 @@ async function _veniceFetch(
     headers = {} as Record<string, string>,
     isFormData = false,
     retry = true,
+  }: {
+    method?: "GET" | "POST";
+    body?: unknown;
+    signal?: AbortSignal;
+    dispatch?: AppDispatch;
+    headers?: Record<string, string>;
+    isFormData?: boolean;
+    retry?: boolean;
   } = {}
 ): Promise<{ data: unknown; response: Response | VeniceForgeResponse; headers: Record<string, string>; diagnostics: Partial<DiagnosticsEntry> }> {
   if (isElectron()) {
@@ -684,7 +700,7 @@ async function _veniceFetch(
 export async function veniceFetch<T = any>(
   endpoint: string,
   options: {
-    method?: string;
+    method?: "GET" | "POST";
     body?: unknown;
     signal?: AbortSignal;
     dispatch?: AppDispatch;
