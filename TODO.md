@@ -617,7 +617,7 @@
   - **Fix:** Add to `.env.example` with a security warning.
   - **Confidence:** [VERIFIED]
 
-- [ ] **[GAP-003] `AGENT_REINITIALIZATION.md` section 10.4 verification checklist is not itself verified against current files** `AGENT_REINITIALIZATION.md:439`
+- [x] **[GAP-003] `AGENT_REINITIALIZATION.md` section 10.4 verification checklist is not itself verified against current files** `AGENT_REINITIALIZATION.md:439`
   - **What:** The checklist claims to verify command accuracy, but the lint budget and CI commands are wrong.
   - **Fix:** Run the checklist against the current repo state and fix discrepancies.
   - **Confidence:** [VERIFIED]
