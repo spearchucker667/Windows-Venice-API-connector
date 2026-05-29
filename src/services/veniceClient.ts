@@ -70,6 +70,35 @@ function sleep(ms: number, signal?: AbortSignal): Promise<void> {
 }
 
 /**
+ * Creates an abort signal that fires after `ms`, optionally composing
+ * with a parent signal. Falls back to manual timeout for runtimes that
+ * lack AbortSignal.timeout / AbortSignal.any.
+ */
+function createTimeoutSignal(ms: number, parentSignal?: AbortSignal | null): AbortSignal {
+  if (typeof AbortSignal !== "undefined" && AbortSignal.timeout) {
+    const timeoutSignal = AbortSignal.timeout(ms);
+    if (parentSignal && typeof AbortSignal !== "undefined" && AbortSignal.any) {
+      return AbortSignal.any([parentSignal, timeoutSignal]);
+    }
+    return timeoutSignal;
+  }
+  // Fallback for older runtimes
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), ms);
+  if (parentSignal) {
+    parentSignal.addEventListener(
+      "abort",
+      () => {
+        clearTimeout(id);
+        controller.abort();
+      },
+      { once: true }
+    );
+  }
+  return controller.signal;
+}
+
+/**
  * Calculates an exponential backoff delay for a given retry attempt.
  * @param attempt The current retry attempt number (0-indexed).
  * @param baseMs The base delay in milliseconds.
@@ -510,9 +539,7 @@ async function _veniceFetch(
     let diagHeaders: Record<string, string> = {};
     let parsed: unknown = null;
     try {
-      const fetchSignal = signal
-        ? AbortSignal.any([signal, AbortSignal.timeout(60000)])
-        : AbortSignal.timeout(60000);
+      const fetchSignal = createTimeoutSignal(60000, signal);
       response = await fetch(url, {
         method,
         headers: requestHeaders,
