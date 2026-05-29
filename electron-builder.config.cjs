@@ -33,7 +33,7 @@ const config = {
   publish: {
     provider: "github",
     owner: "spearchucker667",
-    repo: "Windows-Venice-API-connector",
+    repo: "Venice-API-connector",
   },
 
   win: {

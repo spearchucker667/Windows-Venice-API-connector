@@ -8,6 +8,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Venice 
 
 ## [Unreleased]
 
+---
+
+## [1.0.2] — 2026-05-29
+
 ### Added
 - **Theme System:** Complete token-based theming architecture with 17 semantic CSS variables mapped to Tailwind v4 utilities.
   - Built-in themes: Forge Graphite (dark), Forge Daylight (light), Forge Copper (dark).

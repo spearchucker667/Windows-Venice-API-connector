@@ -1,9 +1,9 @@
 # Venice Forge
 
-[![CI](https://github.com/spearchucker667/Windows-Venice-API-connector/actions/workflows/ci.yml/badge.svg)](https://github.com/spearchucker667/Windows-Venice-API-connector/actions/workflows/ci.yml)
-[![Windows Release](https://github.com/spearchucker667/Windows-Venice-API-connector/actions/workflows/windows-release.yml/badge.svg)](https://github.com/spearchucker667/Windows-Venice-API-connector/actions/workflows/windows-release.yml)
-[![macOS Release](https://github.com/spearchucker667/Windows-Venice-API-connector/actions/workflows/macos-release.yml/badge.svg)](https://github.com/spearchucker667/Windows-Venice-API-connector/actions/workflows/macos-release.yml)
-[![Release](https://img.shields.io/github/v/release/spearchucker667/Windows-Venice-API-connector?include_prereleases&label=release)](https://github.com/spearchucker667/Windows-Venice-API-connector/releases)
+[![CI](https://github.com/spearchucker667/Venice-API-connector/actions/workflows/ci.yml/badge.svg)](https://github.com/spearchucker667/Venice-API-connector/actions/workflows/ci.yml)
+[![Windows Release](https://github.com/spearchucker667/Venice-API-connector/actions/workflows/windows-release.yml/badge.svg)](https://github.com/spearchucker667/Venice-API-connector/actions/workflows/windows-release.yml)
+[![macOS Release](https://github.com/spearchucker667/Venice-API-connector/actions/workflows/macos-release.yml/badge.svg)](https://github.com/spearchucker667/Venice-API-connector/actions/workflows/macos-release.yml)
+[![Release](https://img.shields.io/github/v/release/spearchucker667/Venice-API-connector?include_prereleases&label=release)](https://github.com/spearchucker667/Venice-API-connector/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Node 20/22](https://img.shields.io/badge/node-20%20%7C%2022-339933.svg)](package.json)
 [![TypeScript strict](https://img.shields.io/badge/typescript-strict-3178c6.svg)](tsconfig.json)

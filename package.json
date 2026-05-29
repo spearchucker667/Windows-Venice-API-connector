@@ -5,16 +5,16 @@
   "author": "fayeblade (@spearchucker667)",
   "license": "MIT",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.0.2",
   "type": "module",
   "main": "dist-electron/electron/main.js",
-  "homepage": "https://github.com/spearchucker667/Windows-Venice-API-connector#readme",
+  "homepage": "https://github.com/spearchucker667/Venice-API-connector#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/spearchucker667/Windows-Venice-API-connector.git"
+    "url": "git+https://github.com/spearchucker667/Venice-API-connector.git"
   },
   "bugs": {
-    "url": "https://github.com/spearchucker667/Windows-Venice-API-connector/issues"
+    "url": "https://github.com/spearchucker667/Venice-API-connector/issues"
   },
   "scripts": {
     "dev": "tsx server.ts",

@@ -6,7 +6,7 @@
 2. Run `npm install` so `package-lock.json` stays in sync.
 3. Update `CHANGELOG.md` with the new version section.
 4. Confirm `README.md`, [LEGAL.md](LEGAL.md), [SECURITY.md](SECURITY.md), [REPOSITORY_TREE.md](REPOSITORY_TREE.md), and this checklist match the release.
-5. Confirm public-facing badges and GitHub templates still point at `spearchucker667/Windows-Venice-API-connector`.
+5. Confirm public-facing badges and GitHub templates still point at `spearchucker667/Venice-API-connector`.
 
 ## Local Windows Build
 
