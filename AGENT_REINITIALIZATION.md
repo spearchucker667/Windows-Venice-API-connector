@@ -11,7 +11,7 @@ Source policy: Every project-specific statement is tagged `[VERIFIED]` or `[INFE
 - The highest-churn files across history are `src/services/veniceClient.ts`, `src/modules/SettingsModule.tsx`, `server.ts`, `electron/main.ts`, and `src/App.tsx`; this is where behavioral risk concentrates. `[VERIFIED]`
 - The project has shifted from early web-proxy-first architecture to direct IPC transport in Electron, with shared validation (`src/shared/validation.ts`) used by both IPC and web proxy paths. `[VERIFIED]`
 - Packaging and release automation now targets both Windows and macOS, with artifact verification and SHA-256 checksums in workflows and scripts. `[VERIFIED]`
-- Current lint posture allows warnings and enforces a budget gate via `npm run lint:eslint` (`--max-warnings=120`), while strict TypeScript remains enabled in both renderer and Electron configs. `[VERIFIED]`
+- Current lint posture allows warnings and enforces a budget gate via `npm run lint:eslint` (`--max-warnings=96`), while strict TypeScript remains enabled in both renderer and Electron configs. `[VERIFIED]`
 - There is no existing `AGENT_REINITIALIZATION.md` in the repo; `AGENTS.md` is the current long-form agent guide and has been superseded by this file for deep context. `[VERIFIED]`
 
 ---
@@ -184,7 +184,7 @@ No additional “old vs new” claims are made without commit support. `[VERIFIE
 
 - Default Vitest environment is `jsdom`; server tests explicitly mark node env. `[VERIFIED]`
 - Regression markers use `BUG-###` comments in tests. `[VERIFIED]`
-- CI runs `typecheck`, `test`, `build`; local `ci` script additionally enforces ESLint gate. `[VERIFIED]`
+- CI runs `lint:eslint`, `typecheck`, `test`, `build`; local `ci` script runs the same steps. `[VERIFIED]`
 
 ### 5.4 Concrete “good pattern” examples (copied from repository logic)
 
@@ -312,7 +312,7 @@ Grounded in TODOs, regression tests, and bug-fix history.
 
 ### 8.4 Release/CI pitfalls
 
-- CI workflow (`.github/workflows/ci.yml`) currently does not run `npm run lint:eslint`, but local `npm run ci` does. This mismatch can let warning-budget regressions pass PR CI. `[VERIFIED]`
+- CI workflow (`.github/workflows/ci.yml`) runs `npm run lint:eslint` alongside `typecheck`, `test`, and `build`. `[VERIFIED]`
 - Public tag release workflows enforce signing secret presence; test dispatch runs have different env expectations. `[VERIFIED]`
 
 ### 8.5 Explicit anti-pattern list
@@ -363,12 +363,12 @@ All commands below are copied from `package.json` scripts unless noted.
 
 | Workflow | Trigger | Node | Core steps |
 |---|---|---|---|
-| `ci.yml` | push/PR on `main` | matrix `20.x`, `22.x` | `npm ci --prefer-offline` -> `npm run typecheck` -> `npm test` -> `npm run build` |
+| `ci.yml` | push/PR on `main` | matrix `20.x`, `22.x` | `npm ci --prefer-offline` -> `npm run lint:eslint` -> `npm run typecheck` -> `npm test` -> `npm run build` |
 | `windows-release.yml` | tag `v*` or dispatch | `22` | install -> verify icon -> typecheck -> test -> build -> dist win -> checksum -> verify dist win -> upload/publish |
 | `macos-release.yml` | tag `v*` or dispatch | `22` | install -> verify icon -> typecheck -> test -> build -> dist mac -> checksum -> verify dist mac -> upload/publish |
 
 Observations:
-- `ci.yml` does not call `npm run lint:eslint`. `[VERIFIED]`
+- `ci.yml` calls `npm run lint:eslint`. `[VERIFIED]`
 - Release workflows enforce signing/notarization credentials only for tag-based public releases. `[VERIFIED]`
 
 ### 9.3 Key environment variables in active use

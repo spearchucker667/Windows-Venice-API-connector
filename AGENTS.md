@@ -45,8 +45,8 @@ This is the token-lean entrypoint. Read [`AGENT_REINITIALIZATION.md`](./AGENT_RE
   - Electron direct IPC transport.
   - Web proxy transport (`/api/venice/*`).
 - Release targets are Windows + macOS.
-- ESLint gate exists locally (`npm run lint:eslint`) with `--max-warnings=120`.
-- GitHub `ci.yml` currently runs typecheck/test/build, not ESLint.
+- ESLint gate exists locally (`npm run lint:eslint`) with `--max-warnings=96`.
+- GitHub `ci.yml` runs lint:eslint, typecheck, test, and build.
 
 ## Coding Expectations
 

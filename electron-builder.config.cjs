@@ -1,9 +1,10 @@
 /**
  * electron-builder configuration for Venice Forge desktop app.
- * Produces a Windows NSIS installer and a portable .exe.
+ * Produces Windows (NSIS installer + portable .exe) and macOS (DMG + zip)
+ * artifacts.
  *
  * Build outputs go to release/
- * Run: npm run dist:win
+ * Run: npm run dist:win or npm run dist:mac
  */
 
 /** @type {import('electron-builder').Configuration} */
