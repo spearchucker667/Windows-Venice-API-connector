@@ -3,6 +3,7 @@
 import { veniceFetch } from "./veniceClient";
 import { flattenModels } from "../state/appReducer";
 import { isValidModelListResponse } from "../utils/veniceValidation";
+import { warn } from "../shared/logger";
 import type { AppDispatch } from "../types/app";
 
 /** localStorage key for the model cache. */
@@ -51,8 +52,8 @@ function readCache(): ModelsCache | null {
 function writeCache(grouped: Record<string, unknown[]>): void {
   try {
     window.localStorage.setItem(CACHE_KEY, JSON.stringify({ grouped, fetchedAt: Date.now() }));
-  } catch {
-    // localStorage may be full or unavailable.
+  } catch (err) {
+    warn("[modelService] Failed to cache models in localStorage:", err);
   }
 }
 
