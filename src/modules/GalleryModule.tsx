@@ -196,7 +196,7 @@ export function GalleryModule({ state, dispatch }: ModuleProps) {
         {!state.gallery.length && (
           <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-accent/20 bg-accent/5 p-12 text-center shadow-[inset_0_0_40px_var(--glow)]">
             <img
-              src="/assets/branding/venice-keys-red.svg"
+              src="./assets/branding/venice-keys-red.svg"
               alt=""
               className="h-12 w-12 opacity-20"
               aria-hidden="true"

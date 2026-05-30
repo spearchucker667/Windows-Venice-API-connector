@@ -506,7 +506,7 @@ export function SettingsModule({ state, dispatch, apiKeyConfigured, onApiKeyChan
         <div className="rounded-2xl border border-border/50 bg-surface-elevated/40 p-6 backdrop-blur-md shadow-xl">
           <div className="flex items-center gap-3 mb-4">
             <img
-              src="/assets/branding/venice-logo-lockup-red.svg"
+              src="./assets/branding/venice-logo-lockup-red.svg"
               alt="Venice Forge"
               className="h-7 w-auto"
             />

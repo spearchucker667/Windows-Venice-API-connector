@@ -397,7 +397,7 @@ export function ChatModule({ state, dispatch }: ModuleProps) {
           {conversations.length === 0 && (
             <div className="flex flex-col items-center justify-center gap-3 px-3 py-8 text-center">
               <img
-                src="/assets/branding/venice-keys-red.svg"
+                src="./assets/branding/venice-keys-red.svg"
                 alt=""
                 className="h-10 w-10 opacity-20"
                 aria-hidden="true"

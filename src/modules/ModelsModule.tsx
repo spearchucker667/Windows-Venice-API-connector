@@ -81,7 +81,7 @@ export function ModelsModule({ state, dispatch }: { state: any; dispatch: any })
                 {!state.models[group]?.length && (
                   <div className="flex flex-col items-center justify-center gap-3 p-6 text-center">
                     <img
-                      src="/assets/branding/venice-keys-red.svg"
+                      src="./assets/branding/venice-keys-red.svg"
                       alt=""
                       className="h-8 w-8 opacity-15"
                       aria-hidden="true"

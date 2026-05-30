@@ -200,7 +200,7 @@ export default function App() {
         <div className="flex w-full items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3.5">
             <img
-              src="/assets/branding/venice-keys-red.svg"
+              src="./assets/branding/venice-keys-red.svg"
               alt="Venice"
               className="h-9 w-9 shrink-0"
               style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))" }}
@@ -242,7 +242,7 @@ export default function App() {
         <aside className="hidden w-[280px] min-w-[280px] flex-col justify-between border-r border-border/50 bg-bg/40 p-4 backdrop-blur-md lg:flex">
           <div className="mb-4 px-2">
             <img
-              src="/assets/branding/venice-logo-lockup-red.svg"
+              src="./assets/branding/venice-logo-lockup-red.svg"
               alt="Venice Forge"
               className="h-8 w-auto"
               style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.2))" }}
@@ -269,7 +269,7 @@ export default function App() {
         <nav className="hidden w-20 min-w-[80px] flex-col items-center gap-3 border-r border-border/50 bg-bg/70 py-4 backdrop-blur-xl md:flex lg:hidden overflow-y-auto">
           <div className="mb-2 px-2">
             <img
-              src="/assets/branding/venice-keys-red.svg"
+              src="./assets/branding/venice-keys-red.svg"
               alt="Venice"
               className="h-8 w-8"
               style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.2))" }}

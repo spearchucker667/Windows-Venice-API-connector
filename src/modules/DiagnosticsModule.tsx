@@ -160,7 +160,7 @@ export function DiagnosticsModule({ state, dispatch, apiKeyConfigured }: Diagnos
         {!d && (
           <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-accent/20 bg-accent/5 p-12 text-center shadow-[inset_0_0_40px_var(--glow)]">
             <img
-              src="/assets/branding/venice-keys-red.svg"
+              src="./assets/branding/venice-keys-red.svg"
               alt=""
               className="h-10 w-10 opacity-20"
               aria-hidden="true"
