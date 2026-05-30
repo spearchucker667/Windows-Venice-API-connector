@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import StorageService from "../services/storageService";
 import { veniceFetch } from "../services/veniceClient";
-import { assessChildExploitationSafety } from "../shared/safety";
+import { assessChildExploitationSafety, recordDecision } from "../shared/safety";
+import { sleep } from "../services/veniceClient";
 import { extractImages } from "../utils/image";
 import { isValidChatResponse } from "../utils/veniceValidation";
 import { normalizeImageDraft } from "../utils/payloadBuilders";
@@ -26,18 +27,6 @@ interface BatchResult {
   error: string | null;
 }
 
-function sleep(ms: number, signal?: AbortSignal): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const id = setTimeout(resolve, ms);
-    if (signal) {
-      signal.addEventListener("abort", () => {
-        clearTimeout(id);
-        reject(new DOMException("Request aborted", "AbortError"));
-      }, { once: true });
-    }
-  });
-}
-
 export function BatchModule({ state, dispatch }: ModuleProps) {
   const draft: BatchDraft = state.batchDraft || { type: "text" as const, promptsText: "" };
   const [results, setResults] = useState<BatchResult[]>([]);
@@ -59,7 +48,7 @@ export function BatchModule({ state, dispatch }: ModuleProps) {
     setPromptsTouched(true);
     const lines = draft.promptsText
       .split("\n")
-      .map((l: string) => l.trim())
+      .map((l) => l.trim())
       .filter(Boolean);
     if (!lines.length) return;
     if (state.usingFallbackModels) {
@@ -75,7 +64,7 @@ export function BatchModule({ state, dispatch }: ModuleProps) {
       return;
     }
 
-    const newResults: BatchResult[] = lines.map((p: string) => ({
+    const newResults: BatchResult[] = lines.map((p) => ({
       id: crypto.randomUUID(),
       prompt: p,
       status: "pending" as const,
@@ -94,13 +83,14 @@ export function BatchModule({ state, dispatch }: ModuleProps) {
         prev.map((r, idx) => (idx === i ? { ...r, status: "running" } : r))
       );
 
-      // Advisory safety check per item — no audit recording (transport layer records).
+      // Advisory safety check per item — records audit decision before blocking.
       const itemGuard = assessChildExploitationSafety({
         text: newResults[i].prompt,
         endpoint: draft.type === "text" ? "/chat/completions" : "/image/generate",
         method: "POST",
         source: "batch",
       });
+      recordDecision(itemGuard);
       if (!itemGuard.allow || itemGuard.action === "block") {
         setResults((prev) =>
           prev.map((r, idx) =>
@@ -221,10 +211,10 @@ export function BatchModule({ state, dispatch }: ModuleProps) {
     setIsRunning(false);
     if (wasAborted) return;
     if (draft.type === "text") {
-      const chats = await StorageService.getItems("chats");
+      const chats = await StorageService.getItems<import("../types/storage").ChatHistoryItem>("chats");
       dispatch({ type: "SET_CHATS", items: chats });
     } else {
-      const gallery = await StorageService.getItems("images");
+      const gallery = await StorageService.getItems<import("../types/storage").GalleryImage>("images");
       dispatch({ type: "SET_GALLERY", items: gallery });
     }
   }

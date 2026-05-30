@@ -2,7 +2,7 @@
 /** @fileoverview Venice research provider adapter.
  *
  * Wraps the existing Venice /augment/search and /augment/scrape endpoints.
- * Does NOT bypass the endpoint allowlist, safety guard, or API-key security model.
+ * Does NOT circumvent the endpoint allowlist, safety guard, or API-key security model.
  * The renderer-side safety guard is enforced inside veniceFetch before any POST.
  */
 

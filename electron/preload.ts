@@ -2,6 +2,7 @@
  *  API requests, secure key storage, and app diagnostics. */
 
 import { contextBridge, ipcRenderer } from "electron";
+import type { Conversation } from "../src/types/conversation";
 
 /** Represents a Venice API request sent from the renderer to the main process. */
 type VeniceRequest = {
@@ -153,15 +154,15 @@ const veniceForge = {
 
   chat: {
     /** Lists all persisted conversations. */
-    list(): Promise<{ ok: boolean; conversations: import("../src/types/conversation").Conversation[]; error?: string }> {
+    list(): Promise<{ ok: boolean; conversations: Conversation[]; error?: string }> {
       return ipcRenderer.invoke("chat:list");
     },
     /** Retrieves a single conversation by id. */
-    get(id: string): Promise<{ ok: boolean; conversation: import("../src/types/conversation").Conversation | null; error?: string }> {
+    get(id: string): Promise<{ ok: boolean; conversation: Conversation | null; error?: string }> {
       return ipcRenderer.invoke("chat:get", id);
     },
     /** Saves a conversation atomically to disk. */
-    save(conversation: import("../src/types/conversation").Conversation): Promise<{ ok: boolean; error?: string }> {
+    save(conversation: Conversation): Promise<{ ok: boolean; error?: string }> {
       return ipcRenderer.invoke("chat:save", { conversation });
     },
     /** Deletes a conversation by id. */

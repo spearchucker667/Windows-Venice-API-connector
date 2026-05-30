@@ -4,7 +4,7 @@ Venice Forge officially supports macOS 13+ on both Apple Silicon (`arm64`) and I
 
 ## Local Building
 
-macOS packaging requires both `build/icon.icns` and `build/icon.ico`. 
+macOS packaging requires `build/icon.icns` (and `verify:icon` additionally checks `build/icon.ico` for cross-platform completeness). 
 
 To build locally:
 ```bash

@@ -107,6 +107,8 @@ npm run verify:dist:portable
 
 # macOS
 npm run dist:mac
+npm run dist:mac:arm64
+npm run dist:mac:x64
 npm run checksum:release
 npm run verify:dist:mac
 ```
@@ -126,6 +128,9 @@ Artifacts are written to `release/`. Windows produces NSIS installers and portab
 | `npm run test:coverage` | Run tests with v8 coverage report |
 | `npm run smoke:electron` | Run Electron smoke tests |
 | `npm run ci` | Full CI pipeline: `npm ci`, lint, typecheck, test, build |
+| `npm run dist` | Generic packaging for the current platform |
+| `npm run dist:mac:arm64` | macOS Apple Silicon single-arch build |
+| `npm run dist:mac:x64` | macOS Intel single-arch build |
 
 ## Code Style Guidelines
 
@@ -139,7 +144,7 @@ Artifacts are written to `release/`. Windows produces NSIS installers and portab
 ### ESLint Configuration
 
 - Config: `eslint.config.mjs`
-- Parser: `typescript-eslint` with project references to both `tsconfig.json` and `tsconfig.electron.json`
+- Parser: `typescript-eslint` with project references to `tsconfig.json`, `tsconfig.electron.json`, and `tsconfig.electron.test.json` (the latter allows ESLint to lint test files in `electron/`)
 - Key rules:
   - `@typescript-eslint/no-explicit-any`: warn
   - `@typescript-eslint/no-unused-vars`: warn (allows `_` prefix)

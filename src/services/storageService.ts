@@ -11,7 +11,7 @@ type StoreName = (typeof STORE_NAMES)[number];
 // only (no raw prompts, no API keys), so encryption overhead is not warranted.
 const ENCRYPTED_STORES: StoreName[] = ["chats", "settings", "images", "conversations"];
 
-export interface GetItemsResult<T = any> {
+export interface GetItemsResult<T = unknown> {
   items: T[];
   decryptFailures: number;
 }
@@ -54,12 +54,12 @@ const StorageService = {
    * @param item The record to persist.
    * @returns A promise resolving to the saved record with generated id and timestamp.
    */
-  async saveItem<T extends Record<string, any>>(store: StoreName, item: T): Promise<T & { id: string; timestamp: number }> {
+  async saveItem<T extends Record<string, unknown>>(store: StoreName, item: T): Promise<T & { id: string; timestamp: number }> {
     const db = await this.openDB();
     const id = typeof item.id === "string" ? item.id : crypto.randomUUID();
     const timestamp = typeof item.timestamp === "number" ? item.timestamp : Date.now();
 
-    let payload: Record<string, any> = { ...item, id, timestamp };
+    let payload: Record<string, unknown> = { ...item, id, timestamp };
     if (ENCRYPTED_STORES.includes(store)) {
       const encryptedData = await encryptData(payload);
       payload = { id, timestamp, data: encryptedData, _isEncryptedWrapper: true };
@@ -78,7 +78,7 @@ const StorageService = {
    * @param store The object store name to query.
    * @returns A promise resolving to an array of decrypted records sorted by timestamp descending.
    */
-  async getItemsWithMeta<T = any>(store: StoreName): Promise<GetItemsResult<T>> {
+  async getItemsWithMeta<T = unknown>(store: StoreName): Promise<GetItemsResult<T>> {
     const db = await this.openDB();
     return new Promise((resolve, reject) => {
       const tx = db.transaction(store, "readonly");
@@ -114,7 +114,7 @@ const StorageService = {
     });
   },
 
-  async getItems<T = any>(store: StoreName): Promise<T[]> {
+  async getItems<T = unknown>(store: StoreName): Promise<T[]> {
     const { items } = await this.getItemsWithMeta<T>(store);
     return items;
   },

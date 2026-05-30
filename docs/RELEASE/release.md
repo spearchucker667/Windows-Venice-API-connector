@@ -70,6 +70,12 @@ Triggers:
 
 The workflows run `npm ci`, typecheck, tests, build, packaging commands (`dist:win` or `dist:mac`), checksum generation, and verification scripts (`verify:dist`), then upload the signed/unsigned bundles as release assets.
 
+## Architecture-Specific macOS Builds
+
+For local single-architecture builds, use:
+- `npm run dist:mac:arm64` — Apple Silicon only.
+- `npm run dist:mac:x64` — Intel only.
+
 ## Smoke Test
 
 - [ ] Fresh launch routes to API key setup when no key exists.
@@ -79,6 +85,8 @@ The workflows run `npm ci`, typecheck, tests, build, packaging commands (`dist:w
 - [ ] Chat and image generation work.
 - [ ] Batch run completes successfully.
 - [ ] Research (web search, scrape, text-parser) returns results.
+- [ ] Public Profile Discovery authorization gate and run.
+- [ ] AI Research synthesis returns cited results.
 - [ ] Export data creates versioned JSON without secrets.
 - [ ] Import validates and merges data without clearing existing records; pre-import backup saved to disk.
 - [ ] Copy diagnostics redacts secrets.

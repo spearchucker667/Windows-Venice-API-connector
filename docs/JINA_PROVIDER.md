@@ -88,4 +88,4 @@ These may be added in a future release once behavior is verified.
 
 - Jina requests are sent directly from the Electron main process (desktop) or Express proxy (web). No third-party server other than Jina is involved.
 - The API key header (`Authorization: Bearer ...`) is redacted from all diagnostics, logs, and exports.
-- Jina Reader only fetches **public** URLs. Private networks, `localhost`, and RFC 1918 addresses are blocked by the Generic HTTP provider's SSRF blocklist, which also applies to any URL passed to Jina Reader.
+- Jina Reader only fetches **public** URLs. Jina Reader fetches URLs on Jina's infrastructure, not locally; there is no internal SSRF filtering before the URL is sent to Jina's servers.

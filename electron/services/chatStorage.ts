@@ -5,6 +5,7 @@
 
 import { app } from "electron";
 import fs from "fs/promises";
+import type { Dirent } from "fs";
 import path from "path";
 import type { Conversation, ConversationFile } from "../../src/types/conversation";
 import { logError, logInfo, logWarn } from "./logger";
@@ -111,17 +112,17 @@ function isValidMessage(value: unknown): boolean {
 export async function listConversations(): Promise<Conversation[]> {
   await ensureDir();
   const dir = getChatHistoryDir();
-  let entries: string[] = [];
+  let entries: Dirent[] = [];
   try {
-    entries = await fs.readdir(dir);
+    entries = await fs.readdir(dir, { withFileTypes: true });
   } catch {
     return [];
   }
 
   const conversations: Conversation[] = [];
   for (const entry of entries) {
-    if (!entry.endsWith(".json")) continue;
-    const filePath = path.join(dir, entry);
+    if (!entry.isFile() || !entry.name.endsWith(".json")) continue;
+    const filePath = path.join(dir, entry.name);
     const conv = await readConversationFile(filePath);
     if (conv) conversations.push(conv);
     if (conversations.length >= MAX_LIST_CONVERSATIONS) {

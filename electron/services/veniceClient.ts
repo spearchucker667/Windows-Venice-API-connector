@@ -10,12 +10,6 @@ import { logError, setLastApiError } from "./logger";
 import { validateVeniceIpcRequest } from "../ipc/validation";
 import { VENICE_API_HOST, VENICE_API_BASE_PATH, VENICE_API_TIMEOUT_MS } from "../../src/shared/apiConfig";
 
-/** Hostname for the Venice API. */
-const VENICE_HOST = VENICE_API_HOST;
-
-/** Base path prefix for Venice API endpoints. */
-const VENICE_BASE_PATH = VENICE_API_BASE_PATH;
-
 /** Maximum non-streaming Venice response body size we will buffer in memory. */
 const MAX_VENICE_RESPONSE_BYTES = 25 * 1024 * 1024;
 
@@ -42,7 +36,7 @@ interface SerializedFormData {
  *  @returns A sanitized token safe for multipart headers.
  */
 export function sanitizeMultipartToken(value: string): string {
-  return value.replace(/[\r\n"]/g, "").trim();
+  return value.replace(/[\r\n"\\]/g, "").trim();
 }
 
 /** Validates and normalizes a multipart content-type string.
@@ -215,7 +209,7 @@ export async function performVeniceRequest(
       bodyText = request.body === undefined ? undefined : JSON.stringify(request.body);
     }
 
-    const path = `${VENICE_BASE_PATH}${request.endpoint}`;
+    const path = `${VENICE_API_BASE_PATH}${request.endpoint}`;
     const headers: Record<string, string | number> = {
       ...request.headers,
       Authorization: `Bearer ${apiKey}`,
@@ -229,7 +223,7 @@ export async function performVeniceRequest(
 
     const req = https.request(
       {
-        hostname: VENICE_HOST,
+        hostname: VENICE_API_HOST,
         path,
         method: request.method,
         headers,

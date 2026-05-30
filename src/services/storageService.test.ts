@@ -17,7 +17,7 @@ describe("storageService", () => {
   it("saves and retrieves an item from a non-encrypted store", async () => {
     const item = { id: "img-1", image: "base64...", prompt: "cat", timestamp: 1 };
     await StorageService.saveItem("images", item);
-    const items = await StorageService.getItems("images");
+    const items = await StorageService.getItems<{ id: string; image: string; prompt: string; timestamp: number }>("images");
     expect(items).toHaveLength(1);
     expect(items[0].prompt).toBe("cat");
   });
@@ -27,7 +27,7 @@ describe("storageService", () => {
     await StorageService.saveItem("images", { id: "del-1", prompt: "a" });
     const deleted = await StorageService.deleteItem("images", "del-1");
     expect(deleted).toBe(true);
-    const items = await StorageService.getItems("images");
+    const items = await StorageService.getItems<{ id: string; prompt: string }>("images");
     expect(items).toHaveLength(0);
   });
 
@@ -37,7 +37,7 @@ describe("storageService", () => {
     await StorageService.saveItem("images", { id: "c-2", prompt: "b" });
     const cleared = await StorageService.clearStore("images");
     expect(cleared).toBe(true);
-    const items = await StorageService.getItems("images");
+    const items = await StorageService.getItems<{ id: string; prompt: string }>("images");
     expect(items).toHaveLength(0);
   });
 
@@ -46,7 +46,7 @@ describe("storageService", () => {
     await StorageService.saveItem("images", { id: "s-1", prompt: "old", timestamp: 100 });
     await StorageService.saveItem("images", { id: "s-2", prompt: "new", timestamp: 300 });
     await StorageService.saveItem("images", { id: "s-3", prompt: "mid", timestamp: 200 });
-    const items = await StorageService.getItems("images");
+    const items = await StorageService.getItems<{ id: string; prompt: string; timestamp: number }>("images");
     expect(items[0].prompt).toBe("new");
     expect(items[1].prompt).toBe("mid");
     expect(items[2].prompt).toBe("old");
@@ -56,7 +56,7 @@ describe("storageService", () => {
   it("encrypts items in encrypted stores", async () => {
     const item = { id: "enc-1", content: "secret" };
     await StorageService.saveItem("chats", item);
-    const items = await StorageService.getItems("chats");
+    const items = await StorageService.getItems<{ id: string; content: string }>("chats");
     expect(items).toHaveLength(1);
     expect(items[0].content).toBe("secret");
   });

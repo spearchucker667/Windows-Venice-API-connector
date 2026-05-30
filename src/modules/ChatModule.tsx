@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { veniceFetch, veniceStreamChat } from "../services/veniceClient";
-import { assessChildExploitationSafety } from "../shared/safety";
+import { assessChildExploitationSafety, recordDecision } from "../shared/safety";
 import { DEFAULT_SYSTEM_PROMPT } from "../constants/venice";
 import { Markdown } from "../utils/markdown";
 import { copyText } from "../utils/download";
@@ -153,8 +153,9 @@ export function ChatModule({ state, dispatch }: ModuleProps) {
       return;
     }
     setError("");
-    // Advisory safety check — no audit recording (transport layer records).
+    // Advisory safety check — records audit decision before blocking.
     const guardDecision = assessChildExploitationSafety({ text: trimmedPrompt, endpoint: "/chat/completions", method: "POST", source: "chat" });
+    recordDecision(guardDecision);
     if (!guardDecision.allow || guardDecision.action === "block") {
       setError(guardDecision.userMessage);
       return;

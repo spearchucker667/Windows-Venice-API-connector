@@ -3,6 +3,7 @@
 import { DiagnosticsEntry } from "./venice";
 import { GalleryImage } from "./storage";
 import type { Conversation } from "./conversation";
+import type { Theme } from "../theme/themeTypes";
 
 /** Represents a single message in a chat conversation. */
 export interface ChatRecord {
@@ -38,8 +39,6 @@ export interface BatchDraft {
 }
 
 /** User-configurable settings persisted across sessions. API keys are stored separately via safeStorage and never written here. */
-import type { Theme } from "../theme/themeTypes";
-
 export interface AppSettings {
   defaultSystemPrompt: string;
   includeVeniceSystemPrompt: boolean;

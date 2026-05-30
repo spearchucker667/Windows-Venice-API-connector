@@ -3,9 +3,10 @@ import { Field } from "../components/Field";
 import { ModelSelect } from "../components/ModelSelect";
 import { Chip } from "../components/Chip";
 import { ModelRefreshButton } from "../components/ModelRefreshButton";
+import type { AppState, AppDispatch } from "../types/app";
 export { refreshModels } from "../services/modelService";
 
-export function ModelsModule({ state, dispatch }: { state: any; dispatch: any }) {
+export function ModelsModule({ state, dispatch }: { state: AppState; dispatch: AppDispatch }) {
   const groups = [
     "text",
     "image",
@@ -42,7 +43,7 @@ export function ModelsModule({ state, dispatch }: { state: any; dispatch: any })
             <ModelSelect
               value={state.selectedChatModel}
               models={state.models.text}
-              onChange={(model) =>
+              onChange={(model: string) =>
                 dispatch({ type: "SET_SELECTED_CHAT_MODEL", model })
               }
             />
@@ -51,7 +52,7 @@ export function ModelsModule({ state, dispatch }: { state: any; dispatch: any })
             <ModelSelect
               value={state.selectedImageModel}
               models={state.models.image}
-              onChange={(model) =>
+              onChange={(model: string) =>
                 dispatch({ type: "SET_SELECTED_IMAGE_MODEL", model })
               }
             />
@@ -66,7 +67,7 @@ export function ModelsModule({ state, dispatch }: { state: any; dispatch: any })
                 <Chip>{state.models[group]?.length || 0}</Chip>
               </div>
               <div className="flex-1 overflow-y-auto p-2 max-h-[400px] space-y-2">
-                {(state.models[group] || []).map((m: any) => (
+                {(state.models[group] || []).map((m: import("../types/venice").ModelInfo) => (
                   <div className="rounded-xl p-3 bg-surface/50 border border-transparent transition-all hover:border-border" key={`${group}-${m.id}`}>
                     <div className="font-mono text-xs text-accent font-medium mb-1 break-all">{m.id}</div>
                     <div className="text-xs text-text-secondary">

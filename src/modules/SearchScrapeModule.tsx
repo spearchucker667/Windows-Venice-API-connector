@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { veniceFetch } from "../services/veniceClient";
-import { assessChildExploitationSafety } from "../shared/safety";
+import { assessChildExploitationSafety, recordDecision } from "../shared/safety";
 import { Field } from "../components/Field";
 import { StatusBlock } from "../components/StatusBlock";
 import { Chip } from "../components/Chip";
@@ -94,6 +94,7 @@ export function SearchScrapeModule({ state, dispatch }: ModuleProps) {
     if (!query.trim()) return;
     setError("");
     const guardDecision = assessChildExploitationSafety({ text: query.trim(), endpoint: "/augment/search", method: "POST", source: "research" });
+    recordDecision(guardDecision);
     if (!guardDecision.allow || guardDecision.action === "block") {
       setError(guardDecision.userMessage);
       return;
@@ -102,7 +103,7 @@ export function SearchScrapeModule({ state, dispatch }: ModuleProps) {
     setSearchResults([]);
     abortRef.current = new AbortController();
     try {
-      const { data } = await veniceFetch("/augment/search", {
+      const { data } = await veniceFetch<Record<string, unknown>>("/augment/search", {
         method: "POST",
         body: { query: query.trim(), provider },
         signal: abortRef.current.signal,
@@ -138,17 +139,15 @@ export function SearchScrapeModule({ state, dispatch }: ModuleProps) {
     setScrapeOutput("");
     abortRef.current = new AbortController();
     try {
-      const { data } = await veniceFetch("/augment/scrape", {
+      const { data } = await veniceFetch<Record<string, unknown>>("/augment/scrape", {
         method: "POST",
         body: { url: url.trim() },
         signal: abortRef.current.signal,
         dispatch,
       });
+      const scrapeData = data as Record<string, unknown>;
       setScrapeOutput(
-        data?.markdown ||
-          data?.content ||
-          data?.text ||
-          JSON.stringify(data, null, 2)
+        String(scrapeData.markdown || scrapeData.content || scrapeData.text || JSON.stringify(scrapeData, null, 2))
       );
     } catch (err: unknown) {
       const error = err as { name?: string; message?: string };
@@ -172,14 +171,15 @@ export function SearchScrapeModule({ state, dispatch }: ModuleProps) {
       const form = new FormData();
       form.append("file", file);
       form.append("response_format", "json");
-      const { data } = await veniceFetch("/augment/text-parser", {
+      const { data } = await veniceFetch<Record<string, unknown>>("/augment/text-parser", {
         method: "POST",
         body: form,
         signal: abortRef.current.signal,
         dispatch,
         isFormData: true,
       });
-      setParserOutput(data?.text || JSON.stringify(data, null, 2));
+      const parserData = data as Record<string, unknown>;
+      setParserOutput(String(parserData.text || JSON.stringify(parserData, null, 2)));
     } catch (err: unknown) {
       const error = err as { name?: string; message?: string };
       if (error.name !== "AbortError")
@@ -284,18 +284,21 @@ export function SearchScrapeModule({ state, dispatch }: ModuleProps) {
     );
   }
 
-  const tabBtn = (id: SubTab, label: string) => (
-    <button
-      key={id}
-      onClick={() => setSubTab(id)}
-      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-        subTab === id
-          ? "bg-accent/20 text-accent border border-accent/30"
-          : "text-text-secondary hover:text-text-primary hover:bg-surface-elevated"
-      }`}
-    >
-      {label}
-    </button>
+  const tabBtn = useCallback(
+    (id: SubTab, label: string) => (
+      <button
+        key={id}
+        onClick={() => setSubTab(id)}
+        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+          subTab === id
+            ? "bg-accent/20 text-accent border border-accent/30"
+            : "text-text-secondary hover:text-text-primary hover:bg-surface-elevated"
+        }`}
+      >
+        {label}
+      </button>
+    ),
+    [subTab]
   );
 
   return (

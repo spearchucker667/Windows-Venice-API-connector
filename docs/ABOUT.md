@@ -119,7 +119,7 @@ User input
 
 - [README.md](../README.md) — Setup and usage
 - [SECURITY.md](../SECURITY.md) — Full security model
-- [docs/RELEASE.md](RELEASE/release.md) — Release and signing process
+- [docs/RELEASE/release.md](RELEASE/release.md) — Release and signing process
 - [docs/LEGAL.md](LEGAL.md) — Legal and Venice terms coverage
 - [docs/REPOSITORY_TREE.md](REPOSITORY_TREE.md) — Repository structure
 - [CONTRIBUTING.md](../CONTRIBUTING.md) — How to contribute

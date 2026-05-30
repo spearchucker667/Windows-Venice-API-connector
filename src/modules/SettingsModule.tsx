@@ -22,6 +22,7 @@ import {
   FIRST_RUN_ACK_KEY,
 } from "../shared/legal";
 import type { ModuleProps } from "../types/app";
+import type { UpdateInfo, ProgressInfo } from "electron-updater";
 
 interface SettingsModuleProps extends ModuleProps {
   apiKeyConfigured: boolean | null;
@@ -60,7 +61,7 @@ export function SettingsModule({ state, dispatch, apiKeyConfigured, onApiKeyChan
     if (!isElectron()) return;
 
     const unsubs = [
-      desktopUpdates.onUpdateAvailable((info: any) => {
+      desktopUpdates.onUpdateAvailable((info: UpdateInfo) => {
         setUpdateStatus(`Update available: v${info?.version || "new"}`);
         setIsUpdateChecking(false);
       }),
@@ -68,7 +69,7 @@ export function SettingsModule({ state, dispatch, apiKeyConfigured, onApiKeyChan
         setUpdateStatus("App is up to date.");
         setIsUpdateChecking(false);
       }),
-      desktopUpdates.onDownloadProgress((progress: any) => {
+      desktopUpdates.onDownloadProgress((progress: ProgressInfo) => {
         setUpdateStatus(`Downloading update: ${Math.round(progress?.percent || 0)}%`);
       }),
       desktopUpdates.onUpdateDownloaded(() => {
@@ -264,13 +265,13 @@ export function SettingsModule({ state, dispatch, apiKeyConfigured, onApiKeyChan
   async function exportData() {
     try {
       const [images, chats, settings, conversations] = await Promise.all([
-        StorageService.getItems("images"),
-        StorageService.getItems("chats"),
-        StorageService.getItems("settings"),
+        StorageService.getItems<import("../types/storage").GalleryImage>("images"),
+        StorageService.getItems<import("../types/storage").ChatHistoryItem>("chats"),
+        StorageService.getItems<Record<string, unknown>>("settings"),
         listConversations(),
       ]);
       const appVersion = await desktopApp.getVersion();
-      const payload = createExportPayload({ images, chats, settings, conversations: conversations as unknown as Record<string, unknown>[] }, appVersion);
+      const payload = createExportPayload({ images: images as unknown as Record<string, unknown>[], chats: chats as unknown as Record<string, unknown>[], settings, conversations: conversations as unknown as Record<string, unknown>[] }, appVersion);
       const ok = await desktopFiles.exportJson(
         payload,
         `venice-forge-export-${new Date().toISOString().slice(0, 10)}.json`
@@ -286,13 +287,13 @@ export function SettingsModule({ state, dispatch, apiKeyConfigured, onApiKeyChan
       const json = await desktopFiles.importJsonString();
       if (!json) return;
       const [imagesBefore, chatsBefore, settingsBefore, conversationsBefore] = await Promise.all([
-        StorageService.getItems("images"),
-        StorageService.getItems("chats"),
-        StorageService.getItems("settings"),
+        StorageService.getItems<import("../types/storage").GalleryImage>("images"),
+        StorageService.getItems<import("../types/storage").ChatHistoryItem>("chats"),
+        StorageService.getItems<Record<string, unknown>>("settings"),
         listConversations(),
       ]);
       const backup = createExportPayload(
-        { images: imagesBefore, chats: chatsBefore, settings: settingsBefore, conversations: conversationsBefore as unknown as Record<string, unknown>[] },
+        { images: imagesBefore as unknown as Record<string, unknown>[], chats: chatsBefore as unknown as Record<string, unknown>[], settings: settingsBefore, conversations: conversationsBefore as unknown as Record<string, unknown>[] },
         await desktopApp.getVersion()
       );
 
@@ -320,9 +321,9 @@ export function SettingsModule({ state, dispatch, apiKeyConfigured, onApiKeyChan
       );
 
       const [images, chats, settings, conversations] = await Promise.all([
-        StorageService.getItems("images"),
-        StorageService.getItems("chats"),
-        StorageService.getItems("settings"),
+        StorageService.getItems<import("../types/storage").GalleryImage>("images"),
+        StorageService.getItems<import("../types/storage").ChatHistoryItem>("chats"),
+        StorageService.getItems<Record<string, unknown>>("settings"),
         listConversations(),
       ]);
       dispatch({ type: "SET_GALLERY", items: images });

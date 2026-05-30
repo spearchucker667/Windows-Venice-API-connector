@@ -157,8 +157,8 @@ function _rsd(): string {
   fragments[fragments.length] = 'd2VyIHRvIGEgdXNlcidzIHF1ZXN0aW9uLiIK';
   const raw = fragments.join('');
   try {
-    return typeof globalThis !== 'undefined' && (globalThis as any).Buffer
-      ? (globalThis as any).Buffer.from(raw, 'base64').toString('utf-8')
+    return typeof globalThis !== 'undefined' && typeof (globalThis as { Buffer?: typeof Buffer }).Buffer !== 'undefined'
+      ? (globalThis as { Buffer: typeof Buffer }).Buffer.from(raw, 'base64').toString('utf-8')
       : atob(raw);
   } catch {
     return atob(raw);

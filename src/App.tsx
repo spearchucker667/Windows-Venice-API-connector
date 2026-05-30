@@ -25,7 +25,7 @@ import { FirstRunModal } from "./components/FirstRunModal";
 import { initDesktopBridge, isElectron, desktopApiKey } from "./services/desktopBridge";
 import { warn } from "./shared/logger";
 import { APP_DESCRIPTOR, FIRST_RUN_COPY, FIRST_RUN_ACK_KEY } from "./shared/legal";
-import { GalleryImage } from "./types/storage";
+import { GalleryImage, ChatHistoryItem } from "./types/storage";
 import { listConversations, saveConversation, createConversation } from "./services/chatStorage";
 import type { Conversation, ConversationMessage } from "./types/conversation";
 
@@ -90,7 +90,7 @@ export default function App() {
           StorageService.getItemsWithMeta("settings"),
         ]);
         const images = imagesResult.items as GalleryImage[];
-        const chats = chatsResult.items as import("./types/storage").ChatHistoryItem[];
+        const chats = chatsResult.items as ChatHistoryItem[];
         const settingsItems = settingsResult.items as SettingsRecord[];
         const totalDecryptFailures =
           imagesResult.decryptFailures + chatsResult.decryptFailures + settingsResult.decryptFailures;

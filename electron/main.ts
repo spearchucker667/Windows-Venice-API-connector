@@ -126,8 +126,6 @@ function createWindow(): BrowserWindow {
     },
   });
 
-
-
   win.webContents.on("will-navigate", (event, url) => {
     if (isAllowedAppNavigation(url)) return;
     event.preventDefault();

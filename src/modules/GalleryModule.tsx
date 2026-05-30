@@ -31,7 +31,7 @@ export function GalleryModule({ state, dispatch }: ModuleProps) {
       "This image will be permanently removed from the gallery. This cannot be undone.",
       async () => {
         await StorageService.deleteItem("images", id);
-        const items = await StorageService.getItems("images");
+        const items = await StorageService.getItems<import("../types/storage").GalleryImage>("images");
         dispatch({ type: "SET_GALLERY", items });
         if (expanded?.id === id) setExpanded(null);
       }

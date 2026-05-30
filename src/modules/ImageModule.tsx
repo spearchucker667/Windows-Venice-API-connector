@@ -12,7 +12,7 @@ import {
 } from "../services/imageWorkflowService";
 import { IMAGE_BATCH_INTER_REQUEST_DELAY_MS } from "../constants/venice";
 import { normalizeImageDraft } from "../utils/payloadBuilders";
-import { assessChildExploitationSafety } from "../shared/safety";
+import { assessChildExploitationSafety, recordDecision } from "../shared/safety";
 import { DiagPreview } from "../components/DiagnosticsPreview";
 import { ImageActionModal } from "../components/ImageActionModal";
 import { ImageGenerationForm } from "../components/ImageGenerationForm";
@@ -76,8 +76,9 @@ export function ImageModule({ state, dispatch }: ModuleProps) {
     }
     setError("");
     setSuccess("");
-    // Advisory safety check — no audit recording (transport layer records).
+    // Advisory safety check — records audit decision before blocking.
     const guardDecision = assessChildExploitationSafety({ text: draft.prompt, endpoint: "/image/generate", method: "POST", source: "image" });
+    recordDecision(guardDecision);
     if (!guardDecision.allow || guardDecision.action === "block") {
       setError(guardDecision.userMessage);
       return;
@@ -204,7 +205,7 @@ export function ImageModule({ state, dispatch }: ModuleProps) {
 
   async function upscaleCurrent() {
     const item = expanded ||
-      state.gallery.find((x: GalleryImage) => x.id === draft.lastSavedImageId) || {
+      state.gallery.find((x) => x.id === draft.lastSavedImageId) || {
         id: draft.lastSavedImageId || "current-preview",
         image: draft.currentImage,
         prompt: draft.prompt,
@@ -240,13 +241,13 @@ export function ImageModule({ state, dispatch }: ModuleProps) {
   async function deleteExpanded() {
     if (!expanded?.id) return;
     await StorageService.deleteItem("images", expanded.id);
-    const items = await StorageService.getItems("images");
+    const items = await StorageService.getItems<import("../types/storage").GalleryImage>("images");
     dispatch({ type: "SET_GALLERY", items });
     if (expanded.id === draft.lastSavedImageId) {
       patch({ currentImage: "", lastSavedImageId: null });
     }
     if (draft.currentImages?.length) {
-      patch({ currentImages: draft.currentImages.filter((img: GalleryImage) => img.id !== expanded.id) });
+      patch({ currentImages: draft.currentImages.filter((img) => img.id !== expanded.id) });
     }
     setExpanded(null);
     setSuccess("Image deleted.");

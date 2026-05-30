@@ -10,4 +10,4 @@
 
 ### Known Limitations
 - Windows ARM64 is not currently packaged by default.
-- Linux builds are intentionally excluded from `electron-builder` configs until an icon standard (`icon.png`) and smoke-testing workflow is implemented.
+- A Linux AppImage target exists in `electron-builder.config.cjs` but is **not officially supported** or smoke-tested.

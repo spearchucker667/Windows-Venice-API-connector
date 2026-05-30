@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { refreshModels } from "../services/modelService";
 import { Chip } from "./Chip";
 import { ModuleProps } from "../types/app";
+import type { ModelInfo } from "../types/venice";
 
 export function ModelRefreshButton({ state, dispatch }: ModuleProps) {
   const [refreshing, setRefreshing] = useState(false);
@@ -15,7 +16,7 @@ export function ModelRefreshButton({ state, dispatch }: ModuleProps) {
     }
   }
 
-  const totalModels = Object.values(state.models as Record<string, any[]>).reduce(
+  const totalModels = Object.values(state.models as Record<string, ModelInfo[]>).reduce(
     (sum, arr) => sum + arr.length,
     0
   );

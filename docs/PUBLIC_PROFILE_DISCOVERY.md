@@ -88,6 +88,6 @@ Discovery results are **not persisted** to disk or IndexedDB. They exist only in
 
 ## Security & Compliance
 
-- All queries are sent through the configured research provider (Venice, Jina, or Generic HTTP) and are subject to the same safety guard and endpoint allowlist.
+- All queries are sent through the configured research provider. Downstream Venice synthesis calls are subject to the endpoint allowlist and safety guard.
 - The feature requires explicit user authorization on every run — there is no batch or automated mode.
 - Results are sourced from public search indices only. No private databases, breach dumps, or dark-web sources are queried.

@@ -14,10 +14,10 @@ import { error } from "../shared/logger";
  * Refreshes the gallery state by reloading all image records from IndexedDB.
  * @param dispatch The app dispatch function.
  */
-export const refreshGallery = async (dispatch: AppDispatch) => {
-  const items = await StorageService.getItems("images");
+export async function refreshGallery(dispatch: AppDispatch) {
+  const items = await StorageService.getItems<import("../types/storage").GalleryImage>("images");
   dispatch({ type: "SET_GALLERY", items });
-};
+}
 
 interface GenerateImageOptions {
   signal?: AbortSignal;
@@ -28,12 +28,12 @@ interface GenerateImageOptions {
 /**
  * Calls /image/generate and retries once without hide_watermark when rejected.
  */
-export const generateImageWithWatermarkFallback = async (
+export async function generateImageWithWatermarkFallback(
   model: string,
   draft: ImageDraftLike,
   options: GenerateImageOptions = {},
   promptOverride?: string
-) => {
+) {
   const { signal, dispatch, onWatermarkRetry } = options;
   const payload = buildImagePayload(model, draft, promptOverride);
   try {
@@ -50,7 +50,7 @@ export const generateImageWithWatermarkFallback = async (
     onWatermarkRetry?.();
     return await veniceFetch("/image/generate", { method: "POST", body: retryPayload, signal, dispatch });
   }
-};
+}
 
 /**
  * Persists an image record to IndexedDB and optionally refreshes the gallery.
@@ -59,7 +59,7 @@ export const generateImageWithWatermarkFallback = async (
  * @param skipRefresh If true, skips the automatic gallery refresh after saving.
  * @returns A promise resolving to the saved record.
  */
-export const saveImageRecord = async (dispatch: AppDispatch, record: GalleryImage, skipRefresh?: boolean) => {
+export async function saveImageRecord(dispatch: AppDispatch, record: GalleryImage, skipRefresh?: boolean) {
   const saved = await StorageService.saveItem("images", {
     ...record,
     id: record.id || crypto.randomUUID(),
@@ -69,7 +69,7 @@ export const saveImageRecord = async (dispatch: AppDispatch, record: GalleryImag
     await refreshGallery(dispatch);
   }
   return saved;
-};
+}
 
 /** Options for upscaling a gallery image. */
 interface UpscaleOptions {
@@ -85,11 +85,11 @@ interface UpscaleOptions {
  * @param options Optional callbacks and model override.
  * @returns A promise resolving to the newly saved upscaled record.
  */
-export const upscaleGalleryImage = async (
+export async function upscaleGalleryImage(
   item: GalleryImage,
   dispatch: AppDispatch,
   options: UpscaleOptions = {}
-) => {
+) {
   const { model = "upscale-model", onComplete, onError } = options;
   try {
     const { data } = await veniceFetch("/image/upscale", {
@@ -128,7 +128,7 @@ export const upscaleGalleryImage = async (
     if (onError) onError(err instanceof Error ? err : new Error(String(err)));
     throw err;
   }
-};
+}
 
 /** Options for bulk gallery downloads. */
 export interface DownloadAllOptions {
@@ -142,11 +142,11 @@ export interface DownloadAllOptions {
  * @param addToast A callback for surfacing toast notifications.
  * @param options Optional progress and cancellation controls.
  */
-export const downloadAllGallery = async (
+export async function downloadAllGallery(
   items: GalleryImage[],
   addToast: (msg: string, type: "info" | "success" | "error") => void,
   options: DownloadAllOptions = {}
-) => {
+) {
   const { onProgress, cancelSignal } = options;
 
   if (!items.length) {
@@ -183,4 +183,4 @@ export const downloadAllGallery = async (
     }
   }
   addToast(`Saved ${downloaded} images${failed ? ` (${failed} failed)` : ''}.`, "success");
-};
+}

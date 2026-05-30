@@ -708,7 +708,7 @@ async function _veniceFetch(
  * @param options Request options including method, body, signal, dispatch, and retry flags.
  * @returns A promise resolving to the parsed data, raw response, headers, and diagnostics.
  */
-export async function veniceFetch<T = any>(
+export async function veniceFetch<T = unknown>(
   endpoint: string,
   options: {
     method?: "GET" | "POST";

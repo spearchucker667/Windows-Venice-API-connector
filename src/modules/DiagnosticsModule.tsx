@@ -6,6 +6,7 @@ import { copyText } from "../utils/download";
 import { isElectron, desktopApp } from "../services/desktopBridge";
 import { redactSecrets } from "../services/redaction";
 import { SHORT_UNOFFICIAL_NOTICE } from "../shared/legal";
+import type { AppState, AppDispatch } from "../types/app";
 import type { VeniceForgeDiagnostics } from "../types/desktop";
 
 function nowIso() {
@@ -13,8 +14,8 @@ function nowIso() {
 }
 
 interface DiagnosticsModuleProps {
-  state: any;
-  dispatch: any;
+  state: AppState;
+  dispatch: AppDispatch;
   apiKeyConfigured: boolean | null;
 }
 
@@ -278,7 +279,7 @@ export function DiagnosticsModule({ state, dispatch, apiKeyConfigured }: Diagnos
                 <Chip>{state.diagnosticsLog.length}</Chip>
               </div>
               <div className="flex flex-col gap-3 max-h-[400px] overflow-y-auto pr-2">
-                {state.diagnosticsLog.map((entry: any) => (
+                {state.diagnosticsLog.map((entry: import("../types/venice").DiagnosticsEntry) => (
                   <div className="rounded-xl bg-surface/50 border border-border/50 p-4" key={entry.id}>
                     <div className="flex flex-wrap items-center gap-3">
                       <Chip tone={entry.ok ? "ok" : "danger"}>

@@ -13,7 +13,7 @@ All providers share a common type contract and are consumed through the same UI 
 | Provider | ID | Search | Scrape | Social Discovery | Document Parsing | Requires Key |
 |----------|----|--------|--------|------------------|------------------|--------------|
 | Venice | `venice` | Yes | Yes | No | Yes | Yes (Venice API key) |
-| Jina AI | `jina` | Yes | Yes | No | No | Optional (free tier works without) |
+| Jina AI | `jina` | Yes | Yes | Yes | No | Optional (free tier works without) |
 | Generic HTTP | `generic-http` | No | Yes | No | No | No |
 
 ## Architecture
@@ -73,7 +73,7 @@ The `SearchScrapeModule` renders a provider selector when running AI Research or
 
 ## Security Notes
 
-- All search/scrape traffic respects the existing endpoint allowlist and safety guard.
+- All Venice-provider search/scrape traffic respects the existing endpoint allowlist; all research traffic is subject to the content safety guard.
 - The Generic HTTP blocklist is string-based (no DNS resolution) to prevent TOCTOU attacks.
 - Jina and Generic HTTP responses are stripped of `<script>` and `<style>` tags before display.
 - No cookies, custom user-agents, or JavaScript execution are performed by any provider.

@@ -2,11 +2,13 @@
  *  management, file dialogs, and application diagnostics. */
 
 import { app, dialog, ipcMain, type WebContents } from "electron";
+import crypto from "crypto";
 import fs from "fs/promises";
 import path from "path";
 import {
   deleteApiKey,
   deleteJinaApiKey,
+  getJinaApiKey,
   getSecureStoreStatus,
   isApiKeyConfigured,
   isJinaApiKeyConfigured,
@@ -135,10 +137,13 @@ export function registerIpcHandlers(): void {
           contentType: "application/json",
         };
       }
+      if (!request.signalId) {
+        request.signalId = crypto.randomUUID();
+      }
       return await performVeniceRequest(request, {
         onDelta: (delta) => {
           safeSendToRenderer(event.sender, "venice:streamDelta", {
-            signalId: request.signalId || "",
+            signalId: request.signalId,
             delta,
           });
         },
@@ -226,8 +231,7 @@ export function registerIpcHandlers(): void {
   ipcMain.handle("jinaApiKey:test", async () => {
     const jinaKey = (() => {
       try {
-        const store = require("../services/secureStore") as typeof import("../services/secureStore");
-        return store.getJinaApiKey();
+        return getJinaApiKey();
       } catch { return null; }
     })();
     try {

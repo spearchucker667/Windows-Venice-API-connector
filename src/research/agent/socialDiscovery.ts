@@ -158,31 +158,31 @@ function extractHandle(url: string, platform: string): string | undefined {
   try {
     const pathname = new URL(url).pathname;
     if (platform === "GitHub") {
-      const m = pathname.match(/^\/([^\/]+)(?:\/.*)?$/);
+      const m = pathname.match(/^\/([^/]+)(?:\/.*)?$/);
       return m?.[1];
     }
     if (platform === "LinkedIn") {
-      const m = pathname.match(/\/in\/([^\/]+)/);
+      const m = pathname.match(/\/in\/([^/]+)/);
       return m?.[1];
     }
     if (platform === "X/Twitter" || platform === "Instagram" || platform === "TikTok" || platform === "Threads") {
-      const m = pathname.match(/^\/([^\/]+)(?:\/.*)?$/);
+      const m = pathname.match(/^\/([^/]+)(?:\/.*)?$/);
       return m?.[1];
     }
     if (platform === "Reddit") {
-      const m = pathname.match(/^\/user\/([^\/]+)/);
+      const m = pathname.match(/^\/user\/([^/]+)/);
       return m?.[1];
     }
     if (platform === "Bluesky") {
-      const m = pathname.match(/\/profile\/([^\/]+)/);
+      const m = pathname.match(/\/profile\/([^/]+)/);
       return m?.[1];
     }
     if (platform === "YouTube") {
-      const m = pathname.match(/\/@([^\/]+)/) || pathname.match(/\/c\/([^\/]+)/) || pathname.match(/\/channel\/([^\/]+)/);
+      const m = pathname.match(/\/@([^/]+)/) || pathname.match(/\/c\/([^/]+)/) || pathname.match(/\/channel\/([^/]+)/);
       return m?.[1];
     }
     if (platform === "Mastodon") {
-      const m = pathname.match(/^\/(@[^\/]+)/);
+      const m = pathname.match(/^\/(@[^/]+)/);
       return m?.[1];
     }
   } catch { /* ignore */ }

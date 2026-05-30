@@ -3,6 +3,7 @@
 import express from "express";
 import fs from "fs";
 import path from "path";
+import type * as http from "node:http";
 // Vite is dynamically imported inside the development-only branch so the
 // production bundle does not require vite (a devDependency).
 import { createProxyMiddleware } from "http-proxy-middleware";
@@ -219,7 +220,7 @@ export function createServerApp() {
   });
 
   // Venice API Proxy
-  // Do NOT use body-parser for /api/venice. We want raw passthrough.
+  // We use express.raw() to leave req.body as a Buffer for the safety guard before proxying.
   app.use(
     "/api/venice",
     express.raw({ 
@@ -292,34 +293,34 @@ export function createServerApp() {
         "^/api/venice": "", // remove base path
       },
       on: {
-        proxyReq: (proxyReq: any, req: any, res: any) => {
+        proxyReq: (proxyReq: VeniceProxyOutboundRequest, req: express.Request, _res: express.Response) => {
           applyVeniceProxyHeaders(proxyReq, req);
         },
-        proxyRes: (proxyRes: any, req: any, res: any) => {
+        proxyRes: (proxyRes: http.IncomingMessage, req: express.Request, res: express.Response) => {
           // Forward rate-limit headers so the client can respect them.
           const retryAfter = proxyRes.headers["retry-after"];
           if (retryAfter) res.setHeader("Retry-After", retryAfter);
           const rlReset = proxyRes.headers["x-ratelimit-reset-requests"];
           if (rlReset) res.setHeader("X-RateLimit-Reset-Requests", rlReset);
 
-          if (proxyRes.statusCode >= 500) {
+          if (proxyRes.statusCode && proxyRes.statusCode >= 500) {
             circuitFailures++;
             if (circuitFailures >= CIRCUIT_MAX_FAILURES) {
               error(`[Circuit Breaker] Tripped! Opening for ${CIRCUIT_RESET_TIMEOUT_MS}ms`);
               circuitOpenUntil = Date.now() + CIRCUIT_RESET_TIMEOUT_MS;
             }
-          } else if (proxyRes.statusCode >= 200 && proxyRes.statusCode < 300) {
+          } else if (proxyRes.statusCode && proxyRes.statusCode >= 200 && proxyRes.statusCode < 300) {
              circuitFailures = 0; // Reset only on successful responses
           }
         },
-        error: (err: any, req: any, res: any) => {
+        error: (err: Error, req: express.Request, res: express.Response | import('net').Socket) => {
           error("Proxy error:", err.message);
           circuitFailures++;
           if (circuitFailures >= CIRCUIT_MAX_FAILURES) {
              error(`[Circuit Breaker] Tripped (Network Error)! Opening for ${CIRCUIT_RESET_TIMEOUT_MS}ms`);
              circuitOpenUntil = Date.now() + CIRCUIT_RESET_TIMEOUT_MS;
           }
-          if (!res.headersSent) {
+          if ("headersSent" in res && !res.headersSent) {
             res.writeHead(502, { "Content-Type": "application/json" });
             res.end(JSON.stringify({ error: "Bad Gateway: Failed to reach Venice API." }));
           }
