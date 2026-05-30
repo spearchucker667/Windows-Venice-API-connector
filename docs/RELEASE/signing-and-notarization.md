@@ -16,7 +16,7 @@ Windows requires an EV or Standard Code Signing Certificate to clear SmartScreen
 Apple requires both application signing and automated Notarization.
 `electron-builder` will attempt to sign and notarize the app if the following are provided:
 - `CSC_LINK` / `CSC_KEY_PASSWORD`: P12 certificate and password.
-- Apple App Store Connect credentials (usually configured via `APPLE_ID` and `APPLE_APP_SPECIFIC_PASSWORD`).
+- Apple App Store Connect credentials (configured via `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, and `APPLE_TEAM_ID`).
 
 For our local builds, `hardenedRuntime: true` is enabled in `electron-builder.config.cjs`. Unsigned local binaries will still successfully build; the hardened runtime flag primarily affects notarization requirements for public releases. 
 

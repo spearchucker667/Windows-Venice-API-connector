@@ -3,7 +3,7 @@
 
 // Code Owner: fayeblade (@spearchucker667)
 // Primary maintainer and security gatekeeper for the Electron main process.
-import { app, BrowserWindow, dialog, shell } from "electron";
+import { app, BrowserWindow, dialog, shell, session } from "electron";
 import path from "path";
 import { fileURLToPath } from "url";
 import { registerIpcHandlers } from "./ipc/handlers";
@@ -63,7 +63,7 @@ function promptExternalLink(win: BrowserWindow, url: string): void {
     const availableLength = Math.max(0, MAX_DISPLAY_URL_LENGTH - protocolAndHost.length);
     const truncatedPath =
       fullPath.length > availableLength
-        ? `${fullPath.slice(0, Math.max(0, availableLength - 1))}…`
+        ? `${fullPath.slice(0, Math.max(0, availableLength - 3))}…`
         : fullPath;
     displayUrl = `${protocolAndHost}${truncatedPath}`;
   } catch {
@@ -126,14 +126,7 @@ function createWindow(): BrowserWindow {
     },
   });
 
-  win.webContents.session.webRequest.onHeadersReceived((details, callback) => {
-    callback({
-      responseHeaders: {
-        ...details.responseHeaders,
-        "Content-Security-Policy": [rendererCsp()],
-      },
-    });
-  });
+
 
   win.webContents.on("will-navigate", (event, url) => {
     if (isAllowedAppNavigation(url)) return;
@@ -174,6 +167,16 @@ function createWindow(): BrowserWindow {
 /** Registers IPC handlers and creates the main application window. */
 async function bootstrap(): Promise<void> {
   registerIpcHandlers();
+  // Register CSP once globally for the default session so it is not duplicated
+  // when additional windows are created (M-008).
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        "Content-Security-Policy": [rendererCsp()],
+      },
+    });
+  });
   logInfo("Venice Forge startup", {
     version: app.getVersion(),
     electron: process.versions.electron,
@@ -219,14 +222,14 @@ if (!gotLock) {
       if (isTrustedExternalUrl(url)) {
         const win = BrowserWindow.fromWebContents(contents);
         if (win) promptExternalLink(win, url);
-        else shell.openExternal(url).catch((err) => logError("shell.openExternal fallback failed", String(err)));
+        // Intentionally do nothing for windowless contents — block navigation.
       }
     });
     contents.setWindowOpenHandler(({ url }) => {
       if (isTrustedExternalUrl(url)) {
         const win = BrowserWindow.fromWebContents(contents);
         if (win) promptExternalLink(win, url);
-        else shell.openExternal(url).catch((err) => logError("shell.openExternal fallback failed", String(err)));
+        // Intentionally do nothing for windowless contents — block navigation.
       }
       return { action: "deny" };
     });

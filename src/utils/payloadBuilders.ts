@@ -31,7 +31,7 @@ export interface ChatPayloadOptions {
  * @param value An unknown value that may represent a web search mode.
  * @returns The normalised mode: "off", "on", or "auto".
  */
-function normalizeWebSearchMode(value: unknown): "off" | "on" | "auto" {
+export function normalizeWebSearchMode(value: unknown): "off" | "on" | "auto" {
   if (value === true) return "on";
   if (value === false) return "off";
   if (value === "off" || value === "on" || value === "auto") return value;

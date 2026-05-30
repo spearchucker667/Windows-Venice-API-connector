@@ -51,12 +51,15 @@ function readStore(): Record<string, string> {
  *  @param data The key-value record to write.
  */
 function writeStore(data: Record<string, string>): void {
-  fs.writeFileSync(getStorePath(), JSON.stringify(data, null, 2), {
+  const storePath = getStorePath();
+  const tempPath = `${storePath}.tmp`;
+  fs.writeFileSync(tempPath, JSON.stringify(data, null, 2), {
     encoding: "utf-8",
     // Restrict file to owner read/write only on POSIX systems.
     // Ignored on Windows (which uses ACLs via NTFS / DPAPI instead).
     mode: 0o600,
   });
+  fs.renameSync(tempPath, storePath);
 }
 
 /** Encrypts and stores the Venice API key using OS-level encryption when possible.
@@ -90,9 +93,12 @@ export function setApiKey(key: string): void {
 export function getApiKey(): string | null {
   const store = readStore();
   const raw = store["apiKey"];
-  if (!raw) return null;
+  if (typeof raw !== "string" || raw.length === 0) return null;
 
-  if (store["apiKeyEncrypted"] === "true") {
+  const encryptedFlag = store["apiKeyEncrypted"] as unknown;
+  const isEncrypted = encryptedFlag === "true" || encryptedFlag === true;
+
+  if (isEncrypted) {
     try {
       return safeStorage.decryptString(Buffer.from(raw, "base64"));
     } catch {
@@ -101,6 +107,13 @@ export function getApiKey(): string | null {
       return null;
     }
   }
+
+  // Reject plaintext unconditionally on Windows and macOS.
+  if (process.platform === "win32" || process.platform === "darwin") {
+    lastReadError = "Plaintext API key storage is not allowed on this platform.";
+    return null;
+  }
+
   return raw;
 }
 

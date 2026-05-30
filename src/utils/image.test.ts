@@ -82,6 +82,13 @@ describe("normalizeImageData", () => {
     const result = normalizeImageData({ b64_json: "data:image/png;base64,abc" });
     expect(result).toBe("data:image/png;base64,abc");
   });
+
+  /** Verifies that circular objects do not cause infinite recursion. */
+  it("returns null for circular objects", () => {
+    const obj: Record<string, unknown> = { b64_json: null };
+    obj.b64_json = obj;
+    expect(normalizeImageData(obj)).toBeNull();
+  });
 });
 
 /** Tests for the extractImages helper. */

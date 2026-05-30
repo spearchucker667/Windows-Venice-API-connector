@@ -27,7 +27,11 @@ export interface VeniceIpcRequest {
 /** Computes the UTF-8 byte length of a request body. */
 function bodySizeBytes(body: unknown): number {
   if (body === undefined) return 0;
-  return Buffer.byteLength(JSON.stringify(body), "utf-8");
+  try {
+    return Buffer.byteLength(JSON.stringify(body), "utf-8");
+  } catch {
+    throw new Error("Venice request body contains circular references or is not serializable.");
+  }
 }
 
 /** Parses and validates that a Venice endpoint is relative and on the allowed origin.

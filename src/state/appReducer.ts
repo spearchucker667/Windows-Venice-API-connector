@@ -2,7 +2,8 @@
 
 import { FALLBACK_MODELS, DEFAULT_SYSTEM_PROMPT } from "../constants/venice";
 import { produce } from "immer";
-import { warn } from "../shared/logger";
+import { isValidTheme } from "../services/exportImport";
+import { normalizeWebSearchMode } from "../utils/payloadBuilders";
 import type { AppAction, AppState } from "../types/app";
 import type { ModelInfo } from "../types/venice";
 
@@ -92,20 +93,6 @@ export function withFallbackModels(groups: Record<string, ModelInfo[]>) {
   if (!next.text.length) next.text = FALLBACK_MODELS.text;
   if (!next.image.length) next.image = FALLBACK_MODELS.image;
   return next;
-}
-
-/**
- * Coerces a web search setting to a canonical value.
- *
- * @param value Raw setting value, which may be a boolean or string.
- * @returns The normalized setting: "off", "on", or "auto".
- */
-function normalizeWebSearchSetting(value: unknown): "off" | "on" | "auto" {
-  if (value === true) return "on";
-  if (value === false) return "off";
-  if (value === "off" || value === "on" || value === "auto") return value;
-  warn("normalizeWebSearchSetting: invalid value, defaulting to off", value);
-  return "off";
 }
 
 /** Initial application state used to bootstrap the store. */
@@ -244,7 +231,7 @@ export const appReducer = produce((draft: AppState, action: AppAction) => {
             continue;
           }
           if (key === "webSearch") {
-            draft.settings.webSearch = normalizeWebSearchSetting(nextValue);
+            draft.settings.webSearch = normalizeWebSearchMode(nextValue);
             continue;
           }
           if (key === "webScraping") {
@@ -276,7 +263,7 @@ export const appReducer = produce((draft: AppState, action: AppAction) => {
             continue;
           }
           if (key === "customTheme") {
-            if (nextValue === null || (typeof nextValue === "object" && "id" in (nextValue as object) && "tokens" in (nextValue as object))) {
+            if (nextValue === null || isValidTheme(nextValue)) {
               draft.settings.customTheme = nextValue as import("../theme/themeTypes").Theme | null;
             }
             continue;
@@ -319,17 +306,17 @@ export const appReducer = produce((draft: AppState, action: AppAction) => {
       break;
     case "SET_CHAT_DRAFT":
       if (action.patch && typeof action.patch === "object") {
-        Object.assign(draft.chatDraft, action.patch);
+        draft.chatDraft = { ...draft.chatDraft, ...action.patch };
       }
       break;
     case "SET_IMAGE_DRAFT":
       if (action.patch && typeof action.patch === "object") {
-        Object.assign(draft.imageDraft, action.patch);
+        draft.imageDraft = { ...draft.imageDraft, ...action.patch };
       }
       break;
     case "SET_BATCH_DRAFT":
       if (action.patch && typeof action.patch === "object") {
-        Object.assign(draft.batchDraft, action.patch);
+        draft.batchDraft = { ...draft.batchDraft, ...action.patch };
       }
       break;
     case "SET_ONLINE":

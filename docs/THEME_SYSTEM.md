@@ -103,7 +103,7 @@ There are **17 semantic tokens**. Each maps to a CSS custom property (`--*`) and
 
 Raw hex values are intentionally **scoped** to:
 - `src/theme/themes.ts` — built-in palette definitions
-- `src/index.css` — brand palette, button gradients, scrollbar rgba
+- `src/styles/theme.css` — brand palette, button gradients, scrollbar rgba
 - `src/components/ThemeMaker.tsx` — input fallback `#000000`
 - Test fixtures
 
@@ -194,7 +194,7 @@ StorageService.saveItem("settings", {
 ## Accessibility
 
 - **Keyboard focus:** All interactives use `focus-visible:ring-2 focus-visible:ring-focus-ring` with `--focus-ring` token.
-- **Reduced motion:** `src/index.css` includes `@media (prefers-reduced-motion: reduce)` rules.
+- **Reduced motion:** `src/styles/accessibility.css` includes `@media (prefers-reduced-motion: reduce)` rules.
 - **Aria-live:** Existing `aria-live="polite"` regions (offline banner, status block, toast host, chat module, batch module, image generation form) were preserved. ThemeMaker adds an additional `aria-live="polite"` region for contrast warnings.
 - **Color independence:** UI does not rely on color alone; status chips combine color tokens with border and background patterns.
 
@@ -216,7 +216,7 @@ StorageService.saveItem("settings", {
    ```
 3. Export it from `src/theme/index.ts`.
 4. Add it to the theme list in `ThemeMaker.tsx`.
-5. Update the fallback map in `index.html` bootstrap script.
+5. Update the fallback map in `index.html` bootstrap script (reads from `localStorage['vf.theme.bootstrap']`).
 6. Run contrast verification: `npx tsx -e "import {contrastRatio} from './src/theme/contrast'; console.log(contrastRatio('#fff', '#0a0a0a'));"`.
 7. Update this document.
 
@@ -247,7 +247,7 @@ Users create custom themes via the ThemeMaker UI. No code changes required.
 |------|--------|
 | `src/types/app.ts` | Extended `AppSettings` with theme fields |
 | `src/state/appReducer.ts` | Added theme fields to `initialState.settings` and `SET_SETTINGS` whitelist |
-| `src/index.css` | Expanded `:root` vars, `@theme` semantic colors, `.btn` system, `prefers-reduced-motion` |
+| `src/styles/theme.css` | Expanded `:root` vars, `@theme` semantic colors, `.btn` system, `prefers-reduced-motion` |
 | `index.html` | Inline FOUC-prevention bootstrap script |
 | `src/App.tsx` | Theme hydration/reconciliation effects; reskinned shell |
 | `src/components/TabButton.tsx` | Token-based active/inactive states |
@@ -278,7 +278,7 @@ Users create custom themes via the ThemeMaker UI. No code changes required.
 
 ### For Contributors
 
-- **No `tailwind.config`:** Tailwind v4 is CSS-first. Add new semantic colors to the `@theme` block in `src/index.css`, not a JS config.
+- **No `tailwind.config`:** Tailwind v4 is CSS-first. Add new semantic colors to the `@theme` block in `src/styles/theme.css`, not a JS config.
 - **No raw hex in components:** If you need a new color, add it as a token. If it is one-off, justify it in the PR. The existing exceptions are intentional and scoped.
 - **Test contrast:** If you change a built-in palette, run the contrast checks. The minimum acceptable ratio is 4.5:1 for text-on-background pairs.
 

@@ -8,7 +8,40 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Venice 
 
 ## [Unreleased]
 
+### Security
+- **Safety Guard Hardening:** Malformed serialized FormData no longer bypasses extraction; falls back to generic object scanning (C-001).
+- **Truncation Evasion Fix:** Oversized payloads are now scanned at both head and tail to prevent placing malicious content beyond the truncation boundary (C-002).
+- **Homoglyph Expansion:** Added Cyrillic (`л`, `т`, `в`, `н`, `к`, `м`, `у`) and Greek (`α`, `β`, `γ`, `δ`, `ζ`, `η`, `κ`, `λ`, `μ`, `ν`, `π`, `ρ`, `σ`, `τ`, `φ`, `χ`, `ω`) lookalikes to normalization map (H-003).
+- **Age/Youth Detection:** Added spelled-out ages ("thirteen"–"seventeen") and youth nouns ("baby", "toddler", "boy", "girl", "juvenile", "adolescent") (H-002).
+- **URL Security:** `isPrivateHostname` now blocks IPv6 link-local (`fe80::`), IPv4-mapped IPv6 loopback (`::ffff:127.0.0.1`), and short-form IPv4 (`127.1`, `10.1`) (H-004).
+- **Secure Storage:** `getApiKey` rejects plaintext/tampered state on Windows/macOS and handles both string and boolean encrypted flags (H-005 / H-009).
+- **Atomic Writes:** `secureStore.ts` now writes to a temp file and renames atomically (M-010).
+
+### Fixed
+- **Server Production Crash:** Removed top-level static `vite` import; vite is dynamically imported only in development mode (C-004).
+- **Server Auto-Start:** `server.ts` no longer auto-starts when imported by tests; `startServer()` is only invoked from the entrypoint (C-005).
+- **Production Start Script:** `npm start` now runs via `scripts/start-production.cjs` which sets `NODE_ENV=production` (C-006).
+- **Stream Timeout:** SSE read loop in `veniceStreamChat` now has an idle timeout and uses `createTimeoutSignal()` for older browser compatibility instead of `AbortSignal.any`/`AbortSignal.timeout` (C-007 / H-018).
+- **Main-Process Crash:** Streaming IPC handlers use `safeSendToRenderer()` to prevent crashes when the renderer window closes mid-stream (C-003).
+- **Rate Limiter Leak:** Static-file rate limiter has cleanup interval and 10K entry cap (H-010).
+- **Batch Error Property:** Safety-guard blocked batch items now correctly store the message in `error` instead of non-existent `response` (M-015).
+- **Markdown Placeholder:** Uses cryptographically random token to prevent collision with user content (M-017).
+- **Heading Regex:** No longer incorrectly matches `####` as H3 (M-020).
+- **Prototype Pollution:** Export/import rejects `__proto__`, `constructor`, and `prototype` record IDs (M-021).
+- **Image Cycle Detection:** `normalizeImageData` uses `WeakSet` to prevent infinite recursion on circular objects (M-022).
+- **CSP Listener Leak:** CSP `onHeadersReceived` registered once globally on the default session instead of per-window (M-008).
+- **Navigation Case Sensitivity:** `checkPathContained` uses case-insensitive comparison on Windows (M-007).
+- **Conversation TOCTOU:** Removed `fs.access` pre-check; `ENOENT` returns null silently (M-011).
+- **Toast Duration:** Uses nullish coalescing (`??`) so a duration of `0` is respected (L-009).
+- **CSS Variable:** Accessibility stylesheet references correct `--bg` instead of undefined `--background` (L-010).
+
+### Changed
+- `vitest.config.ts` now correctly calls the vite config function instead of spreading the function object (H-011).
+- `tsconfig.json` excludes `electron/` to prevent CJS code being type-checked as ESNext/bundler (H-013).
+- `electron-builder.config.cjs` decouples Windows and macOS signing credential checks (H-012).
+
 ### Added
+
 - **Content Safety Guard:** A layered child-exploitation safety guard (`src/shared/safety/`) screens every Venice API request before it leaves the app.
   - `childExploitationGuard.ts` — multi-signal detection engine: hard term lists, CSAM genre labels, minor-age extraction (digit-preserving normalisation path), fuzzy bigram matching with allowlist, cross-field combined-text pass, and image-endpoint hard-block path. Produces a `SafetyGuardDecision` without throwing or logging raw prompt text.
   - `promptPayloadExtractor.ts` — endpoint-aware field extractor that reads `prompt`, `messages[].content`, and serialised FormData entries from raw payloads.
@@ -35,6 +68,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Venice 
 ---
 
 ## [1.0.2] — 2026-05-29
+
+### Changed
+- Consolidated `scripts/verify-dist-mac.cjs` and `scripts/verify-dist-win.cjs` into a single `scripts/verify-dist.cjs` dispatcher with `--mac`, `--win`, and `--portable` flags.
 
 ### Added
 - **Multi-Conversation Chat Persistence:** Full conversation model with sidebar management, atomic filesystem storage, and automatic legacy migration.
@@ -65,7 +101,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Venice 
 - Added macOS release workflow (`macos-release.yml`) for `arm64` and `x64` builds.
 - Added ESLint configuration (`eslint.config.mjs`) with TypeScript-ESLint and React Hooks rules.
 - Added Vitest coverage reporting via `@vitest/coverage-v8` and `npm run test:coverage`.
-- Added GitHub CodeQL security analysis workflow (`.github/workflows/codeql.yml`).
+- ~~Added GitHub CodeQL security analysis workflow (`.github/workflows/codeql.yml`).~~ *(CodeQL workflow not yet implemented; deferred to future security hardening pass.)*
 - Added `npm run lint:eslint` script for static analysis.
 - Added README release ribbon and badges for CI, Windows release, latest GitHub release, license, Node support, TypeScript strict mode, Electron, and Venice API.
 - Added `docs/REPOSITORY_TREE.md` with a public repository map and segment ownership notes.

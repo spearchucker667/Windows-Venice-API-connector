@@ -166,4 +166,22 @@ describe("export/import schema validation", () => {
     expect(typeof repaired?.timestamp).toBe("number");
     expect(Number.isFinite(repaired?.timestamp)).toBe(true);
   });
+
+  /** Verifies that record ids matching prototype-pollution keys are rejected. */
+  it("rejects prototype-pollution record ids", () => {
+    for (const badId of ["__proto__", "constructor", "prototype"]) {
+      const json = JSON.stringify({
+        version: EXPORT_SCHEMA_VERSION,
+        exportedAt: new Date().toISOString(),
+        appVersion: "1.0.0",
+        data: {
+          images: [{ id: badId, prompt: "p", image: "img", timestamp: 1 }],
+        },
+      });
+
+      const result = validateImportJson(json);
+      expect(result.summary.imagesFound).toBe(0);
+      expect(result.summary.skippedRecords).toBe(1);
+    }
+  });
 });

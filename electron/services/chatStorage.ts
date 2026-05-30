@@ -7,7 +7,7 @@ import { app } from "electron";
 import fs from "fs/promises";
 import path from "path";
 import type { Conversation, ConversationFile } from "../../src/types/conversation";
-import { logError, logInfo } from "./logger";
+import { logError, logInfo, logWarn } from "./logger";
 
 /** Sub-directory inside userData where conversation files live. */
 const CHAT_DIR = "chat-history";
@@ -17,6 +17,11 @@ const FILE_VERSION = 1;
 
 /** Valid conversation ID pattern: UUID v4 or URL-safe base64-ish strings. */
 const VALID_ID_RE = /^[a-zA-Z0-9_.-]{1,128}$/;
+
+/** Maximum number of conversations to load into memory at once.
+ *  Prevents unbounded memory growth if the chat-history directory
+ *  accumulates an exceptional number of files. */
+const MAX_LIST_CONVERSATIONS = 2000;
 
 /** Returns the absolute path to the chat-history directory. */
 export function getChatHistoryDir(): string {
@@ -53,9 +58,13 @@ async function readConversationFile(filePath: string): Promise<Conversation | nu
     }
     return parsed.conversation;
   } catch (err) {
+    if (err && typeof err === "object" && "code" in err && (err as NodeJS.ErrnoException).code === "ENOENT") {
+      return null;
+    }
     logError("Chat history file corrupt or unreadable", { path: filePath, error: String(err) });
     try {
-      const backupPath = `${filePath}.backup`;
+      const timestamp = Date.now();
+      const backupPath = `${filePath}.backup.${timestamp}`;
       await fs.rename(filePath, backupPath);
       logInfo("Corrupt chat file backed up", backupPath);
     } catch {
@@ -82,7 +91,7 @@ function isValidConversation(value: unknown): value is Conversation {
   if (typeof c.createdAt !== "number") return false;
   if (typeof c.updatedAt !== "number") return false;
   if (typeof c.model !== "string") return false;
-  if (typeof c.systemPrompt !== "string") return false;
+  if (c.systemPrompt !== undefined && typeof c.systemPrompt !== "string") return false;
   if (!Array.isArray(c.messages)) return false;
   return c.messages.every(isValidMessage);
 }
@@ -115,6 +124,12 @@ export async function listConversations(): Promise<Conversation[]> {
     const filePath = path.join(dir, entry);
     const conv = await readConversationFile(filePath);
     if (conv) conversations.push(conv);
+    if (conversations.length >= MAX_LIST_CONVERSATIONS) {
+      logWarn(
+        `chat-history directory contains more than ${MAX_LIST_CONVERSATIONS} valid conversations; truncating list. Consider archiving old conversations.`
+      );
+      break;
+    }
   }
 
   conversations.sort((a, b) => b.updatedAt - a.updatedAt);
@@ -126,11 +141,6 @@ export async function getConversation(id: string): Promise<Conversation | null> 
   if (!isValidId(id)) return null;
   await ensureDir();
   const filePath = conversationPath(id);
-  try {
-    await fs.access(filePath);
-  } catch {
-    return null;
-  }
   return readConversationFile(filePath);
 }
 

@@ -75,6 +75,7 @@ All documentation is organized in the [docs](docs/) directory and root level. Se
 
 ### Reference
 - **[docs/FAQ.md](docs/FAQ.md)** — Frequently asked questions.
+- **[docs/THEME_SYSTEM.md](docs/THEME_SYSTEM.md)** — Token-based theming architecture and ThemeMaker UI.
 - **[docs/REPOSITORY_TREE.md](docs/REPOSITORY_TREE.md)** — Full file tree and module ownership.
 
 ### Repository Map
@@ -176,7 +177,7 @@ VENICE_API_KEY="your-venice-inference-key"
 | API key | Electron `safeStorage` — Win: `%APPDATA%\Venice Forge\secure-prefs.json`<br>Mac: `~/Library/Application Support/Venice Forge/secure-prefs.json` |
 | Logs | Win: `%APPDATA%\Venice Forge\logs\venice-forge.log`<br>Mac: `~/Library/Application Support/Venice Forge/logs/venice-forge.log` |
 | Conversations (desktop) | `~/Library/Application Support/Venice Forge/chat-history/*.json` (macOS)<br>`%APPDATA%\Venice Forge\chat-history\*.json` (Windows) |
-| Images, legacy chats, settings | Renderer IndexedDB |
+| Images, legacy chats, settings, conversations | Renderer IndexedDB |
 | Exports | Versioned JSON with `version`, `exportedAt`, `appVersion`, and `data` |
 
 Import validates JSON size and schema, rejects unexpected stores, strips secret-like fields, and merges by ID rather than clearing existing data. API keys are never imported or exported. A backup of existing data is saved to disk before any import is applied.

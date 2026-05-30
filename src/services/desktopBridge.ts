@@ -28,7 +28,7 @@ export async function initDesktopBridge(): Promise<void> {
  * @returns A random UUID string.
  */
 function createSignalId(): string {
-  return crypto.randomUUID();
+  return crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
 }
 
 /**
@@ -209,7 +209,7 @@ export const desktopFiles = {
       a.href = url;
       a.download = defaultPath;
       a.click();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
       return true;
     }
     const result = await window.veniceForge!.files.saveJsonFile(json, defaultPath);

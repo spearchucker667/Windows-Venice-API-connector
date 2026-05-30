@@ -5,7 +5,7 @@
 | Windows 10/11 | x64 | **Supported** | NSIS, Portable | DPAPI |
 | macOS 13+ | Apple Silicon (arm64) | **Supported** | DMG, ZIP | Keychain |
 | macOS 13+ | Intel (x64) | **Supported** | DMG, ZIP | Keychain |
-| Linux | x64 / arm64 | *Not officially packaged* | - | Plaintext Fallback (Dev Only) |
+| Linux | x64 / arm64 | *Not officially packaged* | - | Plaintext fallback only with `VENICE_FORGE_ALLOW_PLAINTEXT_KEY_STORAGE=true` (Dev Only) |
 | Web (Browser) | Any | **Supported (Dev Mode)** | - | Server `.env` |
 
 ### Known Limitations

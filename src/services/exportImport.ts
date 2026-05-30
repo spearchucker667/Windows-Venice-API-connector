@@ -95,10 +95,14 @@ function sanitizeRecord(store: ExportStore, value: unknown): Record<string, unkn
     record[key] = entry;
   }
 
-  if (typeof record.id !== "string" || record.id.trim().length === 0) {
-    record.id = crypto.randomUUID();
+  let id: string;
+  if (typeof record.id === "string" && record.id.trim().length > 0) {
+    id = record.id;
+  } else {
+    id = record.id = crypto.randomUUID();
   }
-  if (!isShortString(record.id, MAX_RECORD_ID_LENGTH)) return null;
+  if (["__proto__", "constructor", "prototype"].includes(id)) return null;
+  if (!isShortString(id, MAX_RECORD_ID_LENGTH)) return null;
 
   if (!isFiniteTimestamp(record.timestamp)) {
     record.timestamp = Date.now();
@@ -142,7 +146,7 @@ function sanitizeRecord(store: ExportStore, value: unknown): Record<string, unkn
  * @param value The value to test.
  * @returns True if the value has the required Theme fields.
  */
-function isValidTheme(value: unknown): boolean {
+export function isValidTheme(value: unknown): boolean {
   if (!isPlainObject(value)) return false;
   const v = value as Record<string, unknown>;
   return (

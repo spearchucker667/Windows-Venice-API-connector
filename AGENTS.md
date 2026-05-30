@@ -10,6 +10,7 @@ Venice Forge is an unofficial, third-party desktop client for the [Venice API](h
 - **Version:** 1.0.2
 - **License:** MIT
 - **Maintainer:** fayeblade (@spearchucker667)
+- **Security contact:** GitHub private vulnerability reporting or private maintainer discussion (see [SECURITY.md](SECURITY.md))
 - **Repository:** https://github.com/spearchucker667/Venice-API-connector
 - **Requirements:** Node.js 20 or 22, npm 10+
 
@@ -260,6 +261,7 @@ Copy `.env.example` to `.env` for web-mode development:
 ## Release and Deployment
 
 - CI runs on Ubuntu with a Node 20/22 matrix for lint, typecheck, test, and build.
+- `npm run verify:safety-guard` is a **local required check** before PRs and releases; it is not currently run in CI (known gap — run it manually).
 - Release workflows (`windows-release.yml`, `macos-release.yml`) build signed/unsigned artifacts, verify them, and emit SHA-256 checksums.
 - Code signing is optional for local builds. Official releases require Apple Developer ID (macOS) and standard `CSC_LINK` / `CSC_KEY_PASSWORD` (Windows).
 - Auto-updates are fetched via GitHub Releases using `electron-updater`.
@@ -274,3 +276,4 @@ When changing behavior, packaging, or legal assumptions, update these files:
 - `docs/LEGAL.md`
 - `CHANGELOG.md`
 - `AGENTS.md` (this file)
+- `.github/copilot-instructions.md` (if commands, architecture, or storage changes)

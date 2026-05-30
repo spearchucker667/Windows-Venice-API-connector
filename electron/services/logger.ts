@@ -61,6 +61,14 @@ export function logInfo(message: string, meta?: unknown): void {
   writeLog("INFO", message, meta);
 }
 
+/** Writes a warning message to the log file.
+ *  @param message The log message.
+ *  @param meta Optional metadata to include.
+ */
+export function logWarn(message: string, meta?: unknown): void {
+  writeLog("WARN", message, meta);
+}
+
 /** Writes an error message to the log file.
  *  @param message The log message.
  *  @param error Optional error object or message.
@@ -75,7 +83,7 @@ export function logError(message: string, error?: unknown): void {
  *  @param message The log message.
  *  @param meta Optional metadata to append.
  */
-function writeLog(level: "INFO" | "ERROR", message: string, meta?: unknown): void {
+function writeLog(level: "INFO" | "WARN" | "ERROR", message: string, meta?: unknown): void {
   try {
     ensureLogFile();
     const metaText = meta === undefined ? "" : ` ${redact(typeof meta === "string" ? meta : JSON.stringify(meta))}`;

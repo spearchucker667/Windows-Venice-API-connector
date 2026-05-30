@@ -21,7 +21,7 @@ function ToastItem({ toast, dispatch }: { toast: ToastMessage; dispatch: AppDisp
   useEffect(() => {
     const timer = setTimeout(() => {
       dispatch({ type: "REMOVE_TOAST", id: toast.id });
-    }, toast.duration || 3000);
+    }, toast.duration ?? 3000);
     return () => clearTimeout(timer);
   }, [toast, dispatch]);
 

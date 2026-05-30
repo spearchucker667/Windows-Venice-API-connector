@@ -71,4 +71,17 @@ describe("Electron IPC validation", () => {
     expect(() => validateApiKeyInput("")).toThrow(/enter/i);
     expect(() => validateApiKeyInput("x".repeat(513))).toThrow(/too long/i);
   });
+
+  /** Rejects bodies with circular references (M-024). */
+  it("rejects circular request bodies", () => {
+    const body: Record<string, unknown> = { prompt: "hello" };
+    body.self = body;
+    expect(() =>
+      validateVeniceIpcRequest({
+        endpoint: "/chat/completions",
+        method: "POST",
+        body,
+      })
+    ).toThrow(/circular references|not serializable/i);
+  });
 });

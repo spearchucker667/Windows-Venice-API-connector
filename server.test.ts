@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect, beforeAll, beforeEach, vi } from "vitest";
 import request from "supertest";
+import express from "express";
 
 // Stub out the proxy so the augment (and other allowed) endpoint tests don't make
 // real network calls to api.venice.ai. The assertions only care about validation
@@ -12,6 +13,7 @@ vi.mock("http-proxy-middleware", () => ({
 }));
 
 import { applyVeniceProxyHeaders, createServerApp } from "./server";
+import * as safetyModule from "./src/shared/safety";
 
 describe("server.ts health endpoint", () => {
   it("should return 200 and status ok on /health", async () => {
@@ -194,5 +196,51 @@ describe("server.ts safety middleware", () => {
 
     expect(res.status).toBe(451);
   });
-});
 
+  // M-001 regression guard
+  it("defensively converts non-Buffer POST bodies to Buffer", async () => {
+    const originalRaw = express.raw;
+    // Monkey-patch express.raw to simulate a body-parser middleware
+    express.raw = () => (req: any, _res: any, next: any) => {
+      let data = "";
+      req.setEncoding("utf8");
+      req.on("data", (chunk: string) => { data += chunk; });
+      req.on("end", () => {
+        try { req.body = JSON.parse(data); } catch { req.body = Buffer.from(data); }
+        next();
+      });
+    };
+
+    try {
+      const testApp = createServerApp();
+      const res = await request(testApp)
+        .post("/api/venice/chat/completions")
+        .send({ messages: [{ role: "user", content: "draw me a loli character" }] });
+
+      expect(res.status).toBe(451);
+      expect(res.body.reasonCode).toBe("CSAM_GENRE_TERM");
+    } finally {
+      express.raw = originalRaw;
+    }
+  });
+
+  // M-002 regression guard
+  it("records synthetic decision when guard throws an exception", async () => {
+    const assessSpy = vi.spyOn(safetyModule, "assessChildExploitationSafety").mockImplementationOnce(() => {
+      throw new Error("simulated guard failure");
+    });
+    const recordSpy = vi.spyOn(safetyModule, "recordDecision");
+
+    const res = await request(app)
+      .post("/api/venice/chat/completions")
+      .send({ messages: [{ role: "user", content: "safe text" }] });
+
+    expect(res.status).toBe(500);
+    expect(recordSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ reasonCode: "GUARD_EXCEPTION" })
+    );
+
+    assessSpy.mockRestore();
+    recordSpy.mockRestore();
+  });
+});

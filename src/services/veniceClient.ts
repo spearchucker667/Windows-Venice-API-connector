@@ -66,16 +66,19 @@ export function sleep(ms: number, signal?: AbortSignal): Promise<void> {
       reject(new DOMException("Request aborted", "AbortError"));
       return;
     }
-    const id = setTimeout(resolve, ms);
+    let onAbort: (() => void) | undefined;
+    const id = setTimeout(() => {
+      if (onAbort && signal) {
+        signal.removeEventListener("abort", onAbort);
+      }
+      resolve();
+    }, ms);
     if (signal) {
-      signal.addEventListener(
-        "abort",
-        () => {
-          clearTimeout(id);
-          reject(new DOMException("Request aborted", "AbortError"));
-        },
-        { once: true }
-      );
+      onAbort = () => {
+        clearTimeout(id);
+        reject(new DOMException("Request aborted", "AbortError"));
+      };
+      signal.addEventListener("abort", onAbort, { once: true });
     }
   });
 }
@@ -95,16 +98,19 @@ function createTimeoutSignal(ms: number, parentSignal?: AbortSignal | null): Abo
   }
   // Fallback for older runtimes
   const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), ms);
+  let onAbort: (() => void) | undefined;
+  const id = setTimeout(() => {
+    if (onAbort && parentSignal) {
+      parentSignal.removeEventListener("abort", onAbort);
+    }
+    controller.abort();
+  }, ms);
   if (parentSignal) {
-    parentSignal.addEventListener(
-      "abort",
-      () => {
-        clearTimeout(id);
-        controller.abort();
-      },
-      { once: true }
-    );
+    onAbort = () => {
+      clearTimeout(id);
+      controller.abort();
+    };
+    parentSignal.addEventListener("abort", onAbort, { once: true });
   }
   return controller.signal;
 }
@@ -702,7 +708,6 @@ async function _veniceFetch(
  * @param options Request options including method, body, signal, dispatch, and retry flags.
  * @returns A promise resolving to the parsed data, raw response, headers, and diagnostics.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function veniceFetch<T = any>(
   endpoint: string,
   options: {
@@ -809,9 +814,7 @@ export async function veniceStreamChat(
   // SSE connection cannot block the web-mode renderer indefinitely. 5 minutes is
   // generous for even the longest streaming completions.
   const STREAM_TIMEOUT_MS = 300_000;
-  const streamSignal = signal
-    ? AbortSignal.any([signal, AbortSignal.timeout(STREAM_TIMEOUT_MS)])
-    : AbortSignal.timeout(STREAM_TIMEOUT_MS);
+  const streamSignal = createTimeoutSignal(STREAM_TIMEOUT_MS, signal);
 
   let response: Response;
   try {
@@ -862,6 +865,11 @@ export async function veniceStreamChat(
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
+  let timedOut = false;
+  const readTimeoutId = setTimeout(() => {
+    timedOut = true;
+    reader.cancel().catch(() => {});
+  }, STREAM_TIMEOUT_MS);
 
   try {
     while (true) {
@@ -898,7 +906,11 @@ export async function veniceStreamChat(
         } catch { /* malformed SSE JSON chunk — skip */ }
       }
     }
+    if (timedOut) {
+      throw new Error("Stream timed out after 5 minutes. The server may be overloaded — please try again.");
+    }
   } finally {
+    clearTimeout(readTimeoutId);
     reader.releaseLock();
   }
 }

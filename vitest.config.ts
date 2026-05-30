@@ -1,8 +1,10 @@
 import { defineConfig } from "vitest/config";
 import viteConfig from "./vite.config";
 
+const resolvedViteConfig = typeof viteConfig === "function" ? (viteConfig as () => Record<string, unknown>)() : viteConfig;
+
 export default defineConfig({
-  ...viteConfig,
+  ...resolvedViteConfig,
   test: {
     environment: "jsdom",
     globals: true,

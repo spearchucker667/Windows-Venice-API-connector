@@ -109,16 +109,41 @@ describe("chatStorage", () => {
     expect(result).toBeNull();
   });
 
-  it("backs up corrupt files and returns null", async () => {
+  it("backs up corrupt files with a timestamp and returns null (M-025)", async () => {
     const dir = getChatHistoryDir();
     await fs.mkdir(dir, { recursive: true });
     await fs.writeFile(path.join(dir, "corrupt.json"), "not-json", "utf-8");
 
+    const before = Date.now();
     const result = await getConversation("corrupt");
+    const after = Date.now();
     expect(result).toBeNull();
 
-    const backup = await fs.readdir(dir);
-    expect(backup.some((f) => f.endsWith(".backup"))).toBe(true);
+    const files = await fs.readdir(dir);
+    const backup = files.find((f) => f.startsWith("corrupt.json.backup."));
+    expect(backup).toBeDefined();
+    const timestamp = Number(backup!.split(".").pop());
+    expect(timestamp).toBeGreaterThanOrEqual(before);
+    expect(timestamp).toBeLessThanOrEqual(after);
+  });
+
+  it("returns null silently for a missing conversation without creating a backup (M-011)", async () => {
+    const result = await getConversation("definitely-missing-id");
+    expect(result).toBeNull();
+
+    const dir = getChatHistoryDir();
+    const files = await fs.readdir(dir).catch(() => [] as string[]);
+    expect(files.some((f) => f.includes("definitely-missing-id"))).toBe(false);
+  });
+
+  it("allows optional systemPrompt (M-026)", async () => {
+    const conv = makeConv({ systemPrompt: undefined });
+    const saveResult = await saveConversation(conv);
+    expect(saveResult.ok).toBe(true);
+
+    const retrieved = await getConversation(conv.id);
+    expect(retrieved).not.toBeNull();
+    expect(retrieved?.systemPrompt).toBeUndefined();
   });
 
   it("updates an existing conversation", async () => {

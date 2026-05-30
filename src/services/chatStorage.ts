@@ -4,15 +4,10 @@
  *  All reads/writes return Conversation objects. */
 
 import type { Conversation, ConversationMessage } from "../types/conversation";
-import { desktopChat } from "./desktopBridge";
+import { desktopChat, isElectron } from "./desktopBridge";
 import StorageService from "./storageService";
 
 const FALLBACK_STORE = "conversations" as const;
-
-/** Detects whether we are running inside the Electron desktop shell. */
-function isElectron(): boolean {
-  return typeof window !== "undefined" && window.veniceForge?.isDesktop === true;
-}
 
 /** Generates a URL-safe random id. */
 function makeId(): string {

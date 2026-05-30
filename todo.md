@@ -169,11 +169,13 @@ No critical issues found.
 - [x] **[GAP-001] No regression test for `extractFromSerializedFormData` (BUG-001)** `src/shared/safety/promptPayloadExtractor.ts`
   - The FormData extraction path has zero test coverage. After fixing BUG-001, add a test that creates a mock serialized FormData body `{ _isSerializedFormData: true, entries: [{ name: "prompt", value: "..." }] }` and asserts extracted fields are non-empty.
 
-- [ ] **[GAP-002] No test for `loadJsonFile` error path (BUG-002)** `electron/ipc/handlers.ts:245`
+- [~] **[GAP-002] No test for `loadJsonFile` error path (BUG-002)** `electron/ipc/handlers.ts:245`
   - There is no test asserting that a file-read error is surfaced to the user. After fixing BUG-002, add a test that stubs `fs.readFile` to reject and asserts the UI receives an error toast (or the bridge returns `{ ok: false, error }`).
+  - **Status:** Handler and bridge code verified correct by inspection. No IPC handler test infrastructure exists in the repo (no `vi.mock("electron")` usage). Adding a test would require either refactoring handlers into exported functions or building new Electron mock infrastructure. Deferred until handler test harness is established.
 
-- [ ] **[GAP-003] `docs/DEVELOPMENT` and `docs/AGENTS` directories not scanned** *(scope limit)*
+- [x] **[GAP-003] `docs/DEVELOPMENT` and `docs/AGENTS` directories not scanned** *(scope limit)*
   - These directories were present in the repo root but not opened during this scan. They may contain stale build instructions, architecture diagrams, or agent-usage examples that contradict current code. Recommend reviewing for freshness.
+  - **Status:** Scanned all 7 files (`building.md`, `macos.md`, `platform-support.md`, `troubleshooting.md`, `agents.md`, `agent-reinitialization.md`, `gemini.md`). No stale instructions found. All commands, paths, and security postures match current code. `docs/AGENTS/` is gitignored (as documented) and kept locally only.
 
 - [x] **[GAP-004] `assessChildExploitationSafety` public API has no JSDoc** `src/shared/safety/childExploitationGuard.ts`
   - The exported function signature (`input`, `AssessmentResult`) is the primary integration point for all callers (server.ts, handlers.ts, ChatModule, ImageModule, BatchModule). It has no JSDoc block documenting inputs, return shape, or side effects (audit logging, `recordDecision` call). Add at minimum a function-level `/** ... */` comment.
@@ -226,6 +228,140 @@ No critical issues found.
 - **[M-006]** Clarified JSDoc requiring callers of `assessChildExploitationSafety` to run `recordDecision`.
 - **[L-002]** Added test verifying that `FUZZY_ALLOWLIST` doesn't intersect with `CSAM_GENRE_LABELS`.
 
+## Audit Remediation — 2026-05-30
+
+### Release Blockers Fixed
+- [x] **C-001** — Malformed serialized FormData no longer bypasses safety guard; falls back to generic object extraction.
+- [x] **C-002** — Safety scanner now assesses both head and tail of oversized payloads to prevent truncation evasion.
+- [x] **C-003** — Main-process streaming no longer crashes when renderer closes mid-stream (`safeSendToRenderer` helper).
+- [x] **C-004** — Production server no longer crashes from static Vite import; vite is dynamically imported in dev-only branch.
+- [x] **C-005** — `server.ts` no longer auto-starts on import; `startServer()` is invoked only from entrypoint.
+- [x] **C-006** — `npm start` now runs production mode via `scripts/start-production.cjs` wrapper.
+- [x] **C-007** — SSE read loop has idle/total timeout; uses `createTimeoutSignal()` instead of `AbortSignal.any`/`timeout`.
+- [x] **H-004** — URL security blocks IPv6 link-local, IPv4-mapped IPv6 loopback, and short-form IPv4.
+- [x] **H-005 / H-009** — Secure storage rejects plaintext/tampered API key state on Windows/macOS; handles boolean/string flag variants.
+
+### Safety Guard Hardening Fixed
+- [x] **H-001** — Nested object extraction performs shallow recursive scan for unknown endpoints.
+- [x] **H-002** — Added spelled-out ages and high-risk youth nouns to detection lists.
+- [x] **H-003** — Expanded homoglyph map with additional Cyrillic and Greek lookalikes.
+- [x] **H-017** — Replaced RegExp lookbehind with capture-group logic for Safari < 16.4 compatibility.
+- [x] **M-001** — Proxy defensively converts non-Buffer POST bodies before safety guard.
+- [x] **M-002** — Guard exception in web proxy now records synthetic audit decision.
+- [x] **M-003** — Increased extraction depth limit from 4 to 8.
+- [x] **M-004** — Array payload extraction iterates over all string properties.
+- [x] **M-005** — Vision content array extracts all string properties from parts.
+- [x] **M-006** — Multipart fallback returns raw decoded string without regex stripping.
+
+### Server Runtime Fixed
+- [x] **H-010** — Static-file rate limiter has cleanup interval and max-entry cap.
+- [x] **H-011** — `vitest.config.ts` correctly resolves vite config function.
+- [x] **H-012** — `electron-builder.config.cjs` decouples Windows/macOS signing checks.
+- [x] **H-013** — `tsconfig.json` excludes `electron/` from renderer type-check.
+- [x] **L-014** — Server paths use `getModuleDir()` instead of `process.cwd()`.
+- [x] **L-015** — Proxy timeout config applied via `timeout`/`proxyTimeout`.
+- [x] **L-016** — `HOST` validated through `configSchema.ts`.
+- [x] **L-017** — `appVersion` cached at module level.
+
+### Electron IPC/Runtime Fixed
+- [x] **H-008** — Windowless webContents no longer bypass confirmation dialog.
+- [x] **M-007** — `checkPathContained` uses case-insensitive comparison on Windows.
+- [x] **M-008** — CSP listener registered once globally on default session.
+- [x] **M-009** — `apiKey:set`/`delete` IPC handlers catch errors and return typed safe responses.
+- [x] **M-010** — `writeStore` uses atomic write (tmp + rename).
+- [x] **M-011** — Removed `fs.access` TOCTOU race in `getConversation`.
+- [x] **M-024** — `bodySizeBytes` catches circular references with descriptive error.
+- [x] **M-025** — Corrupt backups append timestamp to avoid overwrite.
+- [x] **M-026** — `isValidConversation` accepts optional `systemPrompt`.
+- [x] **L-003** — `promptExternalLink` truncation reserves ellipsis space.
+- [x] **L-004** — Preload uses `globalThis.crypto.randomUUID()`.
+
+### Renderer/Browser Compat Fixed
+- [x] **H-014** — Blob URL revocation delays increased (60s export, 30s download).
+- [x] **H-018** — `veniceStreamChat` uses `createTimeoutSignal()` for older browser compat.
+- [x] **H-019** — `crypto.randomUUID()` has fallback for non-secure contexts.
+- [x] **M-016** — Abort listeners removed in timeout callback to prevent leaks.
+- [x] **M-017** — Markdown placeholder uses cryptographically random token.
+- [x] **M-018** — `customTheme` validation reused from `exportImport.ts`.
+- [x] **M-019** — Draft patches use explicit spread instead of `Object.assign`.
+- [x] **M-020** — Heading regex no longer matches `####` as H3.
+- [x] **M-021** — Export/import rejects prototype-pollution record IDs.
+- [x] **M-022** — `normalizeImageData` detects cycles via `WeakSet`.
+- [x] **M-015** — Batch blocked-error stored in correct `error` property.
+- [x] **L-005** — Removed duplicate `isElectron` logic; imported from `desktopBridge.ts`.
+- [x] **L-006** — Web-search normalization deduplicated via `payloadBuilders.ts`.
+- [x] **L-007** — Reverted `veniceFetch<T = unknown>` (breaks existing call sites); deferred.
+- [x] **L-008** — Anchor element removed in `try…finally`.
+- [x] **L-009** — Toast duration uses nullish coalescing (`??`).
+- [x] **L-010** — Accessibility CSS uses correct `--bg` variable.
+- [x] **L-011** — Gallery test cleans up `scrollIntoView` stub in `afterEach`.
+
+### Deferred to Future
+- [ ] **H-015** — Pending settings save lost on unmount (requires UI state refactor).
+- [ ] **H-016** — O(n) conversation lookup in web mode (performance, not security-critical).
+- [ ] **M-012** — ChatModule impure state updater (requires broad React refactor).
+- [ ] **M-013** — SearchScrape overlapping request race (requires UI refactor).
+- [ ] **M-014** — Chat cancel removes user prompt (UX change, not security-critical).
+- [ ] **M-023** — `importJsonString` web-mode fallback (feature gap).
+- [x] **L-001** — Unbounded `listConversations` file loading. Added `MAX_LIST_CONVERSATIONS = 2000` cap with `logWarn` truncation notice. Added `logWarn` export to `electron/services/logger.ts`.
+- [~] **L-012** — Redundant `lint` script in package.json. (`"lint": "tsc --noEmit"` is a subset of `typecheck`). Harmless; referenced in `copilot-instructions.md`. Deferred to avoid breaking existing workflows.
+- [x] **L-013** — Missing `engines` field in package.json. Added `"engines": { "node": ">=20.0.0", "npm": ">=10.0.0" }` to match AGENTS.md requirements.
+- [~] **L-019** — `@types/express` version drift. Installed `4.17.25` vs declared `^4.17.21` — normal semver resolution. Typecheck passes. No action needed.
+
+### Validation
+- `npm run typecheck` ✅
+- `npm test` ✅ 335 passed, 1 skipped
+- `npm run build` ✅
+- `npm run lint:eslint` ✅ 0 errors, 62 warnings (within 96 budget)
+- `npm run verify:safety-guard` ✅
+- `npm run verify:icon` ✅
+
 ## Deferred Dual-Platform Improvements
 - [ ] Implement Apple Notarization auto-submission in `macos-release.yml` for CI pipelines.
 - [ ] Add explicit auto-updater UI for macOS.
+
+
+---
+
+## Documentation Remediation — 2026-05-30
+
+### Completed in this pass
+- [x] **Doc-001** — Fixed security URL in `.github/ISSUE_TEMPLATE/config.yml` (`Test-ai` → `Venice-API-connector`).
+- [x] **Doc-002** — Corrected OS in `docs/AGENTS/gemini.md` (Windows/PowerShell → macOS/bash).
+- [x] **Doc-003** — Removed deleted script references from `docs/REPOSITORY_TREE.md`; added `start-production.cjs`.
+- [x] **Doc-004** — Added historical note to `docs/HQE_AUDIT_REPORT.md` about pre-conversation IndexedDB stores.
+- [x] **Doc-005** — Marked CodeQL changelog entry as deferred/not yet implemented.
+- [x] **Doc-006** — Fixed bare `TROUBLESHOOTING.md` link in `docs/ABOUT.md` to `DEVELOPMENT/troubleshooting.md`.
+- [x] **Doc-007/024** — Updated `docs/THEME_SYSTEM.md` to reference `src/styles/theme.css` for actual theme content.
+- [x] **Doc-008** — Added `conversations` to export format and allowed stores in `docs/AGENTS/gemini.md`.
+- [x] **Doc-009** — Added macOS Keychain mention alongside Windows DPAPI in `docs/AGENTS/gemini.md`.
+- [x] **Doc-010** — Added `conversations` to IndexedDB storage row in `README.md`.
+- [x] **Doc-011** — Added `conversations` to IndexedDB list in `docs/FAQ.md`.
+- [x] **Doc-012** — `REPOSITORY_TREE.md` exists; no action needed.
+- [x] **Doc-013** — Added macOS DMG/ZIP to Technology Stack in `docs/ABOUT.md`.
+- [x] **Doc-014** — Clarified Linux plaintext fallback requires explicit env var in `docs/DEVELOPMENT/platform-support.md`.
+- [x] **Doc-015** — Aligned plaintext fallback language between `SECURITY.md` and `docs/FAQ.md`.
+- [x] **Doc-016** — Added maintainer name to `SUPPORT.md`; unified nomenclature.
+- [x] **Doc-017** — Documented `verify:safety-guard` as local required check (not in CI) in `AGENTS.md`.
+- [x] **Doc-018** — Added `docs/THEME_SYSTEM.md` to README docs index.
+- [x] **Doc-019** — Added script consolidation entry to `CHANGELOG.md`.
+- [x] **Doc-020** — Added `AGENTS.md` and `CHANGELOG.md` to release checklist in `docs/RELEASE/release.md`.
+- [x] **Doc-021** — Changed `npm install` → `npm ci` in `docs/RELEASE/release.md` release build sections.
+- [x] **Doc-022** — Added `APPLE_TEAM_ID` to `docs/RELEASE/signing-and-notarization.md`.
+- [x] **Doc-023** — Removed duplicate `electron/services/chatStorage.ts` entry from `docs/REPOSITORY_TREE.md`.
+
+### Confirmed remaining documentation work
+- None — all 24 audit doc findings have been addressed.
+
+### Deferred pending code changes
+- None.
+
+### Not reproduced / already fixed
+- **Doc-012** — `docs/REPOSITORY_TREE.md` exists at `docs/REPOSITORY_TREE.md`; todo claim was incorrect.
+
+### Documentation validation checklist
+- [x] README links checked
+- [x] Release docs match scripts
+- [x] Security docs match secure storage behavior
+- [x] Workflow references match actual `.github/workflows` files
+- [x] Storage/export docs match actual stores

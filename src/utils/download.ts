@@ -10,8 +10,11 @@ function triggerDownload(url: string, filename: string) {
   a.href = url;
   a.download = filename;
   document.body.appendChild(a);
-  a.click();
-  a.remove();
+  try {
+    a.click();
+  } finally {
+    a.remove();
+  }
 }
 
 /**
@@ -33,7 +36,7 @@ export async function downloadImage(url: string, filename: string): Promise<Down
     const blobUrl = URL.createObjectURL(blob);
 
     triggerDownload(blobUrl, filename);
-    setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 30_000);
     return { confirmed: true, usedFallback: false };
   } catch {
     triggerDownload(url, filename);

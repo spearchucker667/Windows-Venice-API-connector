@@ -57,7 +57,7 @@ Venice Forge stores your API key using OS-provided encryption where available:
 - **macOS**: `safeStorage` (Keychain)
 
 For Windows and macOS, there is **no plaintext fallback**. The application will refuse to save the API key if OS-level encryption is unavailable. 
-For Linux and other platforms, a plaintext fallback may be permitted if the `VENICE_FORGE_ALLOW_PLAINTEXT_KEY_STORAGE=true` environment variable is explicitly set.
+For Linux and other platforms, a plaintext fallback may be permitted if the `VENICE_FORGE_ALLOW_PLAINTEXT_KEY_STORAGE=true` environment variable is explicitly set in the process environment (e.g., `.env` for web mode development, or the shell environment for Electron).
 
 ## Not Protected Against
 

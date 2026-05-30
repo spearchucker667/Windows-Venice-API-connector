@@ -68,8 +68,7 @@ This document is the public map for the Venice Forge repository. It reflects the
 │   ├── checksum-release.cjs
 │   ├── create-cjs-package.cjs
 │   ├── generate-placeholder-icon.cjs
-│   ├── verify-dist-mac.cjs
-│   ├── verify-dist-win.cjs
+│   ├── start-production.cjs
 │   ├── verify-dist.cjs
 │   └── verify-icon.cjs
 ├── src/
@@ -151,7 +150,6 @@ This document is the public map for the Venice Forge repository. It reflects the
 | `electron/ipc/validation.ts` | Electron IPC request validation boundary |
 | `electron/services/secureStore.ts` | OS-encrypted API key persistence |
 | `electron/services/veniceClient.ts` | Main-process HTTPS client for `api.venice.ai` |
-| `electron/services/chatStorage.ts` | Atomic filesystem conversation storage with corruption recovery |
 | `electron/utils/urlSecurity.ts` | `isTrustedExternalUrl` and `isPrivateHostname` — pure hostname check, RFC 1918 + loopback blocking, no DNS |
 
 ## Generated and Ignored Output
@@ -173,5 +171,5 @@ The following paths are generated locally and are intentionally not part of the 
 - CI runs lint, typecheck, tests, and build on Node 20 and 22.
 - Windows and macOS release workflows build targets, verify artifacts, and emit SHA-256 checksums.
 - Venice API legal/TOS notes are documented in [LEGAL.md](LEGAL.md).
-- FAQ and troubleshooting guides are present in [FAQ.md](FAQ.md) and [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
-- Platform support matrix is documented in [PLATFORM_SUPPORT.md](PLATFORM_SUPPORT.md).
+- FAQ and troubleshooting guides are present in [FAQ.md](FAQ.md) and [DEVELOPMENT/troubleshooting.md](DEVELOPMENT/troubleshooting.md).
+- Platform support matrix is documented in [PLATFORM_SUPPORT.md](DEVELOPMENT/platform-support.md).

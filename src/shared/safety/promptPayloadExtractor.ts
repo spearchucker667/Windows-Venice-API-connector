@@ -45,11 +45,12 @@ function safeStringify(v: unknown): string | null {
   return null;
 }
 
-/** Parses a serialized FormData structure `{ _isSerializedFormData: true, entries: [...] }`. */
-function extractFromSerializedFormData(obj: Record<string, unknown>, fieldNames: readonly string[]): ExtractedField[] {
+/** Parses a serialized FormData structure `{ _isSerializedFormData: true, entries: [...] }`.
+ *  Returns `null` if `entries` is malformed so callers can fall back to generic extraction. */
+function extractFromSerializedFormData(obj: Record<string, unknown>, fieldNames: readonly string[]): ExtractedField[] | null {
   const results: ExtractedField[] = [];
   const entries = obj["entries"];
-  if (!Array.isArray(entries)) return results;
+  if (!Array.isArray(entries)) return null;
   for (const entry of entries) {
     if (!isRecord(entry)) continue;
     const key = entry["name"];
@@ -68,14 +69,17 @@ function extractFromObject(
   obj: Record<string, unknown>,
   fieldNames: readonly string[],
   pathPrefix: string,
-  depth: number
+  depth: number,
+  maxDepth: number = 8
 ): ExtractedField[] {
-  if (depth > 4) return [];
+  if (depth > maxDepth) return [];
   const results: ExtractedField[] = [];
 
   // Handle serialized FormData
   if (obj["_isSerializedFormData"] === true) {
-    return extractFromSerializedFormData(obj, fieldNames);
+    const formDataResults = extractFromSerializedFormData(obj, fieldNames);
+    if (formDataResults !== null) return formDataResults;
+    // malformed entries — fall through to generic object extraction
   }
 
   for (const [key, val] of Object.entries(obj)) {
@@ -95,9 +99,13 @@ function extractFromObject(
           // vision/multi-modal: content is array of {type, text|image_url}
           for (let j = 0; j < msg["content"].length && results.length < MAX_FIELDS; j++) {
             const part = msg["content"][j];
-            if (isRecord(part) && typeof part["text"] === "string") {
-              const t = part["text"].slice(0, MAX_FIELD_CHARS);
-              if (t.trim()) results.push({ path: `${path}[${i}].content[${j}].text`, value: t });
+            if (!isRecord(part)) continue;
+            for (const [partKey, partVal] of Object.entries(part)) {
+              if (results.length >= MAX_FIELDS) break;
+              if (typeof partVal === "string") {
+                const t = partVal.slice(0, MAX_FIELD_CHARS);
+                if (t.trim()) results.push({ path: `${path}[${i}].content[${j}].${partKey}`, value: t });
+              }
             }
           }
         }
@@ -113,7 +121,7 @@ function extractFromObject(
       if (!fieldNames.includes("*") && !fieldNames.includes(key)) continue;
       if (strVal.trim()) results.push({ path, value: strVal });
     } else if (isRecord(val) && (fieldNames.includes("*") || fieldNames.includes(key))) {
-      const nested = extractFromObject(val, ["*"], path, depth + 1);
+      const nested = extractFromObject(val, ["*"], path, depth + 1, maxDepth);
       results.push(...nested.slice(0, MAX_FIELDS - results.length));
     }
   }
@@ -142,9 +150,7 @@ function extractFromBuffer(buffer: Uint8Array, fieldNames: readonly string[]): E
         ? new TextDecoder("utf-8", { fatal: false })
         : { decode: (b: Uint8Array) => Buffer.from(b).toString("utf-8") };
       const raw = decoder.decode(buffer).slice(0, MAX_FIELD_CHARS);
-      // Strip boundary headers and MIME parts, keep only printable ASCII/UTF-8 words
-      const stripped = raw.replace(/--[^\r\n]+[\r\n]+Content-[^\r\n]+[\r\n]*/g, " ").trim();
-      if (stripped.length > 10) return [{ path: "body_raw", value: stripped.slice(0, MAX_FIELD_CHARS) }];
+      if (raw.trim().length > 10) return [{ path: "body_raw", value: raw.trim() }];
     } catch {
       // Binary body — nothing to extract
     }
@@ -177,8 +183,8 @@ export function extractPromptLikeFields(
   })();
 
   // Buffer / Uint8Array (used in Express middleware)
-  if (payload instanceof Uint8Array) {
-    return extractFromBuffer(payload, fieldNames);
+  if (ArrayBuffer.isView(payload)) {
+    return extractFromBuffer(payload as Uint8Array, fieldNames);
   }
 
   // Plain string
@@ -198,7 +204,12 @@ export function extractPromptLikeFields(
 
   // Parsed JSON object
   if (isRecord(payload)) {
-    return extractFromObject(payload, fieldNames, "", 0);
+    const results = extractFromObject(payload, fieldNames, "", 0);
+    // Unknown endpoint fallback: if no fields found, do a shallow recursive scan
+    if (results.length === 0 && !Object.keys(ENDPOINT_FIELDS).some(k => normEndpoint.startsWith(k))) {
+      return extractFromObject(payload, ["*"], "", 0, 2);
+    }
+    return results;
   }
 
   // Array of message objects (some callers pass this directly)
@@ -207,11 +218,13 @@ export function extractPromptLikeFields(
     for (let i = 0; i < payload.length && results.length < MAX_FIELDS; i++) {
       const item = payload[i];
       if (!isRecord(item)) continue;
-      if (typeof item["content"] === "string") {
-        results.push({ path: `[${i}].content`, value: item["content"].slice(0, MAX_FIELD_CHARS) });
-      }
-      if (typeof item["prompt"] === "string") {
-        results.push({ path: `[${i}].prompt`, value: item["prompt"].slice(0, MAX_FIELD_CHARS) });
+      for (const key of Object.keys(item)) {
+        if (results.length >= MAX_FIELDS) break;
+        if (DENY_FIELD_NAMES.has(key)) continue;
+        if (typeof item[key] === "string") {
+          const val = item[key].slice(0, MAX_FIELD_CHARS);
+          if (val.trim()) results.push({ path: `[${i}].${key}`, value: val });
+        }
       }
     }
     return results;

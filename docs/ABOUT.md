@@ -13,7 +13,7 @@ Current public readiness status:
 - Release automation builds Windows NSIS/portable `.exe` artifacts and macOS DMG/ZIP artifacts.
 - Root support, security, contribution, code of conduct, issue template, PR template, and Dependabot metadata are present.
 - Legal/TOS notes are maintained in [LEGAL.md](LEGAL.md).
-- FAQ and troubleshooting guides are maintained in [FAQ.md](FAQ.md) and [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
+- FAQ and troubleshooting guides are maintained in [FAQ.md](FAQ.md) and [DEVELOPMENT/troubleshooting.md](DEVELOPMENT/troubleshooting.md).
 
 ## Goals
 
@@ -80,7 +80,7 @@ Web mode (development only):
 ## Technology Stack
 
 - **Frontend:** React 19, TypeScript strict, Tailwind CSS v4, Vite 6
-- **Desktop:** Electron 42, electron-builder 26 (Windows NSIS + portable)
+- **Desktop:** Electron 42, electron-builder 26 (Windows NSIS + portable, macOS DMG + ZIP)
 - **Backend (web mode):** Express 4, http-proxy-middleware 4, dotenv
 - **State:** React `useReducer` with Immer for immutable updates
 - **Testing:** Vitest 4, @testing-library/react, supertest

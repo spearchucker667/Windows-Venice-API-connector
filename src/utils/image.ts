@@ -16,7 +16,7 @@ export function stripDataUrlPrefix(dataUrl: string) {
  * @param value An unknown value that may represent image data.
  * @returns A normalized data URL or HTTPS URL, or null if the value is unrecognisable.
  */
-export function normalizeImageData(value: unknown): string | null {
+export function normalizeImageData(value: unknown, seen = new WeakSet<object>()): string | null {
   if (!value) return null;
   if (typeof value === "string") {
     if (value.startsWith("data:image/")) return value;
@@ -27,6 +27,8 @@ export function normalizeImageData(value: unknown): string | null {
     return null;
   }
   if (typeof value === "object") {
+    if (seen.has(value)) return null;
+    seen.add(value);
     const record = value as Record<string, unknown>;
     return normalizeImageData(
       record.b64_json ||
@@ -37,7 +39,8 @@ export function normalizeImageData(value: unknown): string | null {
         record.image ||
         record.url ||
         record.data ||
-        record.content
+        record.content,
+      seen
     );
   }
   return null;

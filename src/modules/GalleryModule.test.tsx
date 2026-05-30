@@ -67,7 +67,11 @@ beforeEach(() => {
   Element.prototype.scrollIntoView = vi.fn();
 });
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  // @ts-expect-error jsdom stub cleanup
+  delete Element.prototype.scrollIntoView;
+});
 
 describe("GalleryModule confirm modal", () => {
   it("opens a confirm modal when clicking Delete on an image", async () => {

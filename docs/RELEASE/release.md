@@ -5,7 +5,7 @@
 1. Update `version` in `package.json`.
 2. Run `npm install` so `package-lock.json` stays in sync.
 3. Update `CHANGELOG.md` with the new version section.
-4. Confirm `README.md`, [LEGAL.md](LEGAL.md), [SECURITY.md](SECURITY.md), [REPOSITORY_TREE.md](REPOSITORY_TREE.md), and this checklist match the release.
+4. Confirm `README.md`, `AGENTS.md`, [LEGAL.md](../LEGAL.md), [SECURITY.md](../../SECURITY.md), [REPOSITORY_TREE.md](../REPOSITORY_TREE.md), `CHANGELOG.md`, and this checklist match the release.
 5. Confirm public-facing badges and GitHub templates still point at `spearchucker667/Venice-API-connector`.
 
 ## Local Windows Build
@@ -14,7 +14,7 @@ Run on Windows PowerShell:
 
 ```powershell
 npm run clean
-npm install
+npm ci
 npm run typecheck
 npm test
 npm run build
@@ -37,7 +37,7 @@ Run on macOS Bash/Zsh:
 
 ```bash
 npm run clean
-npm install
+npm ci
 npm run typecheck
 npm test
 npm run build
@@ -88,7 +88,7 @@ The workflows run `npm ci`, typecheck, tests, build, packaging commands (`dist:w
 - [ ] `verify:dist:portable` passes (`Venice-Forge-<version>-x64-Portable.exe` + `.sha256`).
 - [ ] SHA-256 checksum files match the final uploaded `.exe` files.
 - [ ] Release notes state whether artifacts are signed or unsigned.
-- [ ] Legal/TOS notes in [LEGAL.md](LEGAL.md) still link to current Venice pages.
+- [ ] Legal/TOS notes in [LEGAL.md](../LEGAL.md) still link to current Venice pages.
 
 ## Publish
 

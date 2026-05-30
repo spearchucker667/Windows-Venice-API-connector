@@ -1,7 +1,7 @@
 /** @fileoverview Registers IPC handlers for Venice API requests, API key
  *  management, file dialogs, and application diagnostics. */
 
-import { app, dialog, ipcMain } from "electron";
+import { app, dialog, ipcMain, type WebContents } from "electron";
 import fs from "fs/promises";
 import path from "path";
 import {
@@ -27,6 +27,14 @@ import type { Conversation } from "../../src/types/conversation";
 
 /** Maximum size in bytes for JSON import and export files. */
 const MAX_JSON_FILE_BYTES = VENICE_MAX_BODY_BYTES;
+
+/** Safely sends a payload to a renderer process, returning false if the
+ *  WebContents has already been destroyed.
+ */
+function safeSendToRenderer(sender: WebContents, channel: string, payload: unknown): boolean {
+  if (sender.isDestroyed()) return false;
+  try { sender.send(channel, payload); return true; } catch { return false; }
+}
 
 /** Tests connectivity to the Venice API using the stored API key.
  *  @returns A result object indicating success or failure with a message.
@@ -126,7 +134,7 @@ export function registerIpcHandlers(): void {
       }
       return await performVeniceRequest(request, {
         onDelta: (delta) => {
-          event.sender.send("venice:streamDelta", {
+          safeSendToRenderer(event.sender, "venice:streamDelta", {
             signalId: request.signalId || "",
             delta,
           });
@@ -169,14 +177,22 @@ export function registerIpcHandlers(): void {
   ipcMain.handle("apiKey:isConfigured", () => isApiKeyConfigured());
 
   ipcMain.handle("apiKey:set", (_event, key: unknown) => {
-    const trimmed = validateApiKeyInput(key);
-    setApiKey(trimmed);
-    return { ok: true };
+    try {
+      const trimmed = validateApiKeyInput(key);
+      setApiKey(trimmed);
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: redactErrorMessage(err) };
+    }
   });
 
   ipcMain.handle("apiKey:delete", () => {
-    deleteApiKey();
-    return { ok: true };
+    try {
+      deleteApiKey();
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: redactErrorMessage(err) };
+    }
   });
 
   ipcMain.handle("apiKey:test", () => testVeniceConnection());

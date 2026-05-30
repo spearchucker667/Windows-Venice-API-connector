@@ -105,7 +105,7 @@ export function BatchModule({ state, dispatch }: ModuleProps) {
         setResults((prev) =>
           prev.map((r, idx) =>
             idx === i
-              ? { ...r, prompt: "[blocked]", status: "error", response: itemGuard.userMessage }
+              ? { ...r, prompt: "[blocked]", status: "error", error: itemGuard.userMessage }
               : r
           )
         );

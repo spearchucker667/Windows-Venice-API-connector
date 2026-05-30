@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import fs from "fs";
 import path from "path";
 import os from "os";
@@ -65,6 +65,21 @@ describe("checkPathContained", () => {
   it("returns false for a non-existent path", () => {
     expect(checkPathContained(path.join(rootDir, "does-not-exist.html"), rootDir)).toBe(false);
   });
+
+  it("uses case-insensitive comparison on Windows (M-007)", () => {
+    const originalPlatform = Object.getOwnPropertyDescriptor(process, "platform");
+    Object.defineProperty(process, "platform", { value: "win32" });
+    try {
+      expect(checkPathContained(path.join(rootDir, "INDEX.HTML"), rootDir)).toBe(true);
+      expect(checkPathContained(path.join(rootDir, "Assets", "APP.JS"), rootDir)).toBe(true);
+    } finally {
+      if (originalPlatform) {
+        Object.defineProperty(process, "platform", originalPlatform);
+      } else {
+        Object.defineProperty(process, "platform", { value: process.platform });
+      }
+    }
+  });
 });
 
 // BUG-008 regression guard: isTrustedExternalUrl must block private-network addresses
@@ -99,6 +114,18 @@ describe("isTrustedExternalUrl", () => {
   });
   it("blocks ::1 IPv6 loopback", () => {
     expect(isTrustedExternalUrl("https://[::1]/")).toBe(false);
+  });
+  it("blocks IPv4-mapped IPv6 loopback (H-004)", () => {
+    expect(isTrustedExternalUrl("https://[::ffff:127.0.0.1]/")).toBe(false);
+    expect(isTrustedExternalUrl("https://[::ffff:192.168.1.1]/")).toBe(false);
+  });
+  it("blocks IPv6 link-local addresses (H-004)", () => {
+    expect(isTrustedExternalUrl("https://[fe80::1]/")).toBe(false);
+    expect(isTrustedExternalUrl("https://[fe80::1%25eth0]/")).toBe(false);
+  });
+  it("blocks short-form IPv4 loopback and private ranges (H-004)", () => {
+    expect(isTrustedExternalUrl("https://127.1/")).toBe(false);
+    expect(isTrustedExternalUrl("https://10.1/")).toBe(false);
   });
   it("rejects malformed URLs", () => {
     expect(isTrustedExternalUrl("not-a-url")).toBe(false);

@@ -3,7 +3,8 @@
 import express from "express";
 import fs from "fs";
 import path from "path";
-import { createServer as createViteServer } from "vite";
+// Vite is dynamically imported inside the development-only branch so the
+// production bundle does not require vite (a devDependency).
 import { createProxyMiddleware } from "http-proxy-middleware";
 import dotenv from "dotenv";
 import {
@@ -17,8 +18,25 @@ import { VENICE_API_HOST, VENICE_API_BASE_PATH } from "./src/shared/apiConfig";
 import { AppConfig } from "./src/shared/configSchema";
 import { warn, error } from "./src/shared/logger";
 import { assessChildExploitationSafety, recordDecision } from "./src/shared/safety";
+import type { SafetyGuardDecision } from "./src/shared/safety";
 
 dotenv.config();
+
+/** Returns the directory of the current module, working in both ESM source
+ *  and CJS bundled output (where import.meta.url is not available). */
+function getModuleDir(): string {
+  try {
+    const g = globalThis as Record<string, unknown>;
+    if (typeof g.__filename === "string") {
+      return path.dirname(g.__filename);
+    }
+  } catch { /* ignore */ }
+  try {
+    return path.dirname(new URL(import.meta.url).pathname);
+  } catch {
+    return process.cwd();
+  }
+}
 
 type VeniceProxyRequest = {
   method?: string;
@@ -73,7 +91,9 @@ export function createServerApp() {
   // Health check endpoint (does not proxy to Venice)
   const appVersion = (() => {
     try {
-      return JSON.parse(fs.readFileSync(path.join(process.cwd(), "package.json"), "utf-8")).version;
+      const moduleDir = getModuleDir();
+      const pkgPath = path.join(moduleDir, "package.json");
+      return JSON.parse(fs.readFileSync(pkgPath, "utf-8")).version;
     } catch {
       return "unknown";
     }
@@ -211,7 +231,16 @@ export function createServerApp() {
       // GET requests skip the guard because they carry no user content (e.g. GET /models)
       if (req.method !== "POST") { next(); return; }
       const endpoint = req.path; // e.g. "/chat/completions"
-      const body: unknown = req.body instanceof Buffer ? req.body : undefined;
+      let body: unknown = req.body;
+      if (!(body instanceof Buffer)) {
+        if (typeof body === "string") {
+          body = Buffer.from(body);
+        } else if (body && typeof body === "object") {
+          body = Buffer.from(JSON.stringify(body));
+        } else {
+          body = undefined;
+        }
+      }
       
       let decision;
       try {
@@ -220,6 +249,25 @@ export function createServerApp() {
       } catch (err) {
         // Fail-closed: if the safety guard throws (e.g. extraction bug), block the request.
         error("Safety guard exception in web proxy:", err);
+        const syntheticDecision: SafetyGuardDecision = {
+          allow: false,
+          action: "block",
+          severity: "critical",
+          category: "csam_request",
+          reasonCode: "GUARD_EXCEPTION",
+          userMessage: "Internal server error during safety verification.",
+          developerMessage: "Safety guard threw an exception in web proxy.",
+          normalizedChanged: false,
+          signals: [],
+          audit: {
+            decisionId: "guard-exception-" + Date.now(),
+            createdAt: new Date().toISOString(),
+            promptHash: "00000000",
+            promptLength: 0,
+            matchedFieldPaths: [],
+          },
+        };
+        recordDecision(syntheticDecision);
         res.status(500).json({ error: "Internal server error during safety verification." });
         return;
       }
@@ -238,6 +286,8 @@ export function createServerApp() {
     createProxyMiddleware({
       target: `https://${VENICE_API_HOST}${VENICE_API_BASE_PATH}`,
       changeOrigin: true,
+      timeout: AppConfig.VENICE_API_TIMEOUT_MS,
+      proxyTimeout: AppConfig.VENICE_API_TIMEOUT_MS,
       pathRewrite: {
         "^/api/venice": "", // remove base path
       },
@@ -278,8 +328,11 @@ export function createServerApp() {
     })
   );
 
-  (app as express.Application & { cleanupIntervals?: () => void }).cleanupIntervals = () => {
+  (app as express.Application & { cleanupIntervals?: () => void; staticRateLimiterCleanup?: ReturnType<typeof setInterval> }).cleanupIntervals = () => {
     clearInterval(rateLimitCleanupInterval);
+    if ((app as express.Application & { staticRateLimiterCleanup?: ReturnType<typeof setInterval> }).staticRateLimiterCleanup) {
+      clearInterval((app as express.Application & { staticRateLimiterCleanup?: ReturnType<typeof setInterval> }).staticRateLimiterCleanup);
+    }
   };
 
   return app;
@@ -291,16 +344,24 @@ export async function startServer() {
 
   // Vite middleware for development
   if (AppConfig.NODE_ENV !== "production" && AppConfig.NODE_ENV !== "test") {
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
     });
     app.use(vite.middlewares);
   } else if (AppConfig.NODE_ENV !== "test") {
-    const distPath = path.join(process.cwd(), "dist");
+    const distPath = path.join(getModuleDir(), "dist");
     const staticWindowMs = AppConfig.RATE_LIMIT_WINDOW_MS;
     const staticMaxRequests = AppConfig.RATE_LIMIT_MAX_REQUESTS;
+    const MAX_STATIC_RATE_LIMIT_ENTRIES = 10_000;
     const staticRequestCounts = new Map<string, { count: number; resetTime: number }>();
+    const staticRateLimiterCleanup = setInterval(() => {
+      const now = Date.now();
+      for (const [ip, record] of staticRequestCounts.entries()) {
+        if (now > record.resetTime) staticRequestCounts.delete(ip);
+      }
+    }, Math.max(10000, staticWindowMs)).unref();
     const staticRateLimiter: express.RequestHandler = (req, res, next) => {
       const ip = req.ip || "unknown";
       const now = Date.now();
@@ -316,6 +377,10 @@ export async function startServer() {
         }
       }
       staticRequestCounts.set(ip, record);
+      if (staticRequestCounts.size > MAX_STATIC_RATE_LIMIT_ENTRIES) {
+        const oldest = staticRequestCounts.keys().next().value;
+        if (oldest !== undefined) staticRequestCounts.delete(oldest);
+      }
       return next();
     };
 
@@ -323,16 +388,13 @@ export async function startServer() {
     app.get("*", staticRateLimiter, (req: express.Request, res: express.Response) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
+    (app as express.Application & { staticRateLimiterCleanup?: ReturnType<typeof setInterval> | undefined }).staticRateLimiterCleanup = staticRateLimiterCleanup;
   }
 
   if (AppConfig.NODE_ENV !== "test") {
-    const host = process.env.HOST || "127.0.0.1";
+    const host = AppConfig.HOST;
     app.listen(Number(PORT), host, () => {
       warn(`Server running on http://${host}:${PORT}`);
     });
   }
-}
-
-if (AppConfig.NODE_ENV !== "test") {
-  startServer();
 }

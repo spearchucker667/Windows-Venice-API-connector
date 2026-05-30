@@ -15,7 +15,7 @@ export interface Conversation {
   createdAt: number;
   updatedAt: number;
   model: string;
-  systemPrompt: string;
+  systemPrompt?: string;
   messages: ConversationMessage[];
 }
 

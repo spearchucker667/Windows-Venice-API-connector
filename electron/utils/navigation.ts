@@ -19,5 +19,9 @@ export function checkPathContained(targetPath: string, rootPath: string): boolea
     return false;
   }
   const indexHtml = path.join(resolvedRoot, "index.html");
+  if (process.platform === "win32") {
+    return resolvedTarget.toLowerCase() === indexHtml.toLowerCase() ||
+      resolvedTarget.toLowerCase().startsWith(`${resolvedRoot.toLowerCase()}${path.sep}`);
+  }
   return resolvedTarget === indexHtml || resolvedTarget.startsWith(`${resolvedRoot}${path.sep}`);
 }

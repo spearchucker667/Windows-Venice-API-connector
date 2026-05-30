@@ -10,6 +10,7 @@ export interface EnvConfig {
   VENICE_API_BASE_PATH: string;
   VENICE_API_TIMEOUT_MS: number;
   PORT: number;
+  HOST: string;
   RATE_LIMIT_WINDOW_MS: number;
   RATE_LIMIT_MAX_REQUESTS: number;
   MAX_PROXY_BODY_BYTES: number;
@@ -41,6 +42,7 @@ export const AppConfig: EnvConfig = {
   get VENICE_API_BASE_PATH() { return env("VENICE_API_BASE_PATH", "/api/v1"); },
   get VENICE_API_TIMEOUT_MS() { return parsePositiveInt(env("VENICE_API_TIMEOUT_MS", env("VENICE_TIMEOUT_MS", "60000")), 60000, 1000, 300000); },
   get PORT() { return parsePositiveInt(env("PORT", "3000"), 3000, 1, 65535); },
+  get HOST() { return env("HOST", "127.0.0.1"); },
   get RATE_LIMIT_WINDOW_MS() { return parsePositiveInt(env("RATE_LIMIT_WINDOW_MS", "60000"), 60000, 1000, 3600000); },
   get RATE_LIMIT_MAX_REQUESTS() { return parsePositiveInt(env("RATE_LIMIT_MAX_REQUESTS", "60"), 60, 1, 10000); },
   get MAX_PROXY_BODY_BYTES() {

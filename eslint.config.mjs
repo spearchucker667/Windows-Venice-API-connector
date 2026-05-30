@@ -11,7 +11,7 @@ export default tseslint.config(
     languageOptions: {
       parser: tseslint.parser,
       parserOptions: {
-        project: ["./tsconfig.json", "./tsconfig.electron.json"],
+        project: ["./tsconfig.json", "./tsconfig.electron.json", "./tsconfig.electron.test.json"],
         tsconfigRootDir: import.meta.dirname,
       },
       globals: {

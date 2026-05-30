@@ -42,4 +42,102 @@ describe("extractPromptLikeFields", () => {
 
     expect(fields).toEqual([]);
   });
+
+  // C-001 regression guard
+  it("falls back to generic object extraction when serialized FormData entries is malformed", () => {
+    const payload = {
+      _isSerializedFormData: true,
+      entries: "not-an-array",
+      prompt: "draw a sunset",
+    };
+    const fields = extractPromptLikeFields(payload, "/image/generate");
+
+    expect(fields).toEqual([
+      { path: "prompt", value: "draw a sunset" },
+    ]);
+  });
+
+  // H-001 regression guard
+  it("performs shallow recursive scan for unknown endpoints when top-level fields are empty", () => {
+    const payload = {
+      wrapper: {
+        nested: {
+          prompt: "generate a fantasy landscape",
+        },
+      },
+    };
+    const fields = extractPromptLikeFields(payload, "/unknown/endpoint");
+
+    expect(fields).toContainEqual({ path: "wrapper.nested.prompt", value: "generate a fantasy landscape" });
+  });
+
+  // M-003 regression guard
+  it("extracts deeply nested fields up to depth 8", () => {
+    const payload = {
+      prompt: {
+        a: {
+          b: {
+            c: {
+              d: {
+                e: {
+                  f: {
+                    g: {
+                      text: "deep nested prompt",
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+    const fields = extractPromptLikeFields(payload, "/chat/completions");
+    expect(fields).toContainEqual({ path: "prompt.a.b.c.d.e.f.g.text", value: "deep nested prompt" });
+  });
+
+  // M-004 regression guard
+  it("extracts all string fields from array payloads", () => {
+    const payload = [
+      { role: "user", text: "hello world" },
+      { role: "assistant", content: "how can I help?" },
+    ];
+    const fields = extractPromptLikeFields(payload, "/chat/completions");
+
+    expect(fields).toContainEqual({ path: "[0].text", value: "hello world" });
+    expect(fields).toContainEqual({ path: "[0].role", value: "user" });
+    expect(fields).toContainEqual({ path: "[1].content", value: "how can I help?" });
+    expect(fields).toContainEqual({ path: "[1].role", value: "assistant" });
+  });
+
+  // M-005 regression guard
+  it("extracts all string properties from vision content array parts", () => {
+    const payload = {
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "describe this image" },
+            { type: "image_url", image_url: "https://example.com/img.png" },
+          ],
+        },
+      ],
+    };
+    const fields = extractPromptLikeFields(payload, "/chat/completions");
+
+    expect(fields).toContainEqual({ path: "messages[0].content[0].text", value: "describe this image" });
+    expect(fields).toContainEqual({ path: "messages[0].content[1].image_url", value: "https://example.com/img.png" });
+  });
+
+  // M-006 regression guard
+  it("returns raw decoded string for multipart-like bodies without regex stripping", () => {
+    const multipartLike = Buffer.from(
+      "--boundary123\r\nContent-Disposition: form-data; name=\"text\"\r\n\r\nsome parsed text content\r\n--boundary123--"
+    );
+    const fields = extractPromptLikeFields(multipartLike, "/augment/text-parser");
+
+    expect(fields.length).toBeGreaterThan(0);
+    expect(fields[0].path).toBe("body_raw");
+    expect(fields[0].value).toContain("some parsed text content");
+  });
 });

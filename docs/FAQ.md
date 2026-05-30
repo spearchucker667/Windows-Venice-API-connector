@@ -57,7 +57,7 @@ Both run `tsx server.ts` (the Express web proxy). `dev:web` is the explicit alia
 - **Web mode:** In the server's `.env` file; never sent to the browser.
 
 ### What if secure storage is unavailable?
-On macOS and Windows, the app **refuses** to store the key if secure storage fails. On Linux, you can set `VENICE_FORGE_ALLOW_PLAINTEXT_KEY_STORAGE=true` in `.env` to allow a documented plaintext fallback. **This reduces security.**
+On macOS and Windows, the app **refuses** to store the key if secure storage fails. On Linux, you can set the `VENICE_FORGE_ALLOW_PLAINTEXT_KEY_STORAGE=true` environment variable (e.g., in `.env` for web mode development) to allow a documented plaintext fallback. **This reduces security.**
 
 ### How do I enable DevTools in a production build?
 Set `VENICE_FORGE_DEBUG_DEVTOOLS=true` in your environment before launching. Only use this for debugging.
@@ -127,7 +127,7 @@ All built-in themes are verified against WCAG AA contrast standards. The ThemeMa
 - **Conversations (desktop):** Individual `.json` files in the OS app-data folder — one file per conversation with atomic writes and automatic corruption recovery.
   - Windows: `%APPDATA%\Venice Forge\chat-history\*.json`
   - macOS: `~/Library/Application Support/Venice Forge/chat-history/*.json`
-- **Images, legacy chats, settings:** Renderer IndexedDB (local only, encrypted at rest).
+- **Images, legacy chats, settings, conversations:** Renderer IndexedDB (local only, encrypted at rest).
 - **API key:** OS secure storage (Windows DPAPI / macOS Keychain).
 - **Logs:**
   - Windows: `%APPDATA%\Venice Forge\logs\venice-forge.log`

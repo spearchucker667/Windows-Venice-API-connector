@@ -62,4 +62,11 @@ describe("minimalMarkdown", () => {
     expect(minimalMarkdown("## H2")).toContain("<h2>H2</h2>");
     expect(minimalMarkdown("### H3")).toContain("<h3>H3</h3>");
   });
+
+  /** Verifies that four-hash headings are not rendered as h3. */
+  it("does not render #### as h3", () => {
+    const output = minimalMarkdown("#### H4");
+    expect(output).not.toContain("<h3>H4</h3>");
+    expect(output).toContain("#### H4");
+  });
 });
