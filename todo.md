@@ -211,3 +211,17 @@ No critical issues found.
 - `electron/ipc/updates.ts`: auto-update download is in the main process (correct), but the renderer-exposed `downloadUpdate` / `installUpdate` surface was not audited for input validation. Recommend a targeted review.
 - `package.json` dependency versions were not checked against current CVE advisories. Run `npm audit` and review high/critical advisories.
 - Diagnostics store contents: confirm that diagnostics records never include raw prompt text before accepting that unencrypted storage is safe for that store.
+
+---
+
+## 2026-05-30 Safety Guard Audit & Fixes Completed
+- **[H-001]** Express proxy middleware guard was wrapped in `try/catch` resolving a fail-open risk where guard exceptions could bypass enforcement.
+- **[H-002]** Added documentation clarifying that only `POST` requests are validated; `GET` requests (e.g. `/models`) skip the guard.
+- **[H-003]** Extensive transport-layer integration tests added (`server.test.ts`, `veniceClient.web.test.ts`, `veniceClient.desktop.test.ts`).
+- **[H-004]** Implemented the `verify:safety-guard` script enforcing that all transport layers call the guard and do not leak prompts.
+- **[M-001]** Added `server.ts` proxy comments explaining skipped `GET` logic.
+- **[M-002]** Prompt payload extractor updated to include `"question"` in the fallback array.
+- **[M-004]** Cross-sentence detection improved to properly break sentences on newline boundaries, preventing line-break evasion.
+- **[M-005]** Extractor logic for `Buffer` in `server.ts` was fixed to dynamically pull field names based on the endpoint, successfully catching `negative_prompt` bypassing in image endpoints.
+- **[M-006]** Clarified JSDoc requiring callers of `assessChildExploitationSafety` to run `recordDecision`.
+- **[L-002]** Added test verifying that `FUZZY_ALLOWLIST` doesn't intersect with `CSAM_GENRE_LABELS`.
