@@ -3,6 +3,7 @@
 import { STORE_NAMES } from "../constants/venice";
 import { redactSecrets } from "./redaction";
 import { VENICE_MAX_BODY_BYTES } from "../shared/limits";
+import { isValidColorValue } from "../theme/validateColor";
 
 /** Current schema version for export payloads. */
 export const EXPORT_SCHEMA_VERSION = 1;
@@ -203,12 +204,16 @@ function sanitizeRecord(store: ExportStore, value: unknown): Record<string, unkn
 export function isValidTheme(value: unknown): boolean {
   if (!isPlainObject(value)) return false;
   const v = value as Record<string, unknown>;
-  return (
-    typeof v.id === "string" &&
-    typeof v.name === "string" &&
-    (v.mode === "dark" || v.mode === "light") &&
-    isPlainObject(v.tokens)
-  );
+  if (
+    typeof v.id !== "string" ||
+    typeof v.name !== "string" ||
+    (v.mode !== "dark" && v.mode !== "light") ||
+    !isPlainObject(v.tokens)
+  ) {
+    return false;
+  }
+  const tokens = v.tokens as Record<string, unknown>;
+  return Object.values(tokens).every((t) => typeof t === "string" && isValidColorValue(t));
 }
 
 /**

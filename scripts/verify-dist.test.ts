@@ -1,6 +1,6 @@
 /** @fileoverview Unit tests for release verification platform selection. */
 import { describe, it, expect } from "vitest";
-// @ts-ignore - CJS import in TS file
+// @ts-expect-error - CJS import in TS file
 import { getTargets } from "./verify-dist.cjs";
 
 describe("verify-dist platform selection", () => {

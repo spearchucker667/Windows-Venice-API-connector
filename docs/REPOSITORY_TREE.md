@@ -95,13 +95,16 @@ This document is the public map for the Venice Forge repository. It reflects the
 │   │   └── validation.ts
 │   ├── research/             # Pluggable research provider subsystem (Venice, Jina, Generic HTTP)
 │   ├── state/
-│   ├── theme/                # Token types, built-in palettes, applyTheme, contrast utilities
+│   ├── hooks/                # React hooks: network status, theme lifecycle, focus trap, settings persistence
+│   ├── theme/                # Token types, built-in palettes, applyTheme, contrast utilities, color validation
 │   ├── types/
 │   ├── utils/
 │   ├── styles/               # Split CSS: theme vars, components, accessibility
 │   ├── App.tsx
 │   ├── index.css
 │   └── main.tsx
+├── public/
+│   └── bootstrap-theme.js     # External theme bootstrap script (CSP-safe, loaded before React mounts)
 ├── .env.example
 ├── CHANGELOG.md
 ├── CODE_OF_CONDUCT.md
@@ -157,7 +160,12 @@ This document is the public map for the Venice Forge repository. It reflects the
 | `src/services/cryptoService.ts` | AES-GCM encryption for IndexedDB records |
 | `electron/services/chatStorage.ts` | Main-process filesystem storage for conversations (atomic writes, corruption recovery) |
 | `src/services/exportImport.ts` | Versioned JSON export/import with secret redaction |
+| `src/services/veniceClient.ts` | Renderer-side Venice API client with retry, deduplication, and safety guard enforcement |
 | `src/shared/validation.ts` | Allowed Venice endpoint and method list |
+| `src/theme/validateColor.ts` | Safe CSS color validation for theme tokens (prevents injection via `url(...)`) |
+| `public/bootstrap-theme.js` | Early theme bootstrap loaded before React mounts; validates token values before applying |
+| `src/hooks/useSettingsPersistence.ts` | Debounced settings persistence to IndexedDB with error toast |
+| `scripts/verify-safety-guard.cjs` | Mandatory CI gate checking safety guard enforcement and no-raw-log policy |
 | `src/research/` | Pluggable research providers, research runner, synthesis, and public-profile discovery |
 | `src/shared/safety/` | Content safety guard: detection engine, payload extractor, audit counters |
 | `electron/ipc/validation.ts` | Electron IPC request validation boundary |
@@ -176,6 +184,7 @@ The following paths are generated locally and are intentionally not part of the 
 - `coverage/`
 - `.env`
 - `*.log`
+- `docs/AGENTS/` (agent session handoff files, generated during multi-agent workflows)
 
 ## Public Readiness Checklist
 

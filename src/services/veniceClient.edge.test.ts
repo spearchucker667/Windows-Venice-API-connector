@@ -1,0 +1,152 @@
+/** @fileoverview Edge-case unit tests for veniceClient FormData and rate-limit handling. */
+
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import type { AppDispatch } from "../types/app";
+import { serializeFormData, veniceFetch } from "./veniceClient";
+
+const originalFetch = globalThis.fetch;
+
+describe("serializeFormData", () => {
+  it("serializes string entries", async () => {
+    const form = new FormData();
+    form.append("model", "test-model");
+    form.append("prompt", "hello");
+    const result = await serializeFormData(form);
+    expect(result._isSerializedFormData).toBe(true);
+    expect(result.entries).toEqual([
+      { name: "model", value: "test-model" },
+      { name: "prompt", value: "hello" },
+    ]);
+  });
+
+  it("serializes File entries with base64 encoding", async () => {
+    const file = new File(["hello world"], "test.txt", { type: "text/plain" });
+    const form = new FormData();
+    form.append("file", file);
+    const result = await serializeFormData(form);
+    expect(result.entries).toHaveLength(1);
+    expect(result.entries[0]).toMatchObject({
+      name: "file",
+      filename: "test.txt",
+      type: "text/plain",
+      _isFile: true,
+    });
+    expect(result.entries[0].value).toBe(btoa("hello world"));
+  });
+
+  it("serializes Blob entries", async () => {
+    const blob = new Blob(["blob content"], { type: "application/octet-stream" });
+    const form = new FormData();
+    form.append("data", blob);
+    const result = await serializeFormData(form);
+    expect(result.entries).toHaveLength(1);
+    expect(result.entries[0]).toMatchObject({
+      name: "data",
+      filename: "blob",
+      type: "application/octet-stream",
+      _isFile: true,
+    });
+    expect(result.entries[0].value).toBe(btoa("blob content"));
+  });
+
+  it("throws when a File exceeds MAX_RAW_UPLOAD_BYTES", async () => {
+    const largeContent = new Uint8Array(50 * 1024 * 1024 + 1); // 50 MiB + 1 byte
+    const file = new File([largeContent], "huge.bin", { type: "application/octet-stream" });
+    const form = new FormData();
+    form.append("file", file);
+    await expect(serializeFormData(form)).rejects.toThrow("File too large");
+  });
+});
+
+describe("veniceFetch rate-limit handling", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    globalThis.fetch = originalFetch;
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    globalThis.fetch = originalFetch;
+  });
+
+  it("respects Retry-After (seconds) on 429 and retries", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const dispatch = vi.fn() as unknown as AppDispatch;
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ error: "rate limited" }), {
+          status: 429,
+          headers: { "content-type": "application/json", "retry-after": "2" },
+        })
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ data: [] }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        })
+      );
+    globalThis.fetch = fetchMock;
+
+    const request = veniceFetch("/models", { method: "GET", dispatch });
+    await vi.advanceTimersByTimeAsync(3000);
+
+    await expect(request).resolves.toMatchObject({ data: { data: [] } });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("respects x-ratelimit-reset-requests as seconds on 429", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const dispatch = vi.fn() as unknown as AppDispatch;
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ error: "rate limited" }), {
+          status: 429,
+          headers: {
+            "content-type": "application/json",
+            "x-ratelimit-reset-requests": "3",
+          },
+        })
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ data: [] }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        })
+      );
+    globalThis.fetch = fetchMock;
+
+    const request = veniceFetch("/models", { method: "GET", dispatch });
+    await vi.advanceTimersByTimeAsync(4000);
+
+    await expect(request).resolves.toMatchObject({ data: { data: [] } });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("falls back to exponential backoff when no rate-limit headers are present", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const dispatch = vi.fn() as unknown as AppDispatch;
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ error: "rate limited" }), {
+          status: 429,
+          headers: { "content-type": "application/json" },
+        })
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ data: [] }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        })
+      );
+    globalThis.fetch = fetchMock;
+
+    const request = veniceFetch("/models", { method: "GET", dispatch });
+    await vi.advanceTimersByTimeAsync(3000);
+
+    await expect(request).resolves.toMatchObject({ data: { data: [] } });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+});

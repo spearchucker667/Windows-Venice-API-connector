@@ -21,14 +21,13 @@ if (allowProdDevTools) {
 }
 
 /** Builds the Content-Security-Policy header string for the renderer.
- *  Production includes 'unsafe-inline' for scripts because index.html contains
- *  an inline theme bootstrap script that must run before React mounts.
- *  This is acceptable for a desktop app where the HTML is a local file.
+ *  The theme bootstrap script lives in a separate file (bootstrap-theme.js)
+ *  so production does not need 'unsafe-inline' for scripts.
  */
 function rendererCsp(): string {
   const connectSrc = isDev ? "'self' http://localhost:5173 ws://localhost:5173" : "'self'";
   const styleSrc = isDev ? "'self' 'unsafe-inline' http://localhost:5173" : "'self' 'unsafe-inline' https://fonts.googleapis.com";
-  const scriptSrc = isDev ? "'self' 'unsafe-inline' 'unsafe-eval' http://localhost:5173" : "'self' 'unsafe-inline'";
+  const scriptSrc = isDev ? "'self' 'unsafe-inline' 'unsafe-eval' http://localhost:5173" : "'self'";
 
   return [
     "default-src 'self'",

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { BUILTIN_DARK, BUILTIN_LIGHT, BUILTIN_COPPER, applyTheme, type Theme, type ThemeTokens } from "../theme";
 import { COLOR_INPUT_FALLBACK } from "../theme/fallbacks";
+import { isValidColorValue } from "../theme/validateColor";
 import { ThemePreview } from "./ThemePreview";
 import type { ModuleProps } from "../types/app";
 
@@ -107,7 +108,7 @@ export function ThemeMaker({ state, dispatch }: ThemeMakerProps) {
     });
   }
 
-  const validHex = (v: string) => /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v);
+  const validColor = (v: string) => isValidColorValue(v);
 
   return (
     <div className="space-y-6">
@@ -141,7 +142,7 @@ export function ThemeMaker({ state, dispatch }: ThemeMakerProps) {
           <div className="grid gap-3 sm:grid-cols-2">
             {(Object.keys(TOKEN_LABELS) as Array<keyof ThemeTokens>).map((key) => {
               const value = draft.tokens[key];
-              const valid = validHex(value);
+              const valid = validColor(value);
               return (
                 <div key={key} className="flex items-center gap-3">
                   <label htmlFor={`token-${key}`} className="w-40 text-sm text-text-secondary truncate">
@@ -166,7 +167,7 @@ export function ThemeMaker({ state, dispatch }: ThemeMakerProps) {
                   />
                   {!valid && (
                     <span role="alert" className="text-xs text-danger">
-                      Invalid hex
+                      Invalid color
                     </span>
                   )}
                 </div>

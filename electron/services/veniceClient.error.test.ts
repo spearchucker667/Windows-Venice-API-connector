@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 /** @fileoverview Unit tests for extracting human-readable error messages from
  *  Venice API responses. */
 

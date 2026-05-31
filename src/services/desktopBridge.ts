@@ -217,11 +217,36 @@ export const desktopFiles = {
   },
 
   /**
-   * Imports a JSON string via native file dialog (desktop only).
+   * Imports a JSON string via native file dialog (desktop) or browser file picker (web).
    * @returns A promise resolving to the file contents, or null if cancelled.
    */
   async importJsonString(): Promise<string | null> {
-    if (!isElectron()) return null;
+    if (!isElectron()) {
+      return new Promise((resolve) => {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = ".json,application/json";
+        input.style.display = "none";
+        input.addEventListener("change", () => {
+          const file = input.files?.[0];
+          if (!file) {
+            resolve(null);
+            return;
+          }
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result));
+          reader.onerror = () => resolve(null);
+          reader.readAsText(file);
+        });
+        document.body.appendChild(input);
+        input.click();
+        // Clean up after the dialog closes; browsers keep the element reference
+        // alive long enough for the change event to fire.
+        setTimeout(() => {
+          input.remove();
+        }, 60_000);
+      });
+    }
     const result = await window.veniceForge!.files.loadJsonFile();
     if (result.canceled) return null;
     if (!result.ok) throw new Error(result.error || "Failed to import JSON file.");

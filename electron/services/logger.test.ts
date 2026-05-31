@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 /** @fileoverview Unit tests for Electron main-process logger rotation. */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";

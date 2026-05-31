@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import { EventEmitter } from "events";
 import https from "https";
 import { beforeEach, describe, expect, it, vi } from "vitest";

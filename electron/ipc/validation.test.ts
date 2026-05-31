@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 /** @fileoverview Unit tests for Electron IPC request validation and API key input
  *  sanitization. */
 

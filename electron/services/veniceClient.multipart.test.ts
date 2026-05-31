@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 /** @fileoverview Unit tests for multipart form-data sanitization and body
  *  construction used when uploading files to the Venice API. */
 

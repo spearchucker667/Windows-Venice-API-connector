@@ -648,16 +648,12 @@ export function SettingsModule({ state, dispatch, apiKeyConfigured, onApiKeyChan
           <button className="btn danger" onClick={clearAllHistory}>
             Clear IndexedDB history
           </button>
-          {isElectron() && (
-            <>
-              <button className="btn" onClick={exportData}>
-                Export data
-              </button>
-              <button className="btn" onClick={importData}>
-                Import data
-              </button>
-            </>
-          )}
+          <button className="btn" onClick={exportData}>
+            Export data
+          </button>
+          <button className="btn" onClick={importData}>
+            Import data
+          </button>
         </div>
 
         <div className="rounded-2xl border border-border/50 bg-surface-elevated/40 p-6 backdrop-blur-md shadow-xl space-y-5">

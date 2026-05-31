@@ -1,6 +1,6 @@
 // Code Owner: fayeblade (@spearchucker667)
 // Root application shell — all state, routing, and bridge initialization lives here.
-import React, { useEffect, useReducer, useState } from "react";
+import React, { useEffect, useReducer, useRef, useState } from "react";
 import { appReducer, initialState } from "./state/appReducer";
 import { validateAppSettings } from "./shared/configSchema";
 import StorageService from "./services/storageService";
@@ -189,6 +189,42 @@ export default function App() {
     if (!bridgeReady) return;
     refreshModels(dispatch).catch(() => {});
   }, [bridgeReady]);
+
+  // LOW-004: Detect auto-switched models after SET_MODELS and dispatch toasts from
+  // the component layer instead of inside the reducer, keeping the reducer pure.
+  const prevChatModelRef = useRef(state.selectedChatModel);
+  const prevImageModelRef = useRef(state.selectedImageModel);
+  const prevModelsRef = useRef(state.models);
+  useEffect(() => {
+    const modelsChanged = prevModelsRef.current !== state.models;
+    if (modelsChanged) {
+      if (prevChatModelRef.current !== state.selectedChatModel) {
+        dispatch({
+          type: "ADD_TOAST",
+          toast: {
+            id: crypto.randomUUID(),
+            message: `Previous chat model was unavailable. Switched to ${state.selectedChatModel}.`,
+            type: "warn",
+            duration: 6000,
+          },
+        });
+      }
+      if (prevImageModelRef.current !== state.selectedImageModel) {
+        dispatch({
+          type: "ADD_TOAST",
+          toast: {
+            id: crypto.randomUUID(),
+            message: `Previous image model was unavailable. Switched to ${state.selectedImageModel}.`,
+            type: "warn",
+            duration: 6000,
+          },
+        });
+      }
+    }
+    prevChatModelRef.current = state.selectedChatModel;
+    prevImageModelRef.current = state.selectedImageModel;
+    prevModelsRef.current = state.models;
+  }, [state.models, state.selectedChatModel, state.selectedImageModel]);
 
   useEffect(() => {
     if (isElectron() && apiKeyConfigured === false && !firstRunRouted) {

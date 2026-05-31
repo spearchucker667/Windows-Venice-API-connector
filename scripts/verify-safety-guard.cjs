@@ -27,10 +27,10 @@ const enforcementMap = [
       // Find the blocks for venice:request and venice:streamChat
       const requestBlock = content.includes('"venice:request"') && content.split('"venice:request"')[1].split('});')[0];
       const streamBlock = content.includes('"venice:streamChat"') && content.split('"venice:streamChat"')[1].split('});')[0];
-      
+
       const requestGuarded = requestBlock && requestBlock.includes('assessChildExploitationSafety');
       const streamGuarded = streamBlock && streamBlock.includes('assessChildExploitationSafety');
-      
+
       return requestGuarded && streamGuarded;
     },
     message: 'IPC handlers "venice:request" and "venice:streamChat" must be guarded'
@@ -45,63 +45,113 @@ const enforcementMap = [
   }
 ];
 
-let failed = false;
-
-console.log('--- Safety Guard Enforcement Check ---');
-enforcementMap.forEach((entry) => {
-  const filePath = path.join(repoRoot, entry.file);
-  if (!fs.existsSync(filePath)) {
-    console.error(`❌ [${entry.name}] Missing file: ${entry.file}`);
-    failed = true;
-    return;
+/**
+ * Runs enforcement checks against the mapped files.
+ * @param root The repository root path.
+ * @returns An array of failure messages; empty if all passed.
+ */
+function runEnforcementChecks(root) {
+  const failures = [];
+  for (const entry of enforcementMap) {
+    const filePath = path.join(root, entry.file);
+    if (!fs.existsSync(filePath)) {
+      failures.push(`[${entry.name}] Missing file: ${entry.file}`);
+      continue;
+    }
+    const content = fs.readFileSync(filePath, 'utf-8');
+    if (!entry.check(content)) {
+      failures.push(`[${entry.name}] ${entry.file} FAILED: ${entry.message}`);
+    }
   }
-  const content = fs.readFileSync(filePath, 'utf-8');
-  if (entry.check(content)) {
-    console.log(`✅ [${entry.name}] ${entry.file} passed enforcement check`);
-  } else {
-    console.error(`❌ [${entry.name}] ${entry.file} FAILED: ${entry.message}`);
-    failed = true;
-  }
-});
+  return failures;
+}
 
-console.log('\n--- No-Raw-Log Policy Check ---');
-function checkNoRawPromptLogging(dir) {
-  const files = fs.readdirSync(dir);
-  for (const file of files) {
-    const fullPath = path.join(dir, file);
-    const stat = fs.statSync(fullPath);
-    if (stat.isDirectory()) {
-      if (!['node_modules', 'dist', 'dist-electron', 'release', '.git', 'scripts'].includes(file)) {
-        checkNoRawPromptLogging(fullPath);
-      }
-    } else if (file.endsWith('.ts') || file.endsWith('.tsx') || file.endsWith('.js')) {
-      if (file.includes('childExploitationGuard') || file.includes('verify-safety-guard')) continue;
-      const content = fs.readFileSync(fullPath, 'utf-8');
-      
-      // Look for console logging of prompt-like variables
-      if (/console\.(log|warn|error)[^;]*\b(prompt|userPrompt|input|payload)\b/.test(content)) {
-        // Exclude common safe patterns
-        if (!content.includes('promptHash') && !content.includes('promptTouched')) {
-           console.error(`❌ File ${fullPath} contains a pattern that looks like raw prompt logging`);
-           failed = true;
+/**
+ * Scans source files for raw prompt logging and safety bypass patterns.
+ * @param root The repository root path.
+ * @returns An array of violation messages; empty if none found.
+ */
+function scanForViolations(root) {
+  const failures = [];
+
+  function walk(dir) {
+    const files = fs.readdirSync(dir);
+    for (const file of files) {
+      const fullPath = path.join(dir, file);
+      const stat = fs.statSync(fullPath);
+      if (stat.isDirectory()) {
+        if (!['node_modules', 'dist', 'dist-electron', 'release', '.git', 'scripts'].includes(file)) {
+          walk(fullPath);
         }
-      }
-      
-      // Look for explicit safety bypasses
-      if (/disable.*safety|bypass.*guard|setContentGuardBypass|DEV_DISABLE|VENICE_FORGE_DEV_DISABLE_SAFETY_GUARD/.test(content)) {
-        console.error(`❌ File ${fullPath} contains a pattern that looks like a safety bypass toggle`);
-        failed = true;
+      } else if (file.endsWith('.ts') || file.endsWith('.tsx') || file.endsWith('.js')) {
+        if (file.includes('childExploitationGuard') || file.includes('verify-safety-guard')) continue;
+        const content = fs.readFileSync(fullPath, 'utf-8');
+
+        // Look for console logging of prompt-like variables
+        if (/console\.(log|warn|error)[^;]*\b(prompt|userPrompt|input|payload)\b/.test(content)) {
+          // Exclude common safe patterns
+          if (!content.includes('promptHash') && !content.includes('promptTouched')) {
+            failures.push(`File ${fullPath} contains a pattern that looks like raw prompt logging`);
+          }
+        }
+
+        // Look for explicit safety bypasses
+        if (/disable.*safety|bypass.*guard|setContentGuardBypass|DEV_DISABLE|VENICE_FORGE_DEV_DISABLE_SAFETY_GUARD/.test(content)) {
+          failures.push(`File ${fullPath} contains a pattern that looks like a safety bypass toggle`);
+        }
       }
     }
   }
+
+  walk(root);
+  return failures;
 }
 
-checkNoRawPromptLogging(repoRoot);
+/**
+ * Runs the full safety guard verification suite.
+ * @param root The repository root path.
+ * @returns An object with enforcement and violation results.
+ */
+function verifySafetyGuard(root) {
+  const enforcementFailures = runEnforcementChecks(root);
+  const violations = scanForViolations(root);
+  return {
+    ok: enforcementFailures.length === 0 && violations.length === 0,
+    enforcementFailures,
+    violations,
+  };
+}
 
-if (failed) {
-  console.error('\n❌ Safety guard verification failed.');
-  process.exit(1);
-} else {
-  console.log('\n✅ Safety guard verification passed.');
-  process.exit(0);
+module.exports = { runEnforcementChecks, scanForViolations, verifySafetyGuard };
+
+if (require.main === module) {
+  const result = verifySafetyGuard(repoRoot);
+
+  console.log('--- Safety Guard Enforcement Check ---');
+  if (result.enforcementFailures.length === 0) {
+    for (const entry of enforcementMap) {
+      console.log(`✅ [${entry.name}] ${entry.file} passed enforcement check`);
+    }
+  } else {
+    for (const msg of result.enforcementFailures) {
+      console.error(`❌ ${msg}`);
+    }
+  }
+
+  console.log('\n--- No-Raw-Log Policy Check ---');
+  if (result.violations.length === 0) {
+    console.log('✅ No raw prompt logging or safety bypass patterns detected.');
+  } else {
+    for (const msg of result.violations) {
+      console.error(`❌ ${msg}`);
+    }
+  }
+
+  if (result.ok) {
+    console.log('\n✅ Safety guard verification passed.');
+    process.exit(0);
+  } else {
+    console.error('\n❌ Safety guard verification failed.');
+    process.exit(1);
+  }
 }

@@ -178,28 +178,12 @@ export const appReducer = produce((draft: AppState, action: AppAction) => {
         const firstLive = models.text.find((m) => m.source === "live");
         const fallback = models.text[0];
         draft.selectedChatModel = firstLive?.id || fallback?.id || "venice-uncensored";
-        if (draft.selectedChatModel) {
-          draft.toasts.push({
-            id: crypto.randomUUID(),
-            message: `Previous chat model was unavailable. Switched to ${draft.selectedChatModel}.`,
-            type: "warn",
-            duration: 6000,
-          });
-        }
       }
 
       if (!imageModelExists) {
         const firstLive = models.image.find((m) => m.source === "live");
         const fallback = models.image[0];
         draft.selectedImageModel = firstLive?.id || fallback?.id || "flux-dev";
-        if (draft.selectedImageModel) {
-          draft.toasts.push({
-            id: crypto.randomUUID(),
-            message: `Previous image model was unavailable. Switched to ${draft.selectedImageModel}.`,
-            type: "warn",
-            duration: 6000,
-          });
-        }
       }
 
       draft.modelLoadError = action.error || "";
