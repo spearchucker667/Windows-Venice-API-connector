@@ -72,6 +72,7 @@ export function BatchModule({ state, dispatch }: ModuleProps) {
       error: null,
     }));
 
+    abortRef.current?.abort();
     setResults(newResults);
     setIsRunning(true);
     abortRef.current = new AbortController();
@@ -209,7 +210,6 @@ export function BatchModule({ state, dispatch }: ModuleProps) {
 
     const wasAborted = !!abortRef.current?.signal.aborted;
     setIsRunning(false);
-    if (wasAborted) return;
     if (draft.type === "text") {
       const chats = await StorageService.getItems<import("../types/storage").ChatHistoryItem>("chats");
       dispatch({ type: "SET_CHATS", items: chats });
@@ -217,6 +217,7 @@ export function BatchModule({ state, dispatch }: ModuleProps) {
       const gallery = await StorageService.getItems<import("../types/storage").GalleryImage>("images");
       dispatch({ type: "SET_GALLERY", items: gallery });
     }
+    if (wasAborted) return;
   }
 
   function cancel() {

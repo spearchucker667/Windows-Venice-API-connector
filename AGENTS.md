@@ -7,7 +7,7 @@
 Venice Forge is an unofficial, third-party desktop client for the [Venice API](https://venice.ai). It is a dual-platform Electron application for Windows and macOS, plus a Vite/Express web application for local development. The app provides a unified interface for text generation, image generation, web research, batch automation, and local data management.
 
 - **Product name:** Venice Forge
-- **Version:** 1.0.2
+- **Version:** 1.0.3
 - **License:** MIT
 - **Maintainer:** fayeblade (@spearchucker667)
 - **Security contact:** GitHub private vulnerability reporting or private maintainer discussion (see [SECURITY.md](SECURITY.md))

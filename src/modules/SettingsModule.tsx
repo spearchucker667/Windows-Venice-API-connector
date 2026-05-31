@@ -92,8 +92,8 @@ export function SettingsModule({ state, dispatch, apiKeyConfigured, onApiKeyChan
     const res = await desktopUpdates.checkForUpdates();
     if (!res.ok) {
       setUpdateStatus(`Update check failed: ${res.error}`);
-      setIsUpdateChecking(false);
     }
+    setIsUpdateChecking(false);
   }
 
   async function installUpdate() {

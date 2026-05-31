@@ -23,22 +23,24 @@ export function ImageActionModal({
   const downloadRef = useRef<HTMLButtonElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const returnFocusRef = useRef<Element | null>(null);
+  const prevOverflowRef = useRef<string>("");
 
   useEffect(() => {
     if (image) {
       // Capture the element that triggered the modal so we can return focus on close.
       returnFocusRef.current = document.activeElement;
+      prevOverflowRef.current = document.body.style.overflow;
       document.body.style.overflow = "hidden";
       setTimeout(() => downloadRef.current?.focus(), 50);
     } else {
-      document.body.style.overflow = "";
+      document.body.style.overflow = prevOverflowRef.current;
       if (returnFocusRef.current instanceof HTMLElement) {
         returnFocusRef.current.focus();
       }
       returnFocusRef.current = null;
     }
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow = prevOverflowRef.current;
     };
   }, [image]);
 

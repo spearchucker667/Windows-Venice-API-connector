@@ -63,10 +63,18 @@ export function applyVeniceProxyHeaders(
   proxyReq.setHeader("Authorization", `Bearer ${AppConfig.VENICE_API_KEY}`);
   proxyReq.setHeader("Host", VENICE_API_HOST);
 
-  if (req.method !== "GET" && req.body && Buffer.isBuffer(req.body)) {
+  if (req.method !== "GET" && req.body) {
     proxyReq.removeHeader("Transfer-Encoding");
-    proxyReq.setHeader("Content-Length", req.body.length);
-    proxyReq.write(req.body);
+    let body: Buffer;
+    if (Buffer.isBuffer(req.body)) {
+      body = req.body;
+    } else if (typeof req.body === "string") {
+      body = Buffer.from(req.body, "utf-8");
+    } else {
+      body = Buffer.from(JSON.stringify(req.body), "utf-8");
+    }
+    proxyReq.setHeader("Content-Length", body.length);
+    proxyReq.write(body);
   } else if (req.method === "GET") {
     proxyReq.removeHeader("Content-Length");
     proxyReq.removeHeader("Transfer-Encoding");
@@ -142,7 +150,7 @@ export function createServerApp() {
   const rateLimitWindowMs = AppConfig.RATE_LIMIT_WINDOW_MS;
   const rateLimitMax = AppConfig.RATE_LIMIT_MAX_REQUESTS;
   const MAX_RATE_LIMIT_ENTRIES = 10_000;
-  const reqCounts = new Map<string, { count: number; resetTime: number }>();
+  const reqCounts = new Map<string, { count: number; resetTime: number; lastSeen: number }>();
 
   const rateLimitCleanupInterval = setInterval(() => {
     const now = Date.now();
@@ -160,7 +168,7 @@ export function createServerApp() {
 
     const ip = req.ip || "unknown";
     const now = Date.now();
-    const record = reqCounts.get(ip) || { count: 0, resetTime: now + rateLimitWindowMs };
+    const record = reqCounts.get(ip) || { count: 0, resetTime: now + rateLimitWindowMs, lastSeen: now };
 
     if (now > record.resetTime) {
       record.count = 1;
@@ -171,11 +179,19 @@ export function createServerApp() {
         return res.status(429).json({ error: "Too many requests, please try again later." });
       }
     }
+    record.lastSeen = now;
     reqCounts.set(ip, record);
     if (reqCounts.size > MAX_RATE_LIMIT_ENTRIES) {
-      const oldest = reqCounts.keys().next().value;
-      if (oldest !== undefined) {
-        reqCounts.delete(oldest);
+      let oldestKey: string | undefined;
+      let oldestTime = Infinity;
+      for (const [key, value] of reqCounts.entries()) {
+        if (value.lastSeen < oldestTime) {
+          oldestTime = value.lastSeen;
+          oldestKey = key;
+        }
+      }
+      if (oldestKey !== undefined) {
+        reqCounts.delete(oldestKey);
       }
     }
     next();
@@ -385,8 +401,9 @@ export async function startServer() {
       return next();
     };
 
+    app.use(staticRateLimiter);
     app.use(express.static(distPath));
-    app.get("*", staticRateLimiter, (req: express.Request, res: express.Response) => {
+    app.get("*", (req: express.Request, res: express.Response) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
     (app as express.Application & { staticRateLimiterCleanup?: ReturnType<typeof setInterval> | undefined }).staticRateLimiterCleanup = staticRateLimiterCleanup;
@@ -394,8 +411,12 @@ export async function startServer() {
 
   if (AppConfig.NODE_ENV !== "test") {
     const host = AppConfig.HOST;
-    app.listen(Number(PORT), host, () => {
+    const server = app.listen(Number(PORT), host, () => {
       warn(`Server running on http://${host}:${PORT}`);
+    });
+    server.on("error", (err) => {
+      error("Server failed to start", err);
+      process.exit(1);
     });
   }
 }

@@ -36,7 +36,7 @@ interface SerializedFormData {
  *  @returns A sanitized token safe for multipart headers.
  */
 export function sanitizeMultipartToken(value: string): string {
-  return value.replace(/[\r\n"\\]/g, "").trim();
+  return value.replace(/[\x00-\x1F\x7F"\\]/g, "").trim();
 }
 
 /** Validates and normalizes a multipart content-type string.
@@ -128,9 +128,9 @@ function extractStreamDelta(data: string): string {
   try {
     const json = JSON.parse(data);
     return (
-      json?.choices?.[0]?.delta?.content ||
-      json?.choices?.[0]?.message?.content ||
-      json?.choices?.[0]?.text ||
+      json?.choices?.[0]?.delta?.content ??
+      json?.choices?.[0]?.message?.content ??
+      json?.choices?.[0]?.text ??
       ""
     );
   } catch {
@@ -199,14 +199,21 @@ export async function performVeniceRequest(
     let bodyText: string | Buffer | undefined;
     let contentTypeOverride: string | undefined;
 
-    // Detect serialized FormData from the renderer and rebuild multipart body.
-    const serializedForm = request.body as SerializedFormData | undefined;
-    if (serializedForm && typeof serializedForm === "object" && serializedForm._isSerializedFormData) {
-      const { body, boundary } = buildMultipartBody(serializedForm);
-      bodyText = body;
-      contentTypeOverride = `multipart/form-data; boundary=${boundary}`;
-    } else {
-      bodyText = request.body === undefined ? undefined : JSON.stringify(request.body);
+    try {
+      // Detect serialized FormData from the renderer and rebuild multipart body.
+      const serializedForm = request.body as SerializedFormData | undefined;
+      if (serializedForm && typeof serializedForm === "object" && serializedForm._isSerializedFormData) {
+        const { body, boundary } = buildMultipartBody(serializedForm);
+        bodyText = body;
+        contentTypeOverride = `multipart/form-data; boundary=${boundary}`;
+      } else {
+        bodyText = request.body === undefined ? undefined : JSON.stringify(request.body);
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      logError("Failed to prepare Venice request body", err);
+      reject(new Error(`Failed to prepare request: ${message}`));
+      return;
     }
 
     const path = `${VENICE_API_BASE_PATH}${request.endpoint}`;
@@ -239,7 +246,7 @@ export async function performVeniceRequest(
 
         res.on("data", (chunk: Buffer) => {
           totalBytes += chunk.length;
-          if (totalBytes > MAX_VENICE_RESPONSE_BYTES) {
+          if (totalBytes >= MAX_VENICE_RESPONSE_BYTES) {
             req.destroy(new Error("Response too large"));
             return;
           }

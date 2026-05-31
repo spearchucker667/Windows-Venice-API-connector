@@ -259,7 +259,7 @@ export function SearchScrapeModule({ state, dispatch }: ModuleProps) {
           knownLocation: knownLocation.trim() || undefined,
           allowedPlatforms,
           maxSearchDepth: maxDepth,
-          authorized: true,
+          authorized,
         },
         veniceResearchProvider
       );

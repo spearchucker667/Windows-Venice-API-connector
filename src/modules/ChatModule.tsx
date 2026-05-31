@@ -160,6 +160,7 @@ export function ChatModule({ state, dispatch }: ModuleProps) {
       setError(guardDecision.userMessage);
       return;
     }
+    abortRef.current?.abort();
     setLoading(true);
     const runId = ++runIdRef.current;
 

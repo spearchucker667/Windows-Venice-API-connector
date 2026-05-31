@@ -14,6 +14,7 @@ export function ToastHost({ state, dispatch }: ModuleProps) {
 const toastStyles: Record<string, string> = {
   error: "border-danger/30 bg-danger/20 text-danger",
   success: "border-success/30 bg-success/20 text-success",
+  warn: "border-warning/30 bg-warning/20 text-warning",
   info: "border-border/50 bg-surface-elevated/80 text-text-primary shadow-sm",
 };
 

@@ -4,7 +4,7 @@ const path = require("path");
 const crypto = require("crypto");
 
 const args = process.argv.slice(2);
-const checkWin = args.includes("--win") || args.includes("--all") || (!args.includes("--mac") && process.platform === "win32") || args.length === 0 && process.platform !== "darwin";
+const checkWin = args.includes("--win") || args.includes("--all") || (!args.includes("--mac") && process.platform === "win32") || args.length === 0 && process.platform === "win32";
 const checkMac = args.includes("--mac") || args.includes("--all") || (!args.includes("--win") && process.platform === "darwin") || args.length === 0 && process.platform === "darwin";
 
 let targetArches = ["x64", "arm64"];

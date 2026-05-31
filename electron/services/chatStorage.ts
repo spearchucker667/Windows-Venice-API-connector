@@ -154,7 +154,7 @@ export async function saveConversation(conversation: Conversation): Promise<{ ok
   }
   await ensureDir();
   const filePath = conversationPath(conversation.id);
-  const tempPath = `${filePath}.tmp`;
+  const tempPath = `${filePath}.${crypto.randomUUID()}.tmp`;
   const payload: ConversationFile = { version: FILE_VERSION, conversation };
   try {
     await fs.writeFile(tempPath, JSON.stringify(payload, null, 2), "utf-8");

@@ -8,6 +8,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Venice 
 
 ## [Unreleased]
 
+## [1.0.3] — 2026-05-30
+
 ### Security
 - **Safety Guard Hardening:** Malformed serialized FormData no longer bypasses extraction; falls back to generic object scanning (C-001).
 - **Truncation Evasion Fix:** Oversized payloads are now scanned at both head and tail to prevent placing malicious content beyond the truncation boundary (C-002).
@@ -16,6 +18,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Venice 
 - **URL Security:** `isPrivateHostname` now blocks IPv6 link-local (`fe80::`), IPv4-mapped IPv6 loopback (`::ffff:127.0.0.1`), and short-form IPv4 (`127.1`, `10.1`) (H-004).
 - **Secure Storage:** `getApiKey` rejects plaintext/tampered state on Windows/macOS and handles both string and boolean encrypted flags (H-005 / H-009).
 - **Atomic Writes:** `secureStore.ts` now writes to a temp file and renames atomically (M-010).
+- **Multipart Sanitization:** `sanitizeMultipartToken` in `electron/services/veniceClient.ts` now strips backslash (`\`) characters, closing a narrow multipart header injection path.
+- **Streaming Signal ID:** `venice:streamChat` IPC handler now generates a mandatory `signalId` fallback if undefined, preventing broken delta routing and ineffective abort maps.
 
 ### Fixed
 - **Server Production Crash:** Removed top-level static `vite` import; vite is dynamically imported only in development mode (C-004).
@@ -34,11 +38,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Venice 
 - **Conversation TOCTOU:** Removed `fs.access` pre-check; `ENOENT` returns null silently (M-011).
 - **Toast Duration:** Uses nullish coalescing (`??`) so a duration of `0` is respected (L-009).
 - **CSS Variable:** Accessibility stylesheet references correct `--bg` instead of undefined `--background` (L-010).
+- **Type Safety:** Replaced `any` prop types in `ModelsModule.tsx`, `DiagnosticsModule.tsx`, and `SettingsModule.tsx` with proper `AppState`/`AppDispatch`/`UpdateInfo`/`ProgressInfo` types.
+- **Type Safety:** Replaced `any` generic defaults with `unknown` in `veniceFetch` and `StorageService` methods.
+- **Type Safety:** Fixed `server.ts` proxy middleware callbacks from `any` to proper `VeniceProxyOutboundRequest`, `express.Request`, `express.Response`, `http.IncomingMessage`, and `Error` types.
+- **Audit Completeness:** Added `recordDecision()` calls to all UI-level advisory safety checks in `ChatModule.tsx`, `ImageModule.tsx`, `BatchModule.tsx`, and `SearchScrapeModule.tsx`.
+- **Social Discovery Regex:** Removed unnecessary `\/` escape characters inside regex character classes.
+- **Lockfile Sync:** Regenerated `package-lock.json` to match bumped dependencies (`@types/react`, `tsx`, `typescript-eslint`).
 
 ### Changed
 - `vitest.config.ts` now correctly calls the vite config function instead of spreading the function object (H-011).
 - `tsconfig.json` excludes `electron/` to prevent CJS code being type-checked as ESNext/bundler (H-013).
 - `electron-builder.config.cjs` decouples Windows and macOS signing credential checks (H-012).
+- **Code Style:** Converted arrow-function exports in `imageWorkflowService.ts` to `function` declarations per AGENTS.md guidelines.
+- **Performance:** Memoized `tabBtn` helper in `SearchScrapeModule.tsx` with `useCallback`.
+- **CI:** Added `npm run verify:safety-guard` to `.github/workflows/ci.yml` after the test step.
+- **Scripts:** Consolidated `lint` script in `package.json` to run both `lint:eslint` and `typecheck`.
 
 ### Added
 

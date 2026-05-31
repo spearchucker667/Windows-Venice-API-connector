@@ -10,6 +10,9 @@ export function Field({ label, children }: { label: string; children: React.Reac
     const childElement = children as React.ReactElement<{ id?: string }>;
     targetId = childElement.props.id || generatedId;
     childWithId = React.cloneElement(childElement, { id: targetId });
+  } else {
+    targetId = generatedId;
+    childWithId = <span id={generatedId}>{children}</span>;
   }
 
   return (

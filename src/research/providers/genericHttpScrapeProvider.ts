@@ -48,7 +48,12 @@ export function isSafeUrl(url: string): boolean {
     return false;
   }
 
-  const hostname = parsed.hostname.toLowerCase().replace(/^\[|\]$/g, "");
+  const hostname = parsed.hostname.toLowerCase().replace(/^\[|\]$/g, "").replace(/\.$/, "");
+
+  // Reject URLs with embedded credentials
+  if (parsed.username || parsed.password) {
+    return false;
+  }
 
   // Block localhost and local/internal names
   if (
@@ -56,6 +61,11 @@ export function isSafeUrl(url: string): boolean {
     hostname.endsWith(".local") ||
     hostname.endsWith(".internal")
   ) {
+    return false;
+  }
+
+  // Block all-zero hostnames (0, 0000, 0.0.0.0, etc.)
+  if (/^[0.]+$/.test(hostname)) {
     return false;
   }
 
@@ -271,6 +281,7 @@ export function createGenericHttpProvider(config: GenericHttpConfig = {}): Resea
       const response = await fetch(url, {
         method: "GET",
         signal,
+        redirect: "error",
         // Do not send cookies or custom user headers
         credentials: "omit",
         headers: {
