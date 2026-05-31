@@ -117,10 +117,12 @@ export const initialState = {
   diagnostics: null as AppState["diagnostics"],
   diagnosticsLog: [] as AppState["diagnosticsLog"],
   gallery: [] as AppState["gallery"],
+  files: [] as AppState["files"],
   chats: [] as AppState["chats"],
   conversations: [] as AppState["conversations"],
   activeConversationId: null as AppState["activeConversationId"],
   sourcePanelOpen: true,
+  sidebarCollapsed: false,
   isOnline: typeof navigator !== "undefined" ? navigator.onLine : true,
   modelLoadError: "",
   imageDraft: {
@@ -276,6 +278,9 @@ export const appReducer = produce((draft: AppState, action: AppAction) => {
     case "SET_GALLERY":
       draft.gallery = action.items || [];
       break;
+    case "SET_FILES":
+      draft.files = action.items || [];
+      break;
     case "SET_CHATS":
       draft.chats = action.items || [];
       break;
@@ -287,6 +292,9 @@ export const appReducer = produce((draft: AppState, action: AppAction) => {
       break;
     case "TOGGLE_SOURCE_PANEL":
       draft.sourcePanelOpen = !draft.sourcePanelOpen;
+      break;
+    case "TOGGLE_SIDEBAR":
+      draft.sidebarCollapsed = !draft.sidebarCollapsed;
       break;
     case "SET_CHAT_DRAFT":
       if (action.patch && typeof action.patch === "object") {

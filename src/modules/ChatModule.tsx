@@ -17,9 +17,11 @@ import { StatusBlock } from "../components/StatusBlock";
 import { CollapsibleSection } from "../components/CollapsibleSection";
 import { ConfirmModal } from "../components/ConfirmModal";
 import { AttachmentTray } from "../components/AttachmentTray";
+import { PaperclipIcon, ImageIcon, LinkIcon, SendIcon, XIcon } from "../components/icons";
 import { ModuleProps } from "../types/app";
 import type { Conversation, ConversationMessage } from "../types/conversation";
 import type { Attachment } from "../types/attachment";
+import StorageService from "../services/storageService";
 import {
   createConversation,
   saveConversation,
@@ -90,6 +92,9 @@ export function ChatModule({ state, dispatch }: ModuleProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [promptTouched, setPromptTouched] = useState(false);
+  const [urlPopoverOpen, setUrlPopoverOpen] = useState(false);
+  const [urlInputValue, setUrlInputValue] = useState("");
+  const urlPopoverRef = useRef<HTMLDivElement>(null);
   const [deleteTarget, setDeleteTarget] = useState<Conversation | null>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
@@ -283,6 +288,17 @@ export function ChatModule({ state, dispatch }: ModuleProps) {
     }
 
     const supportsVision = modelSupportsVision(state.selectedChatModel);
+    if (attachCtx.images.length > 0 && !supportsVision) {
+      dispatch({
+        type: "ADD_TOAST",
+        toast: {
+          id: crypto.randomUUID(),
+          message: "This model does not support vision. Images were removed from your message.",
+          type: "warn",
+          duration: 6000,
+        },
+      });
+    }
     const userContent = buildMessageContent(trimmedPrompt, attachCtx.images, supportsVision);
     const userMessage: ChatUiMessage = { id: crypto.randomUUID(), role: "user", content: trimmedPrompt };
     const assistantMsgId = crypto.randomUUID();
@@ -631,6 +647,21 @@ export function ChatModule({ state, dispatch }: ModuleProps) {
     await addFileAttachments(files);
   }
 
+  async function persistAttachment(att: Attachment) {
+    try {
+      await StorageService.saveItem("files", {
+        id: att.id,
+        name: att.name,
+        type: att.type,
+        content: att.content,
+        size: att.size,
+        source: "chat-attachment",
+      });
+    } catch {
+      // Silently ignore storage errors for file persistence
+    }
+  }
+
   async function addFileAttachments(files: File[]) {
     const newAttachments: Attachment[] = [];
     for (const file of files) {
@@ -638,6 +669,7 @@ export function ChatModule({ state, dispatch }: ModuleProps) {
       try {
         const att = await processFileAttachment(file);
         newAttachments.push(att);
+        await persistAttachment(att);
       } catch (err) {
         setAttachmentNotices((prev) => [...prev, err instanceof Error ? err.message : String(err)]);
       }
@@ -645,16 +677,78 @@ export function ChatModule({ state, dispatch }: ModuleProps) {
     setAttachments((prev) => [...prev, ...newAttachments]);
   }
 
-  async function handleAttachUrl() {
-    const url = window.prompt("Enter URL to attach:");
-    if (!url) return;
+  function handleAttachUrl() {
+    setUrlPopoverOpen(true);
+    setUrlInputValue("");
+    setTimeout(() => {
+      const input = urlPopoverRef.current?.querySelector("input");
+      if (input) input.focus();
+    }, 50);
+  }
+
+  async function handleUrlSubmit() {
+    const url = urlInputValue.trim();
+    if (!url) {
+      setUrlPopoverOpen(false);
+      return;
+    }
+    try {
+      const parsed = new URL(url);
+      if (!parsed.protocol.startsWith("http")) {
+        throw new Error("URL must use http or https protocol.");
+      }
+    } catch {
+      dispatch({
+        type: "ADD_TOAST",
+        toast: {
+          id: crypto.randomUUID(),
+          message: "Invalid URL. Please enter a valid http or https URL.",
+          type: "error",
+          duration: 4000,
+        },
+      });
+      return;
+    }
+    setUrlPopoverOpen(false);
+    setUrlInputValue("");
     try {
       const att = await scrapeUrlAttachment(url);
       setAttachments((prev) => [...prev, att].slice(0, MAX_ATTACHMENTS_PER_MESSAGE));
+      await persistAttachment(att);
+      dispatch({
+        type: "ADD_TOAST",
+        toast: {
+          id: crypto.randomUUID(),
+          message: `URL attached: ${url}`,
+          type: "success",
+          duration: 3000,
+        },
+      });
     } catch (err) {
-      setAttachmentNotices((prev) => [...prev, err instanceof Error ? err.message : String(err)]);
+      const msg = err instanceof Error ? err.message : String(err);
+      setAttachmentNotices((prev) => [...prev, msg]);
+      dispatch({
+        type: "ADD_TOAST",
+        toast: {
+          id: crypto.randomUUID(),
+          message: `Failed to attach URL: ${msg}`,
+          type: "error",
+          duration: 5000,
+        },
+      });
     }
   }
+
+  useEffect(() => {
+    if (!urlPopoverOpen) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (urlPopoverRef.current && !urlPopoverRef.current.contains(e.target as Node)) {
+        setUrlPopoverOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [urlPopoverOpen]);
 
   function handleCommand(cmd: string) {
     setCommandPaletteOpen(false);
@@ -1156,37 +1250,85 @@ export function ChatModule({ state, dispatch }: ModuleProps) {
           <StatusBlock error={error} />
 
           <div className="flex items-end gap-2 px-3 py-2">
-            <div className="flex gap-1">
+            <div className="flex gap-1 relative">
               <button
                 type="button"
-                className="h-6 w-6 flex items-center justify-center rounded text-text-muted hover:text-text-primary hover:bg-surface-elevated"
+                className="h-7 w-7 flex items-center justify-center rounded-md text-text-muted hover:text-text-primary hover:bg-surface-elevated transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={loading}
                 title="Attach file"
                 aria-label="Attach file"
               >
-                📎
+                <PaperclipIcon size={18} />
               </button>
               <button
                 type="button"
-                className="h-6 w-6 flex items-center justify-center rounded text-text-muted hover:text-text-primary hover:bg-surface-elevated"
+                className="h-7 w-7 flex items-center justify-center rounded-md text-text-muted hover:text-text-primary hover:bg-surface-elevated transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 onClick={() => imageInputRef.current?.click()}
                 disabled={loading || !supportsVision}
                 title={supportsVision ? "Attach image" : "Vision not supported by this model"}
                 aria-label="Attach image"
               >
-                🖼
+                <ImageIcon size={18} />
               </button>
               <button
                 type="button"
-                className="h-6 w-6 flex items-center justify-center rounded text-text-muted hover:text-text-primary hover:bg-surface-elevated"
+                className="h-7 w-7 flex items-center justify-center rounded-md text-text-muted hover:text-text-primary hover:bg-surface-elevated transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 onClick={handleAttachUrl}
                 disabled={loading}
                 title="Attach URL"
                 aria-label="Attach URL"
               >
-                🔗
+                <LinkIcon size={18} />
               </button>
+
+              {/* URL attachment popover */}
+              {urlPopoverOpen && (
+                <div
+                  ref={urlPopoverRef}
+                  className="absolute bottom-full left-0 mb-2 w-72 rounded-xl border border-border/50 bg-surface-elevated p-3 shadow-xl backdrop-blur-md z-20"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-medium text-text-primary">Attach URL</span>
+                    <button
+                      type="button"
+                      className="text-text-muted hover:text-text-primary"
+                      onClick={() => setUrlPopoverOpen(false)}
+                      aria-label="Close"
+                    >
+                      <XIcon size={14} />
+                    </button>
+                  </div>
+                  <input
+                    type="url"
+                    value={urlInputValue}
+                    onChange={(e) => setUrlInputValue(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleUrlSubmit();
+                      if (e.key === "Escape") setUrlPopoverOpen(false);
+                    }}
+                    placeholder="https://example.com/article"
+                    className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+                    autoFocus
+                  />
+                  <div className="mt-2 flex justify-end gap-2">
+                    <button
+                      type="button"
+                      className="rounded-lg px-3 py-1.5 text-xs font-medium text-text-secondary hover:bg-surface hover:text-text-primary transition-colors"
+                      onClick={() => setUrlPopoverOpen(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className="rounded-lg px-3 py-1.5 text-xs font-medium bg-accent text-accent-foreground hover:bg-accent-hover transition-colors"
+                      onClick={handleUrlSubmit}
+                    >
+                      Attach
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             <textarea
@@ -1213,14 +1355,14 @@ export function ChatModule({ state, dispatch }: ModuleProps) {
 
             <div className="flex flex-col gap-1">
               <button
-                className="h-6 w-6 flex items-center justify-center rounded bg-accent text-accent-foreground hover:bg-accent-hover disabled:opacity-50"
+                className="h-7 w-7 flex items-center justify-center rounded-md bg-accent text-accent-foreground hover:bg-accent-hover disabled:opacity-50 transition-colors"
                 onClick={send}
                 disabled={loading}
                 aria-disabled={loading}
                 aria-label="Send"
                 title="Send"
               >
-                →
+                <SendIcon size={16} />
               </button>
             </div>
           </div>

@@ -1,9 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-display: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-brand: 'Space Grotesk', 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
 
   --color-brand-50: #f5f3ff;
@@ -58,6 +59,7 @@
   --glow: rgba(47,129,247,0.25);
   --sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --display: 'Plus Jakarta Sans', var(--sans);
+  --brand: 'Space Grotesk', 'Plus Jakarta Sans', var(--sans);
 }
 
 :root[data-theme-mode="light"] {
@@ -84,6 +86,10 @@ body {
 
 h1, h2, h3, h4, h5, h6, .brand-title {
   font-family: var(--display);
+}
+
+.brand-mark {
+  font-family: var(--brand);
 }
 
 button, input, textarea, select { font: inherit; }

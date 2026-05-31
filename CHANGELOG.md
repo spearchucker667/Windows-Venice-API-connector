@@ -9,6 +9,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Venice 
 ## [Unreleased]
 
 ### Added
+- **UI/UX Refresh:** Collapsible sidebar, Dracula theme, Lucide icons, font refresh, and improved attachment UX.
+  - Collapsible desktop sidebar with `PanelLeftClose`/`PanelLeftOpen` toggle, brand mark with `Sparkles` icon, and `localStorage` persistence.
+  - New built-in **Forge Dracula** theme with Dracula-inspired palette (dark bg `#282a36`, purple/pink accents, WCAG AA compliant).
+  - Font refresh: changed from `Plus Jakarta Sans`/`Inter` to `Manrope`/`Space Grotesk` for closer Venice.ai aesthetic.
+  - All emoji icons replaced with Lucide React SVG icons across `TabButton`, `ChatModule`, and `AttachmentTray`.
+  - URL attachment modal replaces `window.prompt` with a proper React `useState`-driven input with validation toast.
+  - **Library → Files tab:** New IndexedDB `files` store (encrypted at rest) persists chat file and URL attachments. GalleryModule gains tabbed layout (Images / Files / Chats).
+  - **Research provider toggle:** AI Research sub-tab in `SearchScrapeModule` now supports switching between Venice and Jina AI providers.
+  - **Model auto-fetch:** Saving a Venice API key in Settings automatically triggers `refreshModels()`.
 - **Agentic Chat Workspace:** Complete chat overhaul with attachments, memory, fork/import, and dense UI.
   - `src/services/memoryService.ts` — persistent memory layer backed by encrypted IndexedDB (`ai_memory` store). Supports `saveMemory`, `searchMemory`, `listMemories`, `deleteMemory`, and `selectMemoriesForInjection` with a 2,000-character budget cap.
   - `src/services/attachmentService.ts` — file/URL/image attachment reading, validation, downscaling, and assembly. Supports text files (`.txt`, `.md`, `.ts`, `.tsx`, `.json`, `.py`, `.js`, etc.) and images (`PNG`, `JPEG`, `WEBP`). Enforces 256 KiB per-file and 1 MiB total context caps.
@@ -26,8 +35,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Venice 
   - `src/services/exportImport.ts` — sanitizes `parentConversationId` and `forkedFromMessageIds` on conversation import; fields round-trip through export→import.
 
 ### Changed
-- `src/constants/venice.ts` — bumped `DB_VERSION` from 2 → 3; added `ai_memory` to `STORE_NAMES`; added `VISION_CAPABLE_MODEL_IDS`, `VISION_CAPABLE_PATTERNS`, `modelSupportsVision()`, and attachment size constants.
-- `src/services/storageService.ts` — `ai_memory` added to `ENCRYPTED_STORES`.
+- `src/constants/venice.ts` — bumped `DB_VERSION` from 2 → 4; added `ai_memory` and `files` to `STORE_NAMES`; added `VISION_CAPABLE_MODEL_IDS`, `VISION_CAPABLE_PATTERNS`, `modelSupportsVision()`, and attachment size constants.
+- `src/services/storageService.ts` — `ai_memory` and `files` added to `ENCRYPTED_STORES`.
 - `src/types/conversation.ts` — `Conversation` interface extended with `parentConversationId?` and `forkedFromMessageIds?`.
 - `src/modules/ChatModule.tsx` — major rewrite preserving all 28 existing features (model switching, streaming, markdown, persistence, system prompt, web search/scrape/citations, character slug, reasoning effort, strip think, disable thinking, xAI web+X search, conversation sidebar, new chat, rename, delete, copy last response, clear, cancel, keyboard shortcut, auto-scroll, loading indicator, safety guard, fallback model block, empty prompt validation, auto-title derivation).
 

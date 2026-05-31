@@ -113,7 +113,7 @@ xattr -dr com.apple.quarantine "/Applications/Venice Forge.app"
 ## Themes & Appearance
 
 ### How do I change the theme?
-Open **Config → Appearance → Theme Maker**. Choose from the built-in themes (Forge Graphite, Forge Daylight, Forge Copper) or create a custom theme by editing individual color tokens.
+Open **Config → Appearance → Theme Maker**. Choose from the built-in themes (Forge Graphite, Forge Daylight, Forge Copper, Forge Dracula) or create a custom theme by editing individual color tokens.
 
 ### Do custom themes persist across restarts?
 Yes. Custom themes are saved to encrypted IndexedDB alongside your other settings. A lightweight `localStorage` cache also prevents any flash of unstyled content on startup.
@@ -127,7 +127,7 @@ All built-in themes are verified against WCAG AA contrast standards. The ThemeMa
 - **Conversations (desktop):** Individual `.json` files in the OS app-data folder — one file per conversation with atomic writes and automatic corruption recovery.
   - Windows: `%APPDATA%\Venice Forge\chat-history\*.json`
   - macOS: `~/Library/Application Support/Venice Forge/chat-history/*.json`
-- **Images, legacy chats, settings, conversations, diagnostics:** Renderer IndexedDB (local only; images, chats, settings, and conversations are encrypted at rest, diagnostics is not).
+- **Images, files, legacy chats, settings, conversations, diagnostics:** Renderer IndexedDB (local only; images, files, chats, settings, and conversations are encrypted at rest, diagnostics is not).
 - **Memories:** Renderer IndexedDB `ai_memory` store (encrypted at rest).
 - **API keys:** OS secure storage (Windows DPAPI / macOS Keychain).
 - **Logs:**
@@ -137,8 +137,19 @@ All built-in themes are verified against WCAG AA contrast standards. The ThemeMa
 ### How do memories work?
 Memories are persistent snippets you save during chat ("Save to Memory"). They are stored encrypted in IndexedDB and automatically injected into future messages in the same conversation (up to 5 memories, capped at 2,000 characters total). You can view, search, and delete memories from the Memory panel in the Chat tab.
 
+### Can I collapse the sidebar?
+Yes. Click the collapse/expand arrow at the top of the desktop sidebar. The state persists across restarts via `localStorage`.
+
+### What attachment types are supported in chat?
+- **Text files:** `.txt`, `.md`, `.ts`, `.tsx`, `.json`, `.py`, `.js`, and many more (up to 256 KiB per file).
+- **Images:** PNG, JPEG, WEBP (downscaled if over 2 MiB; passed as base64 only when the model supports vision).
+- **URLs:** Scraped via the research provider and injected as `<doc url="…">…</doc>`.
+
 ### Which models support image attachments?
 Venice Forge uses a fallback allowlist and pattern matching to detect vision-capable models (IDs matching `/vision/i`, `/-vl/i`, or `/gemini-2\.[05]/i`). If a model's vision capability is unknown, attachments are disabled by default. There is no live vision flag from the Venice API yet.
+
+### Where do uploaded files go?
+File and URL attachments are saved to the **Library → Files** tab in IndexedDB (encrypted at rest). You can view, browse, and delete them from the Library.
 
 
 ### Is my data encrypted?

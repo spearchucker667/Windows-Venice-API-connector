@@ -9,6 +9,17 @@ export interface ChatHistoryItem {
   timestamp: number;
 }
 
+/** Describes a saved file attachment record stored in the local library. */
+export interface FileRecord {
+  id: string;
+  name: string;
+  type: "file" | "url" | "image";
+  content: string;
+  size: number;
+  source: "chat-attachment" | "upload";
+  timestamp: number;
+}
+
 /** Describes a saved image record stored in the local gallery. */
 export interface GalleryImage {
   id: string;

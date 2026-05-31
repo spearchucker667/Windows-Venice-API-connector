@@ -1,7 +1,7 @@
 /** @fileoverview Core application type definitions for state, actions, and UI models. */
 
 import { DiagnosticsEntry } from "./venice";
-import { GalleryImage } from "./storage";
+import { GalleryImage, FileRecord } from "./storage";
 import type { Conversation } from "./conversation";
 import type { Theme } from "../theme/themeTypes";
 
@@ -72,10 +72,12 @@ export interface AppState {
   diagnostics: import("./venice").DiagnosticsEntry | null;
   diagnosticsLog: import("./venice").DiagnosticsEntry[];
   gallery: import("./storage").GalleryImage[];
+  files: FileRecord[];
   chats: import("./storage").ChatHistoryItem[];
   conversations: Conversation[];
   activeConversationId: string | null;
   sourcePanelOpen: boolean;
+  sidebarCollapsed: boolean;
   isOnline: boolean;
   modelLoadError: string;
   imageDraft: ImageDraft;
@@ -91,12 +93,14 @@ export interface AppState {
 export type AppAction =
   | { type: "SET_TAB"; tab: string }
   | { type: "TOGGLE_SOURCE_PANEL" }
+  | { type: "TOGGLE_SIDEBAR" }
   | { type: "SET_MODELS"; models: Record<string, import("./venice").ModelInfo[]> | undefined; fallback?: boolean; error?: string }
   | { type: "SET_SELECTED_CHAT_MODEL"; model: string }
   | { type: "SET_SELECTED_IMAGE_MODEL"; model: string }
   | { type: "SET_SETTINGS"; settings: Partial<AppSettings> }
   | { type: "SET_DIAGNOSTICS"; diagnostics: Partial<DiagnosticsEntry> }
   | { type: "SET_GALLERY"; items: GalleryImage[] }
+  | { type: "SET_FILES"; items: FileRecord[] }
   | { type: "SET_CHATS"; items: import("./storage").ChatHistoryItem[] }
   | { type: "SET_CONVERSATIONS"; items: Conversation[] }
   | { type: "SET_ACTIVE_CONVERSATION"; id: string | null }

@@ -26,8 +26,10 @@ function makeState(overrides: Partial<AppState> = {}): AppState {
     selectedImageModel: "sd-xl",
     models: { text: [], image: [], audio: [], video: [], embeddings: [], unknown: [] },
     usingFallbackModels: false,
+    sidebarCollapsed: false,
     modelLoadError: null,
     gallery: [],
+    files: [],
     diagnostics: null,
     conversations: [],
     activeConversationId: null,
@@ -86,7 +88,8 @@ describe("BatchModule", () => {
   });
 
   it("shows fallback model warning and blocks run", async () => {
-    const state = makeState({ usingFallbackModels: true, batchDraft: { type: "text", promptsText: "hello world" } });
+    const state = makeState({ usingFallbackModels: true,
+    sidebarCollapsed: false, batchDraft: { type: "text", promptsText: "hello world" } });
     render(<BatchModule state={state} dispatch={dispatch} />);
     const runBtn = screen.getByRole("button", { name: /^run batch$/i });
     await userEvent.click(runBtn);

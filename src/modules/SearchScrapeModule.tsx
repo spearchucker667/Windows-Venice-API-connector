@@ -10,6 +10,7 @@ import { isValidSearchResponse } from "../utils/veniceValidation";
 import { MAX_RAW_UPLOAD_BYTES } from "../services/veniceClient";
 import { ModuleProps } from "../types/app";
 import { veniceResearchProvider } from "../research/providers/veniceResearchProvider";
+import { createJinaProvider } from "../research/providers/jinaResearchProvider";
 import { runResearchJob, type ResearchBudget } from "../research/agent/researchRunner";
 import { synthesizeResearch } from "../research/agent/researchSynthesis";
 import { runSocialDiscovery, type SocialProfileCandidate } from "../research/agent/socialDiscovery";
@@ -73,6 +74,7 @@ export function SearchScrapeModule({ state, dispatch }: ModuleProps) {
   const [researchQuestion, setResearchQuestion] = useState("");
   const [researchOutput, setResearchOutput] = useState("");
   const [researchCitations, setResearchCitations] = useState("");
+  const [researchProviderId, setResearchProviderId] = useState<"venice" | "jina">("venice");
 
   // --- Public Profile Discovery state ---
   const [targetName, setTargetName] = useState("");
@@ -220,9 +222,10 @@ export function SearchScrapeModule({ state, dispatch }: ModuleProps) {
     };
 
     try {
+      const provider = researchProviderId === "jina" ? createJinaProvider() : veniceResearchProvider;
       const job = await runResearchJob({
         question: researchQuestion.trim(),
-        provider: veniceResearchProvider,
+        provider,
         budget,
         signal,
       });
@@ -511,6 +514,16 @@ export function SearchScrapeModule({ state, dispatch }: ModuleProps) {
                   placeholder="What are the latest trends in AI safety regulation?"
                   className="w-full bg-surface/50 border border-border/50 rounded-lg px-4 py-2.5 text-text-primary placeholder-text-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
                 />
+              </Field>
+              <Field label="Research provider">
+                <select
+                  value={researchProviderId}
+                  onChange={(e) => setResearchProviderId(e.target.value as "venice" | "jina")}
+                  className="w-full bg-surface/50 border border-border/50 rounded-lg px-4 py-2.5 text-text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all appearance-none"
+                >
+                  <option value="venice">Venice (augment/search + augment/scrape)</option>
+                  <option value="jina">Jina AI (s.jina.ai + r.jina.ai)</option>
+                </select>
               </Field>
               <div className="flex flex-wrap gap-3">
                 <button

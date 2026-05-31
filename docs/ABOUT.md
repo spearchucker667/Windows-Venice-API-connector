@@ -52,7 +52,7 @@ Web mode (development only):
 |-------|-----------|----------------|
 | UI | React 19 + Tailwind v4 | All user-facing screens |
 | State | useReducer + Immer | Centralised app state |
-| Storage | IndexedDB (via `StorageService`) | `images`, legacy `chats`, `settings`, `conversations` — all encrypted at rest (AES-GCM); `diagnostics` stored unencrypted (timing/status only, no raw prompts) |
+| Storage | IndexedDB (via `StorageService`) | `images`, `files`, legacy `chats`, `settings`, `conversations`, `ai_memory` — all encrypted at rest (AES-GCM); `diagnostics` stored unencrypted (timing/status only, no raw prompts) |
 | Chat storage | Electron main-process filesystem (`chat-history/*.json`) | Conversation persistence with atomic writes and corruption recovery |
 | Content safety | `src/shared/safety/childExploitationGuard.ts` | Screens every outgoing Venice request at renderer transport, IPC, proxy, and module boundaries; evaluates `negative_prompt` and cross-sentence context; fails closed (500) on extraction errors; returns `SafetyGuardDecision`; never logs raw prompt text |
 
@@ -73,8 +73,8 @@ Web mode (development only):
 | Batch | Sequential prompt runs over multiple inputs |
 | Research | Multi-provider web search, page scraping, AI research synthesis, and public-profile discovery (Venice, Jina AI, or Generic HTTP) |
 | Catalog | Live model browser (type, traits, capability) |
-| Library | Local image gallery with bulk download and upscale |
-| Config | API key management, theme selection, import/export |
+| Library | Local image gallery, uploaded files history, recent chats, bulk download and upscale |
+| Config | API key management, theme selection (4 built-in + custom), import/export |
 | Status | Diagnostics, rate-limit info, log access |
 
 ## Technology Stack

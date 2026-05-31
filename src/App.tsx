@@ -22,6 +22,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { Chip } from "./components/Chip";
 import { TabButton } from "./components/TabButton";
 import { FirstRunModal } from "./components/FirstRunModal";
+import { PanelLeftCloseIcon, PanelLeftOpenIcon, SparklesIcon } from "./components/icons";
 import { initDesktopBridge, isElectron, desktopApiKey } from "./services/desktopBridge";
 import { warn } from "./shared/logger";
 import { APP_DESCRIPTOR, FIRST_RUN_ACK_KEY } from "./shared/legal";
@@ -84,18 +85,21 @@ export default function App() {
     (async () => {
       try {
         await StorageService.openDB();
-        const [imagesResult, chatsResult, settingsResult] = await Promise.all([
+        const [imagesResult, chatsResult, settingsResult, filesResult] = await Promise.all([
           StorageService.getItemsWithMeta("images"),
           StorageService.getItemsWithMeta("chats"),
           StorageService.getItemsWithMeta("settings"),
+          StorageService.getItemsWithMeta("files"),
         ]);
         const images = imagesResult.items as GalleryImage[];
         const chats = chatsResult.items as ChatHistoryItem[];
         const settingsItems = settingsResult.items as SettingsRecord[];
+        const files = filesResult.items as import("./types/storage").FileRecord[];
         const totalDecryptFailures =
-          imagesResult.decryptFailures + chatsResult.decryptFailures + settingsResult.decryptFailures;
+          imagesResult.decryptFailures + chatsResult.decryptFailures + settingsResult.decryptFailures + filesResult.decryptFailures;
         if (!mounted) return;
         dispatch({ type: "SET_GALLERY", items: images });
+        dispatch({ type: "SET_FILES", items: files });
         dispatch({ type: "SET_CHATS", items: chats });
         const latestSettings = settingsItems.find(i => i.id === "app-settings")?.value;
         if (latestSettings) {
@@ -189,6 +193,13 @@ export default function App() {
     if (!bridgeReady) return;
     refreshModels(dispatch).catch(() => {});
   }, [bridgeReady]);
+
+  // Auto-fetch models when API key becomes configured
+  useEffect(() => {
+    if (apiKeyConfigured && bridgeReady && state.usingFallbackModels) {
+      refreshModels(dispatch, true).catch(() => {});
+    }
+  }, [apiKeyConfigured, bridgeReady, state.usingFallbackModels]);
 
   // LOW-004: Detect auto-switched models after SET_MODELS and dispatch toasts from
   // the component layer instead of inside the reducer, keeping the reducer pure.
@@ -305,17 +316,51 @@ export default function App() {
       {/* Main Workspace */}
       <div className="flex flex-1 overflow-hidden">
         {/* Desktop Sidebar */}
-        <aside className="hidden w-[280px] min-w-[280px] flex-col justify-between border-r border-border/50 bg-bg/40 p-4 backdrop-blur-md lg:flex">
-          <div className="mb-4 px-2">
-            <img
-              src="./assets/branding/venice-logo-lockup-red.svg"
-              alt="Venice Forge"
-              title="Venice Forge — unofficial third-party client for the Venice API"
-              className="h-8 w-auto"
-              style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.2))" }}
-            />
+        <aside
+          className={`hidden flex-col justify-between border-r border-border/50 bg-bg/40 p-4 backdrop-blur-md transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] lg:flex ${
+            state.sidebarCollapsed ? "w-20 min-w-[80px] items-center px-2" : "w-[280px] min-w-[280px]"
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            {!state.sidebarCollapsed && (
+              <div className="mb-4 px-2">
+                <img
+                  src="./assets/branding/venice-logo-lockup-red.svg"
+                  alt="Venice Forge"
+                  title="Venice Forge — unofficial third-party client for the Venice API"
+                  className="h-8 w-auto"
+                  style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.2))" }}
+                />
+              </div>
+            )}
+            {state.sidebarCollapsed && (
+              <div className="mb-4 flex justify-center">
+                <div className="grid h-10 w-10 place-items-center rounded-xl bg-accent/10 text-accent">
+                  <SparklesIcon size={20} />
+                </div>
+              </div>
+            )}
+            <button
+              onClick={() => dispatch({ type: "TOGGLE_SIDEBAR" })}
+              className="mb-4 flex h-8 w-8 items-center justify-center rounded-lg text-text-muted hover:bg-surface-elevated hover:text-text-primary transition-colors"
+              title={state.sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              aria-label={state.sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              {state.sidebarCollapsed ? <PanelLeftOpenIcon size={16} /> : <PanelLeftCloseIcon size={16} />}
+            </button>
           </div>
-          <nav className="flex flex-col gap-2">
+
+          {/* Brand mark in expanded mode */}
+          {!state.sidebarCollapsed && (
+            <div className="mb-3 flex items-center gap-2 px-2">
+              <div className="grid h-8 w-8 place-items-center rounded-lg bg-accent/10 text-accent">
+                <SparklesIcon size={16} />
+              </div>
+              <span className="text-xs font-semibold text-text-muted">Venice Forge</span>
+            </div>
+          )}
+
+          <nav className={`flex flex-col gap-2 ${state.sidebarCollapsed ? "items-center" : ""}`}>
             {TABS.map(([id, label]) => (
               <TabButton
                 key={id}
@@ -323,22 +368,38 @@ export default function App() {
                 label={label}
                 active={state.activeTab === id}
                 onClick={(tab) => dispatch({ type: "SET_TAB", tab })}
+                iconOnly={state.sidebarCollapsed}
+                className={state.sidebarCollapsed ? "h-16 w-16 !p-2" : ""}
               />
             ))}
           </nav>
-          <div className="rounded-xl border border-border/50 bg-surface/60 p-4 shadow-lg backdrop-blur-md space-y-2">
-            <div>
-              <div className="text-[10px] font-bold uppercase tracking-wider text-text-muted">System</div>
-              <div className="mt-1 text-xs text-text-secondary">{isElectron() ? "IPC Transport" : "Proxy Active"}</div>
-            </div>
-            <div className="border-t border-border/50 pt-2">
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-warning leading-tight">
-                Unofficial client
-              </div>
-              <div className="mt-0.5 text-[10px] text-text-muted leading-tight">
-                Not affiliated with Venice.ai
-              </div>
-            </div>
+          <div className={`rounded-xl border border-border/50 bg-surface/60 shadow-lg backdrop-blur-md space-y-2 ${state.sidebarCollapsed ? "p-2 flex flex-col items-center gap-2" : "p-4"}`}>
+            {!state.sidebarCollapsed && (
+              <>
+                <div>
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-text-muted">System</div>
+                  <div className="mt-1 text-xs text-text-secondary">{isElectron() ? "IPC Transport" : "Proxy Active"}</div>
+                </div>
+                <div className="border-t border-border/50 pt-2">
+                  <div className="text-[10px] font-semibold uppercase tracking-wider text-warning leading-tight">
+                    Unofficial client
+                  </div>
+                  <div className="mt-0.5 text-[10px] text-text-muted leading-tight">
+                    Not affiliated with Venice.ai
+                  </div>
+                </div>
+              </>
+            )}
+            {state.sidebarCollapsed && (
+              <>
+                <div className="grid h-8 w-8 place-items-center rounded-lg bg-surface-elevated text-text-muted" title={isElectron() ? "IPC Transport" : "Proxy Active"}>
+                  <span className="text-xs">{isElectron() ? "🖥" : "🌐"}</span>
+                </div>
+                <div className="grid h-8 w-8 place-items-center rounded-lg bg-warning/10 text-warning" title="Unofficial client — not affiliated with Venice.ai">
+                  <span className="text-xs">⚠</span>
+                </div>
+              </>
+            )}
           </div>
         </aside>
 

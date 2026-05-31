@@ -75,6 +75,31 @@ export const BUILTIN_COPPER: Theme = {
   },
 };
 
-export const BUILTIN_THEMES: Theme[] = [BUILTIN_DARK, BUILTIN_LIGHT, BUILTIN_COPPER];
+export const BUILTIN_DRACULA: Theme = {
+  id: 'builtin-dracula',
+  name: 'Forge Dracula',
+  mode: 'dark',
+  tokens: {
+    background: '#282a36',
+    surface: '#44475a',
+    surfaceElevated: '#6272a4',
+    border: '#6272a4',
+    textPrimary: '#f8f8f2',
+    textSecondary: '#bfbfbf',
+    textMuted: '#6272a4',
+    accent: '#bd93f9',
+    accentHover: '#ff79c6',
+    accentForeground: '#f8f8f2',
+    success: '#50fa7b',
+    warning: '#f1fa8c',
+    danger: '#ff5555',
+    info: '#8be9fd',
+    focusRing: '#bd93f9',
+    overlay: 'rgba(40,42,54,0.7)',
+    glow: 'rgba(189,147,249,0.2)',
+  },
+};
+
+export const BUILTIN_THEMES: Theme[] = [BUILTIN_DARK, BUILTIN_LIGHT, BUILTIN_COPPER, BUILTIN_DRACULA];
 
 export const DEFAULT_THEME = BUILTIN_DARK;

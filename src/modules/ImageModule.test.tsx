@@ -34,6 +34,7 @@ function renderImageModule() {
       state={{
         ...initialState,
         usingFallbackModels: false,
+    sidebarCollapsed: false,
         imageDraft: {
           ...initialState.imageDraft,
           prompt: "A glass city at sunrise",

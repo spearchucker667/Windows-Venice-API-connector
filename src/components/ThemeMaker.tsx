@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { BUILTIN_DARK, BUILTIN_LIGHT, BUILTIN_COPPER, applyTheme, type Theme, type ThemeTokens } from "../theme";
+import { BUILTIN_DARK, BUILTIN_LIGHT, BUILTIN_COPPER, BUILTIN_DRACULA, applyTheme, type Theme, type ThemeTokens } from "../theme";
 import { COLOR_INPUT_FALLBACK } from "../theme/fallbacks";
 import { isValidColorValue } from "../theme/validateColor";
 import { ThemePreview } from "./ThemePreview";
@@ -52,6 +52,7 @@ export function ThemeMaker({ state, dispatch }: ThemeMakerProps) {
       "builtin-dark": BUILTIN_DARK,
       "builtin-light": BUILTIN_LIGHT,
       "builtin-copper": BUILTIN_COPPER,
+      "builtin-dracula": BUILTIN_DRACULA,
     }),
     []
   );
@@ -119,6 +120,7 @@ export function ThemeMaker({ state, dispatch }: ThemeMakerProps) {
             { id: "builtin-dark", label: "Forge Graphite" },
             { id: "builtin-light", label: "Forge Daylight" },
             { id: "builtin-copper", label: "Forge Copper" },
+            { id: "builtin-dracula", label: "Forge Dracula" },
             { id: "custom", label: "Custom" },
           ].map((opt) => (
             <button

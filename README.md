@@ -37,13 +37,13 @@ See [docs/ABOUT.md](docs/ABOUT.md) for project background and architecture overv
 
 | Tab | Name | Description |
 |-----|------|-------------|
-| Prompt | Chat | Multi-conversation streaming chat with system-prompt control, sidebar conversation management, and persistent history across restarts |
+| Prompt | Chat | Multi-conversation streaming chat with system-prompt control, sidebar conversation management, file/URL/image attachments, memory injection, and persistent history across restarts |
 | Create | Image generation | Single and batch image generation with upscaling and gallery save |
 | Batch | Batch runner | Run one prompt across multiple inputs or run many prompts in sequence |
-| Research | Web research | Multi-provider web search, page scraping, AI research synthesis, and public-profile discovery (Venice, Jina AI, or Generic HTTP) |
-| Catalog | Models | Live Venice model catalog with type, traits, and capability details |
-| Library | Gallery | Local image library with download, upscale, and bulk-export |
-| Config | Settings | API key management, theme editor, model defaults, data import/export |
+| Research | Web research | Multi-provider web search, page scraping, AI research synthesis with Venice or Jina AI providers, and public-profile discovery |
+| Catalog | Models | Live Venice model catalog with type, traits, and capability details; auto-fetches on API key save |
+| Library | Gallery | Local image library, uploaded files history, recent chats, download, upscale, and bulk-export |
+| Config | Settings | API key management, theme editor (Forge Graphite, Forge Daylight, Forge Copper, Forge Dracula), model defaults, data import/export |
 | Status | Diagnostics | Transport mode, runtime info, rate-limit headers, and log access |
 
 ## Documentation

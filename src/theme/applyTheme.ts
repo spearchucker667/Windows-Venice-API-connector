@@ -1,5 +1,5 @@
 import type { Theme } from './themeTypes';
-import { BUILTIN_DARK, BUILTIN_LIGHT, BUILTIN_COPPER } from './themes';
+import { BUILTIN_DARK, BUILTIN_LIGHT, BUILTIN_COPPER, BUILTIN_DRACULA } from './themes';
 
 export function applyTheme(theme: Theme): void {
   const root = document.documentElement;
@@ -40,6 +40,9 @@ export function resolveInitialTheme(bootstrap?: Partial<{
   }
   if (bootstrap?.selectedThemeId === 'builtin-copper') {
     return BUILTIN_COPPER;
+  }
+  if (bootstrap?.selectedThemeId === 'builtin-dracula') {
+    return BUILTIN_DRACULA;
   }
   if (bootstrap?.selectedThemeId === 'builtin-dark') {
     return BUILTIN_DARK;
