@@ -185,7 +185,7 @@ export default function App() {
   // Gate initial model refresh until the proxy URL is resolved (critical in Electron)
   useEffect(() => {
     if (!bridgeReady) return;
-    refreshModels(dispatch);
+    refreshModels(dispatch).catch(() => {});
   }, [bridgeReady]);
 
   useEffect(() => {

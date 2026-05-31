@@ -24,7 +24,7 @@ function ToastItem({ toast, dispatch }: { toast: ToastMessage; dispatch: AppDisp
       dispatch({ type: "REMOVE_TOAST", id: toast.id });
     }, toast.duration ?? 3000);
     return () => clearTimeout(timer);
-  }, [toast, dispatch]);
+  }, [toast.id, toast.duration, dispatch]);
 
   const live = toast.type === "error" ? "assertive" : "polite";
   const role = toast.type === "error" ? "alert" : "status";

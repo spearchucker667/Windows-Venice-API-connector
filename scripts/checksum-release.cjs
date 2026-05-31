@@ -21,16 +21,22 @@ if (artifacts.length === 0) {
   process.exit(0);
 }
 
-for (const artifact of artifacts) {
-  const filePath = path.join(releaseDir, artifact);
-  const sidecarPath = `${filePath}.sha256`;
-  
-  const fileBuffer = fs.readFileSync(filePath);
-  const hashSum = crypto.createHash("sha256");
-  hashSum.update(fileBuffer);
-  const hex = hashSum.digest("hex");
-  
-  const content = `${hex}  ${artifact}\n`;
-  fs.writeFileSync(sidecarPath, content, "ascii");
-  console.log(`[checksum:release] Wrote ${artifact}.sha256`);
-}
+(async () => {
+  for (const artifact of artifacts) {
+    const filePath = path.join(releaseDir, artifact);
+    const sidecarPath = `${filePath}.sha256`;
+
+    const hashSum = crypto.createHash("sha256");
+    await new Promise((resolve, reject) => {
+      const stream = fs.createReadStream(filePath);
+      stream.on("data", (chunk) => hashSum.update(chunk));
+      stream.on("end", resolve);
+      stream.on("error", reject);
+    });
+    const hex = hashSum.digest("hex");
+
+    const content = `${hex}  ${artifact}\n`;
+    fs.writeFileSync(sidecarPath, content, "ascii");
+    console.log(`[checksum:release] Wrote ${artifact}.sha256`);
+  }
+})();

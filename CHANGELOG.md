@@ -45,15 +45,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Venice 
 - **Social Discovery Regex:** Removed unnecessary `\/` escape characters inside regex character classes.
 - **Lockfile Sync:** Regenerated `package-lock.json` to match bumped dependencies (`@types/react`, `tsx`, `typescript-eslint`).
 
-### Changed
-- `vitest.config.ts` now correctly calls the vite config function instead of spreading the function object (H-011).
-- `tsconfig.json` excludes `electron/` to prevent CJS code being type-checked as ESNext/bundler (H-013).
-- `electron-builder.config.cjs` decouples Windows and macOS signing credential checks (H-012).
-- **Code Style:** Converted arrow-function exports in `imageWorkflowService.ts` to `function` declarations per AGENTS.md guidelines.
-- **Performance:** Memoized `tabBtn` helper in `SearchScrapeModule.tsx` with `useCallback`.
-- **CI:** Added `npm run verify:safety-guard` to `.github/workflows/ci.yml` after the test step.
-- **Scripts:** Consolidated `lint` script in `package.json` to run both `lint:eslint` and `typecheck`.
-
 ### Added
 
 - **Multi-Provider Research System:** Pluggable research backends for search, scrape, and public-profile discovery.
@@ -83,6 +74,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Venice 
 - **`electron/utils/urlSecurity.ts`:** Pure-function `isTrustedExternalUrl` and `isPrivateHostname` extracted from `electron/main.ts` into a testable utility. `isTrustedExternalUrl` now also blocks RFC 1918 addresses (10.x, 192.168.x, 172.16–31.x), loopback (127.x, `localhost`, `0.0.0.0`), and IPv6 loopback (`::1`). 11 regression tests added to `electron/main.test.ts`.
 
 ### Changed
+- `vitest.config.ts` now correctly calls the vite config function instead of spreading the function object (H-011).
+- `tsconfig.json` excludes `electron/` to prevent CJS code being type-checked as ESNext/bundler (H-013).
+- `electron-builder.config.cjs` decouples Windows and macOS signing credential checks (H-012).
+- **Code Style:** Converted arrow-function exports in `imageWorkflowService.ts` to `function` declarations per AGENTS.md guidelines.
+- **Performance:** Memoized `tabBtn` helper in `SearchScrapeModule.tsx` with `useCallback`.
+- **CI:** Added `npm run verify:safety-guard` to `.github/workflows/ci.yml` after the test step.
+- **Scripts:** Consolidated `lint` script in `package.json` to run both `lint:eslint` and `typecheck`.
 - `electron/main.ts`: `isTrustedExternalUrl` delegated to `electron/utils/urlSecurity.ts`; private-network URLs are now blocked from `shell.openExternal` even over HTTPS.
 - `simpleHash` in `childExploitationGuard.ts`: truncation window widened from 256 → 1024 chars; JSDoc now marks it as "coarse, non-cryptographic — audit use only".
 
@@ -263,5 +261,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Venice 
 - `.env.example` with all configurable environment variables documented.
 
 [Unreleased]: #unreleased
+[1.0.3]: #103--2026-05-30
+[1.0.2]: #102--2026-05-29
 [1.0.1]: #101--2026-05-20
 [1.0.0]: #100--2026-05-20

@@ -122,7 +122,7 @@ describe("chatStorage", () => {
     const files = await fs.readdir(dir);
     const backup = files.find((f) => f.startsWith("corrupt.json.backup."));
     expect(backup).toBeDefined();
-    const timestamp = Number(backup!.split(".").pop());
+    const timestamp = Number(backup!.split(".")[3]);
     expect(timestamp).toBeGreaterThanOrEqual(before);
     expect(timestamp).toBeLessThanOrEqual(after);
   });

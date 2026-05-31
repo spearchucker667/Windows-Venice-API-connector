@@ -196,7 +196,7 @@ describe("ChatModule", () => {
     await userEvent.click(screen.getByRole("button", sendBtnSelector));
 
     await waitFor(() => {
-      expect(screen.getByText(/503 service unavailable/i)).toBeInTheDocument();
+      expect(screen.getByRole("alert")).toHaveTextContent(/503 service unavailable/i);
     });
   });
 
@@ -212,7 +212,7 @@ describe("ChatModule", () => {
     await userEvent.click(screen.getByRole("button", sendBtnSelector));
 
     await waitFor(() => {
-      expect(screen.getByText(/invalid chat response from server/i)).toBeInTheDocument();
+      expect(screen.getByRole("alert")).toHaveTextContent(/invalid chat response from server/i);
     });
   });
 });

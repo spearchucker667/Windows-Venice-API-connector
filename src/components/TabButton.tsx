@@ -45,6 +45,7 @@ export function TabButton({
       className={`${baseClasses} ${layoutClasses} ${stateClasses} ${className}`.trim()}
       onClick={() => onClick(id)}
       aria-current={active ? "page" : undefined}
+      aria-label={iconOnly ? label : undefined}
       title={label}
     >
       <span className={`${iconBase} ${iconState}`} aria-hidden="true">

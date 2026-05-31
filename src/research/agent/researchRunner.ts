@@ -73,6 +73,10 @@ function createTimeoutSignal(ms: number, parent?: AbortSignal): AbortSignal {
       controller.abort();
     };
     parent.addEventListener("abort", onAbort, { once: true });
+    if (parent.aborted) {
+      clearTimeout(id);
+      controller.abort();
+    }
   }
   return controller.signal;
 }
@@ -94,6 +98,10 @@ function sleep(ms: number, signal?: AbortSignal): Promise<void> {
         reject(new DOMException("Request aborted", "AbortError"));
       };
       signal.addEventListener("abort", onAbort, { once: true });
+      if (signal.aborted) {
+        clearTimeout(id);
+        reject(new DOMException("Request aborted", "AbortError"));
+      }
     }
   });
 }

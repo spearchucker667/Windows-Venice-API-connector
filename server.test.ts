@@ -199,9 +199,7 @@ describe("server.ts safety middleware", () => {
 
   // M-001 regression guard
   it("defensively converts non-Buffer POST bodies to Buffer", async () => {
-    const originalRaw = express.raw;
-    // Monkey-patch express.raw to simulate a body-parser middleware
-    express.raw = () => (req: any, _res: any, next: any) => {
+    const rawSpy = vi.spyOn(express, "raw").mockImplementation(() => (req: any, _res: any, next: any) => {
       let data = "";
       req.setEncoding("utf8");
       req.on("data", (chunk: string) => { data += chunk; });
@@ -209,19 +207,16 @@ describe("server.ts safety middleware", () => {
         try { req.body = JSON.parse(data); } catch { req.body = Buffer.from(data); }
         next();
       });
-    };
+    });
 
-    try {
-      const testApp = createServerApp();
-      const res = await request(testApp)
-        .post("/api/venice/chat/completions")
-        .send({ messages: [{ role: "user", content: "draw me a loli character" }] });
+    const testApp = createServerApp();
+    const res = await request(testApp)
+      .post("/api/venice/chat/completions")
+      .send({ messages: [{ role: "user", content: "draw me a loli character" }] });
 
-      expect(res.status).toBe(451);
-      expect(res.body.reasonCode).toBe("CSAM_GENRE_TERM");
-    } finally {
-      express.raw = originalRaw;
-    }
+    expect(res.status).toBe(451);
+    expect(res.body.reasonCode).toBe("CSAM_GENRE_TERM");
+    rawSpy.mockRestore();
   });
 
   // M-002 regression guard

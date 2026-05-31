@@ -366,9 +366,14 @@ export function BatchModule({ state, dispatch }: ModuleProps) {
                   )}
 
                   {r.status === "done" && draft.type === "image" && r.result && (
-                    <div className="mt-2 group/img relative inline-block cursor-pointer" onClick={async () =>
-                        await downloadImage(r.result as string, `venice-batch-${i}.png`)
-                      }>
+                    <div className="mt-2 group/img relative inline-block cursor-pointer" onClick={async () => {
+                        try {
+                          await downloadImage(r.result as string, `venice-batch-${i}.png`);
+                        } catch {
+                          dispatch({ type: "ADD_TOAST", toast: { id: crypto.randomUUID(), message: "Download failed", type: "error" } });
+                        }
+                      }}
+                    >
                       <img
                         src={r.result as string}
                         alt={r.prompt}

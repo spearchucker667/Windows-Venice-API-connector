@@ -82,7 +82,7 @@ export function ChatModule({ state, dispatch }: ModuleProps) {
       ]);
       setSystemPrompt(state.settings.defaultSystemPrompt);
     }
-  }, [activeId, state.settings.defaultSystemPrompt]);
+  }, [activeId, state.settings.defaultSystemPrompt, conversations]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -596,7 +596,7 @@ export function ChatModule({ state, dispatch }: ModuleProps) {
                     ? 'bg-accent text-text-primary rounded-tr-sm'
                     : 'bg-surface-elevated border border-border/50 text-text-primary rounded-tl-sm shadow-[0_4px_24px_var(--overlay)]'
                 }`}>
-                  <div className={`flex items-center gap-2 mb-2 text-xs font-semibold tracking-wider uppercase ${m.role === 'user' ? 'text-accent' : 'text-accent'}`}>
+                  <div className={`flex items-center gap-2 mb-2 text-xs font-semibold tracking-wider uppercase text-accent`}>
                     <span>{m.role}</span>
                     {m.role === "assistant" && idx === messages.length - 1 && loading && (
                       <span className="flex items-center gap-1">

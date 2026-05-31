@@ -79,6 +79,9 @@ export function GalleryModule({ state, dispatch }: ModuleProps) {
           cancelSignal: cancelDownloadRef,
         }
       );
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Download failed";
+      dispatch({ type: "ADD_TOAST", toast: { id: crypto.randomUUID(), message, type: "error" } });
     } finally {
       setDownloadProgress(null);
       cancelDownloadRef.current = false;
@@ -135,7 +138,7 @@ export function GalleryModule({ state, dispatch }: ModuleProps) {
         <StatusBlock error={error} success={status} />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
-          {state.gallery.map((item: GalleryImage, index: number) => (
+          {state.gallery.map((item: GalleryImage) => (
             <div className="group relative flex flex-col rounded-2xl border border-border/50 bg-surface-elevated/40 overflow-hidden transition-all duration-300 hover:border-accent/50 hover:shadow-[0_8px_32px_var(--glow)]" key={item.id}>
               <button
                 type="button"

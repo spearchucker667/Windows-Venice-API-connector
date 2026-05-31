@@ -40,7 +40,7 @@ export function ConfirmModal({
       prevOverflowRef.current = document.body.style.overflow;
       document.body.style.overflow = "hidden";
       // Default focus on the safe/cancel action.
-      setTimeout(() => cancelRef.current?.focus(), 50);
+      requestAnimationFrame(() => cancelRef.current?.focus());
     } else {
       document.body.style.overflow = prevOverflowRef.current;
       if (returnFocusRef.current instanceof HTMLElement) {

@@ -44,6 +44,7 @@ export const TABS = [
 
 /** Response header names captured for diagnostics. */
 export const DIAG_HEADER_NAMES = [
+  "retry-after",
   "CF-RAY",
   "x-venice-version",
   "x-venice-timestamp",

@@ -231,7 +231,7 @@ export function summarizeDiagnostics({
   return {
     endpoint,
     method,
-    status: status || null,
+    status: status ?? null,
     ok: !!ok,
     error: error || "",
     startedAt,
@@ -278,8 +278,17 @@ function readDesktopErrorBody(body: unknown): string {
   const record = body as Record<string, unknown>;
   const errorObj = record.error as Record<string, unknown> | undefined;
   const top = errorObj?.message || record.error || record.message;
-  if (top) return typeof top === "object" ? JSON.stringify(top) : String(top);
-  
+  if (top) {
+    if (typeof top === "object") {
+      try {
+        return JSON.stringify(top);
+      } catch {
+        return "[unserializable error]";
+      }
+    }
+    return String(top);
+  }
+
   const details = record.details;
   if (details && typeof details === "object") {
     const detailsRec = details as Record<string, unknown>;
@@ -307,8 +316,17 @@ export function readWebErrorBody(parsed: unknown, text: string, statusText: stri
   const record = parsed as Record<string, unknown>;
   const errorObj = record.error as Record<string, unknown> | undefined;
   const top = errorObj?.message || record.error || record.message;
-  if (top) return typeof top === "object" ? JSON.stringify(top) : String(top);
-  
+  if (top) {
+    if (typeof top === "object") {
+      try {
+        return JSON.stringify(top);
+      } catch {
+        return "[unserializable error]";
+      }
+    }
+    return String(top);
+  }
+
   const details = record.details;
   if (details && typeof details === "object") {
     const detailsRec = details as Record<string, unknown>;
@@ -353,6 +371,29 @@ async function serializeFormData(formData: FormData): Promise<SerializedFormData
         value: btoa(binary),
         filename: value.name,
         type: value.type,
+        _isFile: true,
+      });
+    } else if (typeof value === "object" && value !== null && (value as unknown) instanceof Blob) {
+      const blob = value as Blob;
+      const arrayBuffer = await blob.arrayBuffer();
+      const estimatedSerializedBytes = Math.ceil(arrayBuffer.byteLength * 4 / 3);
+      if (arrayBuffer.byteLength > MAX_RAW_UPLOAD_BYTES) {
+        throw new Error(`File too large. Maximum upload size is ${Math.floor(MAX_RAW_UPLOAD_BYTES / MIB)} MiB.`);
+      }
+      if (estimatedSerializedBytes > MAX_SERIALIZED_UPLOAD_BYTES) {
+        throw new Error(`Serialized upload too large. Maximum raw upload size is ${Math.floor(MAX_RAW_UPLOAD_BYTES / MIB)} MiB.`);
+      }
+      const bytes = new Uint8Array(arrayBuffer);
+      const chunkSize = 0x8000;
+      let binary = "";
+      for (let i = 0; i < bytes.byteLength; i += chunkSize) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+      }
+      entries.push({
+        name,
+        value: btoa(binary),
+        filename: (blob as File).name || "blob",
+        type: blob.type || "application/octet-stream",
         _isFile: true,
       });
     } else {

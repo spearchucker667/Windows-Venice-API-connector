@@ -84,7 +84,7 @@ Web mode (development only):
 - **Backend (web mode):** Express 4, http-proxy-middleware 4, dotenv
 - **State:** React `useReducer` with Immer for immutable updates
 - **Testing:** Vitest 4, @testing-library/react, supertest
-- **Build:** esbuild (Electron main), Vite (renderer), tsc (type checking)
+- **Build:** tsc (Electron main), esbuild (Express server), Vite (renderer)
 
 ## Data Flow
 

@@ -45,7 +45,7 @@ describe("SearchScrapeModule", () => {
     await userEvent.click(screen.getByRole("button", { name: /^search$/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/unexpected search response from server/i)).toBeInTheDocument();
+      expect(screen.getByRole("alert")).toHaveTextContent(/unexpected search response from server/i);
     });
   });
 
@@ -55,7 +55,7 @@ describe("SearchScrapeModule", () => {
     await userEvent.click(screen.getByRole("button", { name: /^scrape$/i }));
 
     expect(veniceFetch).not.toHaveBeenCalled();
-    expect(screen.getByText(/enter a valid public http\(s\) url/i)).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent(/enter a valid public http\(s\) url/i);
   });
 
   it("clears stale scrape output before a failed retry", async () => {
@@ -74,6 +74,6 @@ describe("SearchScrapeModule", () => {
 
     await userEvent.click(scrapeBtn);
     await waitFor(() => expect(output.value).toBe(""));
-    await waitFor(() => expect(screen.getByText(/scrape failed/i)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent(/scrape failed/i));
   });
 });

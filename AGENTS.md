@@ -272,7 +272,7 @@ Copy `.env.example` to `.env` for web-mode development:
 ## Release and Deployment
 
 - CI runs on Ubuntu with a Node 20/22 matrix for lint, typecheck, test, and build.
-- `npm run verify:safety-guard` is a **local required check** before PRs and releases; it is not currently run in CI (known gap — run it manually).
+- `npm run verify:safety-guard` is run in CI and is also required locally before PRs and releases.
 - Release workflows (`windows-release.yml`, `macos-release.yml`) build signed/unsigned artifacts, verify them, and emit SHA-256 checksums.
 - Code signing is optional for local builds. Official releases require Apple Developer ID (macOS) and standard `CSC_LINK` / `CSC_KEY_PASSWORD` (Windows).
 - Auto-updates are fetched via GitHub Releases using `electron-updater`.

@@ -27,12 +27,24 @@ export function DiagnosticsModule({ state, dispatch, apiKeyConfigured }: Diagnos
 
   useEffect(() => {
     if (!isElectron()) return;
-    desktopApp.getDiagnostics().then(setDesktopDiagnostics).catch(() => {});
+    let mounted = true;
+    desktopApp.getDiagnostics().then((d) => {
+      if (mounted) setDesktopDiagnostics(d);
+    }).catch(() => {});
+    return () => { mounted = false; };
   }, []);
 
   async function copyDiagnostics() {
+    let system: VeniceForgeDiagnostics | null = desktopDiagnostics;
+    if (!system && isElectron()) {
+      try {
+        system = await desktopApp.getDiagnostics();
+      } catch {
+        system = null;
+      }
+    }
     const payload = redactSecrets({
-      system: desktopDiagnostics || (await desktopApp.getDiagnostics()),
+      system,
       latest: d || null,
       log: state.diagnosticsLog || [],
     });

@@ -302,12 +302,17 @@ export function registerIpcHandlers(): void {
         properties: ["openFile"],
       });
       if (result.canceled || !result.filePaths[0]) return { ok: true, canceled: true };
-      const stat = await fs.stat(result.filePaths[0]);
-      if (stat.size > MAX_JSON_FILE_BYTES) {
-        throw new Error("Import file is too large.");
+      const fd = await fs.open(result.filePaths[0], "r");
+      try {
+        const fstat = await fd.stat();
+        if (fstat.size > MAX_JSON_FILE_BYTES) {
+          throw new Error("Import file is too large.");
+        }
+        const data = await fd.readFile({ encoding: "utf-8" });
+        return { ok: true, canceled: false, data };
+      } finally {
+        await fd.close();
       }
-      const data = await fs.readFile(result.filePaths[0], "utf-8");
-      return { ok: true, canceled: false, data };
     } catch (err) {
       return { ok: false, canceled: false, error: redactErrorMessage(err) };
     }

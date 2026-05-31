@@ -67,6 +67,7 @@ export function SearchScrapeModule({ state, dispatch }: ModuleProps) {
   const [loading, setLoading] = useState("");
   const [error, setError] = useState("");
   const abortRef = useRef<AbortController | null>(null);
+  const runIdRef = useRef(0);
 
   // --- AI Research state ---
   const [researchQuestion, setResearchQuestion] = useState("");
@@ -102,6 +103,7 @@ export function SearchScrapeModule({ state, dispatch }: ModuleProps) {
     setLoading("search");
     setSearchResults([]);
     abortRef.current = new AbortController();
+    const runId = ++runIdRef.current;
     try {
       const { data } = await veniceFetch<Record<string, unknown>>("/augment/search", {
         method: "POST",
@@ -109,6 +111,7 @@ export function SearchScrapeModule({ state, dispatch }: ModuleProps) {
         signal: abortRef.current.signal,
         dispatch,
       });
+      if (runIdRef.current !== runId) return;
       if (!isValidSearchResponse(data)) {
         setSearchResults([]);
         setError("Unexpected search response from server.");
@@ -121,10 +124,11 @@ export function SearchScrapeModule({ state, dispatch }: ModuleProps) {
         (Array.isArray(data) ? data : []);
       setSearchResults(Array.isArray(results) ? results : []);
     } catch (err: unknown) {
+      if (runIdRef.current !== runId) return;
       const error = err as { name?: string; message?: string };
       if (error.name !== "AbortError") setError(error.message || "Search failed");
     } finally {
-      setLoading("");
+      if (runIdRef.current === runId) setLoading("");
     }
   }
 
@@ -138,6 +142,7 @@ export function SearchScrapeModule({ state, dispatch }: ModuleProps) {
     setLoading("scrape");
     setScrapeOutput("");
     abortRef.current = new AbortController();
+    const runId = ++runIdRef.current;
     try {
       const { data } = await veniceFetch<Record<string, unknown>>("/augment/scrape", {
         method: "POST",
@@ -145,15 +150,17 @@ export function SearchScrapeModule({ state, dispatch }: ModuleProps) {
         signal: abortRef.current.signal,
         dispatch,
       });
+      if (runIdRef.current !== runId) return;
       const scrapeData = data as Record<string, unknown>;
       setScrapeOutput(
         String(scrapeData.markdown || scrapeData.content || scrapeData.text || JSON.stringify(scrapeData, null, 2))
       );
     } catch (err: unknown) {
+      if (runIdRef.current !== runId) return;
       const error = err as { name?: string; message?: string };
       if (error.name !== "AbortError") setError(error.message || "Scrape failed");
     } finally {
-      setLoading("");
+      if (runIdRef.current === runId) setLoading("");
     }
   }
 

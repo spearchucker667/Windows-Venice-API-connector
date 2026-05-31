@@ -14,7 +14,7 @@ Stack: React 19 + TypeScript strict + Tailwind CSS v4 (Premium Dark Glass Theme)
 npm run dev:electron    # Electron desktop (recommended for full dev)
 npm run dev:web         # Web mode only (Vite + Express)
 npm run typecheck       # Type-check renderer AND Electron main (both tsconfigs)
-npm run lint            # TypeScript linter (tsc --noEmit)
+npm run lint            # Runs ESLint + TypeScript type-check
 npm run lint:eslint     # ESLint for src/, electron/, and server.ts
 npm test                # Vitest unit + integration tests (single run)
 npm run test:watch      # Vitest in watch mode

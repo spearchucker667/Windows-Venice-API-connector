@@ -61,7 +61,7 @@ export function ImageModule({ state, dispatch }: ModuleProps) {
         height: presets[draft.aspectRatio][1],
       });
     }
-  }, [draft.aspectRatio]);
+  }, [draft.aspectRatio, patch]);
 
   useEffect(() => {
     return () => { abortRef.current?.abort(); };
@@ -176,7 +176,13 @@ export function ImageModule({ state, dispatch }: ModuleProps) {
       }
     } finally {
       if (runIdRef.current === runId) {
-        if (successCount > 0) await refreshGallery(dispatch);
+        if (successCount > 0) {
+          try {
+            await refreshGallery(dispatch);
+          } catch {
+            // ignore gallery refresh errors in cleanup
+          }
+        }
         setLoading(false);
         patch({ generationProgress: "" });
       }
@@ -185,23 +191,29 @@ export function ImageModule({ state, dispatch }: ModuleProps) {
 
   async function saveCurrentAgain() {
     if (!draft.currentImage) return;
-    const saved = await saveRecordService(dispatch, {
-      id: crypto.randomUUID(),
-      image: draft.currentImage,
-      prompt: draft.prompt,
-      negative: draft.negative,
-      model: state.selectedImageModel,
-      width: draft.width,
-      height: draft.height,
-      aspectRatio: draft.aspectRatio,
-      style: draft.style,
-      cfg: draft.cfg,
-      steps: draft.steps,
-      safeMode: draft.safeMode,
-      timestamp: Date.now(),
-    });
-    patch({ lastSavedImageId: saved.id });
-    setSuccess(`Saved duplicate gallery copy: ${saved.id}`);
+    try {
+      const saved = await saveRecordService(dispatch, {
+        id: crypto.randomUUID(),
+        image: draft.currentImage,
+        prompt: draft.prompt,
+        negative: draft.negative,
+        model: state.selectedImageModel,
+        width: draft.width,
+        height: draft.height,
+        aspectRatio: draft.aspectRatio,
+        style: draft.style,
+        cfg: draft.cfg,
+        steps: draft.steps,
+        safeMode: draft.safeMode,
+        timestamp: Date.now(),
+      });
+      patch({ lastSavedImageId: saved.id });
+      setSuccess(`Saved duplicate gallery copy: ${saved.id}`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Save failed";
+      setError(message);
+      dispatch({ type: "ADD_TOAST", toast: { id: crypto.randomUUID(), message, type: "error" } });
+    }
   }
 
   async function upscaleCurrent() {

@@ -67,17 +67,12 @@ describe("checkPathContained", () => {
   });
 
   it("uses case-insensitive comparison on Windows (M-007)", () => {
-    const originalPlatform = Object.getOwnPropertyDescriptor(process, "platform");
-    Object.defineProperty(process, "platform", { value: "win32" });
+    const spy = vi.spyOn(process, "platform", "get").mockReturnValue("win32");
     try {
       expect(checkPathContained(path.join(rootDir, "INDEX.HTML"), rootDir)).toBe(true);
       expect(checkPathContained(path.join(rootDir, "Assets", "APP.JS"), rootDir)).toBe(true);
     } finally {
-      if (originalPlatform) {
-        Object.defineProperty(process, "platform", originalPlatform);
-      } else {
-        Object.defineProperty(process, "platform", { value: process.platform });
-      }
+      spy.mockRestore();
     }
   });
 });

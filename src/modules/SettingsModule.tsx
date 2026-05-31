@@ -259,7 +259,11 @@ export function SettingsModule({ state, dispatch, apiKeyConfigured, onApiKeyChan
 
   React.useEffect(() => {
     if (!isElectron()) return;
-    desktopJinaApiKey.isConfigured().then((v) => setJinaKeyConfigured(v));
+    let mounted = true;
+    desktopJinaApiKey.isConfigured().then((v) => {
+      if (mounted) setJinaKeyConfigured(v);
+    });
+    return () => { mounted = false; };
   }, []);
 
   async function exportData() {
@@ -537,9 +541,13 @@ export function SettingsModule({ state, dispatch, apiKeyConfigured, onApiKeyChan
               />
               <button
                 className="absolute top-2 right-2 bg-surface-elevated hover:bg-surface text-text-primary rounded-md px-3 py-1.5 text-xs font-medium backdrop-blur-md transition-all opacity-0 group-hover:opacity-100"
-                onClick={() => {
-                  navigator.clipboard.writeText(`VENICE_API_KEY="replace_with_your_venice_inference_key"\nMAX_PROXY_BODY_BYTES=${VENICE_MAX_BODY_BYTES}\nRATE_LIMIT_WINDOW_MS=60000\nRATE_LIMIT_MAX_REQUESTS=60\nDISABLE_HMR=false\nPORT=3000`);
-                  setStatus("Copied to clipboard!");
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(`VENICE_API_KEY="replace_with_your_venice_inference_key"\nMAX_PROXY_BODY_BYTES=${VENICE_MAX_BODY_BYTES}\nRATE_LIMIT_WINDOW_MS=60000\nRATE_LIMIT_MAX_REQUESTS=60\nDISABLE_HMR=false\nPORT=3000`);
+                    setStatus("Copied to clipboard!");
+                  } catch {
+                    setStatusError("Copy to clipboard failed.");
+                  }
                 }}
               >
                 Copy
