@@ -137,6 +137,15 @@ function createWindow(): BrowserWindow {
   win.webContents.on("render-process-gone", (_event, details) => {
     logError("render-process-gone", details);
   });
+  win.webContents.on("console-message", (_event, level, message, line, sourceId) => {
+    const levelStr = ["verbose", "info", "warning", "error"][level] ?? "info";
+    const src = sourceId ? ` [${path.basename(sourceId)}:${line}]` : "";
+    if (level >= 2) {
+      logError(`renderer-console-${levelStr}${src}`, message);
+    } else {
+      logInfo(`renderer-console-${levelStr}${src}: ${message}`);
+    }
+  });
 
   win.webContents.setWindowOpenHandler(({ url }) => {
     if (isTrustedExternalUrl(url)) promptExternalLink(win, url);
