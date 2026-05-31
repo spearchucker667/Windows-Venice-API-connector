@@ -6,274 +6,394 @@
 
 <p align="center">
   <strong>An unofficial, third-party desktop client for the Venice API.</strong><br>
-  <em>Not endorsed by, sponsored by, or affiliated with Venice.ai, Inc.</em>
+  <em>Chat, create images, batch prompts, and research the web — all powered by Venice.</em>
 </p>
 
 > [!IMPORTANT]
 > **18+ Age Requirement**: You must be 18 years or older to use this application. This app connects to unrestricted AI endpoints that pose inherent risks, including the potential to generate explicit content or AI-generated images that inappropriately represent minors (CSAM). By proceeding, you confirm you are 18+ and assume all responsibility.
 >
-> **Venice Forge is an unofficial, third-party desktop client for the Venice API.**
->
-> This project is not affiliated with, endorsed by, sponsored by, approved by, maintained by, or certified by Venice.ai, Inc. "Venice", "Venice.ai", the Venice wordmark, the Venice seal, the Venice keys mark, the Venice lockup, and related marks are trademarks or trade dress of Venice.ai, Inc.
->
-> Any Venice names or brand assets shown in this project are used solely for nominative identification of API compatibility and provider integration. Official Venice brand assets remain the property of Venice.ai, Inc. and are not owned by this project.
+> **Venice Forge is an unofficial, third-party desktop client for the Venice API.** This project is not affiliated with, endorsed by, sponsored by, or maintained by Venice.ai, Inc. Venice names and marks are used solely for nominative identification of API compatibility. See [docs/LEGAL.md](docs/LEGAL.md) for full legal terms.
 
 [![CI](https://github.com/spearchucker667/Venice-API-connector/actions/workflows/ci.yml/badge.svg)](https://github.com/spearchucker667/Venice-API-connector/actions/workflows/ci.yml)
-[![Windows Release](https://github.com/spearchucker667/Venice-API-connector/actions/workflows/windows-release.yml/badge.svg)](https://github.com/spearchucker667/Venice-API-connector/actions/workflows/windows-release.yml)
-[![macOS Release](https://github.com/spearchucker667/Venice-API-connector/actions/workflows/macos-release.yml/badge.svg)](https://github.com/spearchucker667/Venice-API-connector/actions/workflows/macos-release.yml)
 [![Release](https://img.shields.io/github/v/release/spearchucker667/Venice-API-connector?include_prereleases&label=release)](https://github.com/spearchucker667/Venice-API-connector/releases)
+[![Windows Release](https://img.shields.io/badge/platform-Windows-0078d4?logo=windows11)](https://github.com/spearchucker667/Venice-API-connector/releases)
+[![macOS Release](https://img.shields.io/badge/platform-macOS-000000?logo=apple)](https://github.com/spearchucker667/Venice-API-connector/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Node 20/22](https://img.shields.io/badge/node-20%20%7C%2022-339933.svg)](package.json)
 [![TypeScript strict](https://img.shields.io/badge/typescript-strict-3178c6.svg)](tsconfig.json)
 [![Electron 42](https://img.shields.io/badge/electron-42-47848f.svg)](package.json)
-[![Venice API](https://img.shields.io/badge/API-Venice.ai-111827.svg)](https://docs.venice.ai/)
 
-<img width="2816" height="1536" alt="venice-forge-readme-hero-actual-ui-final" src="https://github.com/user-attachments/assets/6b9f703d-69d6-44d8-a2b5-fe0499791f8a" />
+<img width="2816" height="1536" alt="Venice Forge desktop app interface" src="https://github.com/user-attachments/assets/6b9f703d-69d6-44d8-a2b5-fe0499791f8a" />
 
+---
 
-See [docs/ABOUT.md](docs/ABOUT.md) for project background and architecture overview.
+## 🚀 Quick Start
 
-## Features
+1. **Download** a release from [GitHub Releases](https://github.com/spearchucker667/Venice-API-connector/releases)
+   - Windows: `Venice-Forge-<version>-x64-Setup.exe` or portable `.exe`
+   - macOS: `.dmg` (Intel or Apple Silicon)
 
-| Tab | Name | Description |
-|-----|------|-------------|
-| Prompt | Chat | Multi-conversation streaming chat with system-prompt control, sidebar conversation management, file/URL/image attachments, memory injection, and persistent history across restarts |
-| Create | Image generation | Single and batch image generation with upscaling and gallery save |
-| Batch | Batch runner | Run one prompt across multiple inputs or run many prompts in sequence |
-| Research | Web research | Multi-provider web search, page scraping, AI research synthesis with Venice or Jina AI providers, and public-profile discovery |
-| Catalog | Models | Live Venice model catalog with type, traits, and capability details; auto-fetches on API key save |
-| Library | Gallery | Local image library, uploaded files history, recent chats, download, upscale, and bulk-export |
-| Config | Settings | API key management, theme editor (Forge Graphite, Forge Daylight, Forge Copper, Forge Dracula), model defaults, data import/export |
-| Status | Diagnostics | Transport mode, runtime info, rate-limit headers, and log access |
+2. **Install** and launch Venice Forge
 
-## Documentation
+3. **Add your Venice API key** in **Config** → save it → test the connection
 
-All documentation is organized in the [docs](docs/) directory and root level. See the index below:
+4. **Start chatting, creating images, or running research!**
 
-### Getting Started
-- **[README.md](README.md)** — This file. Project overview, features, and quick-start.
-- **[docs/ABOUT.md](docs/ABOUT.md)** — Architecture, dual-transport design, security model.
+For development, see [Development](#-development) or [docs/ABOUT.md](docs/ABOUT.md) for architecture details.
 
-### Development
-- **[CONTRIBUTING.md](CONTRIBUTING.md)** — Contributor guidelines and code of conduct.
-- **[docs/DEVELOPMENT/building.md](docs/DEVELOPMENT/building.md)** — Build system, Vite, Electron, esbuild.
-- **[docs/DEVELOPMENT/platform-support.md](docs/DEVELOPMENT/platform-support.md)** — Windows/macOS/Linux requirements and support matrix.
-- **[docs/DEVELOPMENT/troubleshooting.md](docs/DEVELOPMENT/troubleshooting.md)** — Common development issues and solutions.
-- **[docs/DEVELOPMENT/macos.md](docs/DEVELOPMENT/macos.md)** — macOS-specific build and deployment notes.
+---
 
-### Release & Deployment
-- **[docs/RELEASE/release.md](docs/RELEASE/release.md)** — Release process, versioning, and automation.
-- **[docs/RELEASE/signing-and-notarization.md](docs/RELEASE/signing-and-notarization.md)** — Windows/macOS code signing and notarization.
-- **[CHANGELOG.md](CHANGELOG.md)** — Version history, breaking changes, and bug fixes.
+## ✨ Features
 
-### Governance & Legal
-- **[SECURITY.md](SECURITY.md)** — Security policy, vulnerability disclosure, and supported versions.
-- **[docs/LEGAL.md](docs/LEGAL.md)** — Legal notices, disclaimers, and terms.
-- **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** — Community standards and reporting procedures.
-- **[PRIVACY.md](PRIVACY.md)** — Privacy policy and data handling.
-- **[SUPPORT.md](SUPPORT.md)** — Support channels and escalation.
+Eight integrated tabs covering chat, image generation, batch automation, research, and settings:
 
-### Research Providers
-- **[docs/RESEARCH_PROVIDERS.md](docs/RESEARCH_PROVIDERS.md)** — Architecture and usage guide for Venice, Jina AI, and Generic HTTP providers.
-- **[docs/JINA_PROVIDER.md](docs/JINA_PROVIDER.md)** — Jina AI configuration, endpoints, and known limitations.
-- **[docs/PUBLIC_PROFILE_DISCOVERY.md](docs/PUBLIC_PROFILE_DISCOVERY.md)** — Public-profile discovery feature guide and authorization gate.
+| Tab | Name | What You Can Do |
+|-----|------|-----------------|
+| 💬 | **Chat** | Multi-turn streaming conversations with system prompts, file/image attachments, memory injection, persistent history, and chat forking |
+| 🖼️ | **Create** | Single and batch image generation with AI upscaling and local gallery management |
+| 📋 | **Batch** | Automate: run one prompt across many inputs, or chain multiple prompts in sequence |
+| 🔍 | **Research** | Web search via Venice or Jina AI, page scraping, research synthesis, and public-profile discovery |
+| 📚 | **Catalog** | Browse live Venice model catalog with capability details; auto-refresh on API key save |
+| 🏞️ | **Library** | Local image library with download, upscale, export, and conversation history |
+| ⚙️ | **Config** | API key management, theme editor (Forge Graphite, Daylight, Copper), model defaults, data import/export |
+| 📊 | **Diagnostics** | Transport mode, runtime info, rate-limit headers, and log viewer |
 
-### Reference
-- **[docs/FAQ.md](docs/FAQ.md)** — Frequently asked questions.
-- **[docs/THEME_SYSTEM.md](docs/THEME_SYSTEM.md)** — Token-based theming architecture and ThemeMaker UI.
-- **[docs/REPOSITORY_TREE.md](docs/REPOSITORY_TREE.md)** — Full file tree and module ownership.
+---
 
-### Repository Map
+## 🏗️ Architecture
 
-```text
-.
-├── electron/              # Electron main, preload, IPC validation, secure storage
-├── src/                   # React renderer, modules, services, state, types, utilities
-├── scripts/               # Build and release verification helpers
-├── docs/                  # Organized documentation (see index above)
-├── .github/               # CI, release automation, ownership, issue/PR templates
-├── server.ts              # Express web proxy for development web mode
-└── package.json           # Commands, dependencies, version metadata
-```
+**Desktop & Web Dual-Mode:**
+- **Electron desktop app** (Windows/macOS) — React renderer + Electron IPC + main-process HTTPS client
+- **Web mode** (development/self-hosted) — React renderer + Express proxy server
+- **Unified Venice API layer** — all traffic goes through validated, safety-checked paths
 
-## Requirements
+**Security-first design:**
+- Renderer cannot access raw API keys (stored in OS Keychain/DPAPI)
+- Content safety guard on every outgoing request (Venice-approved endpoints only)
+- Encrypted IndexedDB storage, secure chat history snapshots, trusted URL validation
+- Zero telemetry, no external analytics
 
-- Windows 10/11 or macOS 13+ for release builds
-- Node.js 20 or 22
-- npm 10+
-- A Venice API key ([venice.ai](https://venice.ai))
+See [docs/ABOUT.md](docs/ABOUT.md) for detailed architecture and [SECURITY.md](SECURITY.md) for the full security model.
 
-## Development
+---
+
+## 📋 Requirements
+
+| Requirement | Version |
+|-------------|---------|
+| **Node.js** | 20 or 22 |
+| **npm** | 10+ |
+| **Desktop OS** | Windows 10/11 or macOS 13+ |
+| **Venice API Key** | From [venice.ai](https://venice.ai) |
+
+For development, the same Node/npm versions are required. Linux development is supported but release packaging for Linux is not officially maintained.
+
+---
+
+## 🚀 Development & Setup
+
+### First-Time Setup
 
 ```bash
+# 1. Clone and install
+git clone https://github.com/spearchucker667/Venice-API-connector.git
+cd Venice-API-connector
 npm install
-npm run dev:electron   # Electron desktop mode (recommended)
-npm run dev:web        # Vite + Express web mode
+
+# 2. Start the Electron app (recommended for development)
+npm run dev:electron
+
+# OR start web-mode development
+npm run dev:web
+
+# 3. Add your Venice API key in the Config tab
 ```
 
-Useful scripts:
+### Key Development Commands
 
-| Command | Description |
-|---------|-------------|
-| `npm run lint:eslint` | ESLint for `src/`, `electron/`, `server.ts`, and `scripts/` with zero-warning enforcement |
-| `npm run typecheck` | TypeScript check for renderer and Electron |
-| `npm test` | Vitest unit and integration tests |
-| `npm run verify:safety-guard` | **Security Gate**: Enforces safety guard boundaries and no-log policies |
-| `npm run build` | Build `dist/` (web) and `dist-electron/` (main process) |
-| `npm run clean` | Remove all generated build output |
-| `npm run test:watch` | Re-run tests on file changes |
+| Command | Purpose |
+|---------|---------|
+| `npm run dev:electron` | Start Electron app with live reload |
+| `npm run dev:web` | Start Vite + Express web dev server |
+| `npm run lint:eslint` | Lint all source code (0 warnings) |
+| `npm run typecheck` | TypeScript check for renderer + Electron |
+| `npm test` | Run all unit and integration tests |
+| `npm run test:watch` | Watch mode for tests |
+| `npm run verify:safety-guard` | **Security gate:** verify safety guard is enforced |
+| `npm run build` | Build production app (`dist/`, `dist-electron/`) |
+| `npm run clean` | Remove all generated output |
 
-## Windows Builds
+### Environment Variables (Web Mode Only)
+
+Copy `.env.example` to `.env`:
 
 ```bash
-npm run verify:icon
+# Required
+VENICE_API_KEY="your-venice-inference-key"
+
+# Optional
+PORT=3000                              # Server port (default: 3000)
+HOST=127.0.0.1                         # Bind address (default: 127.0.0.1)
+NODE_ENV=development                   # development | production | test
+VENICE_FORGE_DEBUG_DEVTOOLS=false      # Allow DevTools in production
+VENICE_FORGE_ALLOW_PLAINTEXT_KEY_STORAGE=false  # Linux plaintext fallback (⚠️ security warning)
+```
+
+For the full list of env vars and their purposes, see `.env.example`.
+
+---
+
+## 📦 Building & Packaging
+
+### Windows Packaging
+
+```bash
 npm run dist:win
 npm run checksum:release
 npm run verify:dist:win
-npm run verify:dist:portable
 ```
 
-Artifacts are written to `release/`:
-
+Outputs to `release/`:
 - `Venice-Forge-<version>-x64-Setup.exe` — NSIS installer
-- `Venice-Forge-<version>-x64-Portable.exe` — portable executable
+- `Venice-Forge-<version>-x64-Portable.exe` — standalone portable executable
 
-## macOS Builds
+### macOS Packaging
 
 ```bash
-npm run verify:icon
 npm run dist:mac
 npm run checksum:release
 npm run verify:dist:mac
 ```
 
-Artifacts are written to `release/`:
+Outputs to `release/`:
+- `Venice-Forge-<version>-arm64.dmg` / `.zip` — Apple Silicon bundle
+- `Venice-Forge-<version>-x64.dmg` / `.zip` — Intel bundle
 
-- `Venice-Forge-<version>-arm64.dmg` / `.zip` — Apple Silicon
-- `Venice-Forge-<version>-x64.dmg` / `.zip` — Intel
+### Signing & Notarization
 
-`build/icon.ico` and `build/icon.icns` are required for Windows/macOS packaging. `build/icon.png` is required by the configured Linux AppImage target. This repo includes generated placeholder icons; run `npm run generate:icon` if they are missing, then replace them with final artwork before public release.
+- **Local builds:** Unsigned; may trigger SmartScreen (Windows) or Gatekeeper (macOS) warnings
+- **Official releases:** Signed via Apple Developer ID (macOS) and Windows code signing (Windows)
+- **macOS Gatekeeper workaround (local builds):** `xattr -dr com.apple.quarantine "/path/to/Venice Forge.app"`
 
-Local builds are unsigned unless standard electron-builder signing environment variables are set (`CSC_LINK`, `CSC_KEY_PASSWORD`, `WIN_CSC_LINK`, `WIN_CSC_KEY_PASSWORD`). Unsigned installers can trigger Windows SmartScreen warnings or macOS Gatekeeper blocks. To bypass Gatekeeper for local unsigned builds on macOS, you may need to clear the quarantine flag (`xattr -dr com.apple.quarantine "/path/to/Venice Forge.app"`).
+For detailed signing and notarization steps, see [docs/RELEASE/signing-and-notarization.md](docs/RELEASE/signing-and-notarization.md).
 
-Official public releases must be signed using Apple Developer ID credentials and notarized via Apple's notary service.
+**Icon Resources:** Build icons (`build/icon.ico`, `build/icon.icns`, `build/icon.png`) are required for packaging. This repo includes placeholder icons; run `npm run generate:icon` if missing, then replace with final artwork before release.
 
-## API Key Setup
+---
 
-**Desktop mode:** open **Config**, paste the Venice API key, click **Save key**, then **Test connection**. Venice Forge refuses to store the key if Electron `safeStorage` encryption (DPAPI on Windows, Keychain on macOS) is unavailable. You can also save an optional Jina API key in the same secure storage for the Jina AI research provider.
+## 💾 Data Storage & Privacy
 
-**Web mode:** copy `.env.example` to `.env` and set `VENICE_API_KEY`. Jina AI works without authentication in web mode (free tier); key storage is desktop-only.
+| Data Type | Location | Encryption |
+|-----------|----------|------------|
+| **API Keys** (Desktop) | OS Keychain (macOS) / DPAPI (Windows) | OS-level (encrypted at rest) |
+| **Logs** | Application support dir | Plain text (disk only) |
+| **Chats** (Desktop) | `chat-history/*.json` | Plain text (encryption planned) |
+| **Settings, Images, Conversations** | Renderer IndexedDB | AES-GCM (browser-managed key) |
+| **Exports** | User-specified location | Versioned JSON (same as storage) |
 
-### Optional Environment Variables
+**Import/Export Notes:**
+- Validation: JSON schema and size checks (max 25 MB)
+- Merging: By ID (never clears existing data)
+- Privacy: Secret-like fields are automatically stripped before export
+- Safety: A backup is always saved before import
 
-| Variable | Purpose |
-|----------|---------|
-| `VENICE_FORGE_ALLOW_PLAINTEXT_KEY_STORAGE` | Allow plaintext fallback when OS secure storage is unavailable (Linux/non-GNOME only). **Warning:** reduces security. |
-| `VENICE_FORGE_DEBUG_DEVTOOLS` | Allow DevTools in packaged production builds. Only enable for debugging. |
-| `NODE_ENV` | Runtime environment (`development`, `production`, `test`). Defaults to `development`. |
-| `VENICE_TIMEOUT_MS` | Deprecated alias for `VENICE_API_TIMEOUT_MS`. Still accepted as fallback. |
+**Web Mode Only:** API keys are never stored locally; they live in `.env` on the server and are not accessible to the renderer.
 
-```
-VENICE_API_KEY="your-venice-inference-key"
-```
+---
 
-## Storage
+## 🔒 Security & Privacy
 
-| Data | Location |
-|------|----------|
-| API keys | Electron `safeStorage` — Win: `%APPDATA%\Venice Forge\secure-prefs.json`<br>Mac: `~/Library/Application Support/Venice Forge/secure-prefs.json` |
-| Logs | Win: `%APPDATA%\Venice Forge\logs\venice-forge.log`<br>Mac: `~/Library/Application Support/Venice Forge/logs/venice-forge.log` |
-| Conversations (desktop) | `~/Library/Application Support/Venice Forge/chat-history/*.json` (macOS)<br>`%APPDATA%\Venice Forge\chat-history\*.json` (Windows) |
-| Images, legacy chats, settings, conversations, diagnostics | Renderer IndexedDB |
-| Exports | Versioned JSON with `version`, `exportedAt`, `appVersion`, and `data` |
+**Core Security Principles:**
+1. **API key isolation** — Renderer cannot access raw keys (stored in OS secure storage)
+2. **Venice endpoint allowlist** — Only 7 approved Venice endpoints are callable
+3. **Content safety guard** — Every outgoing request is scanned for unsafe content before leaving the app
+4. **No telemetry** — Venice Forge collects zero analytics or tracking data
+5. **Trusted URL validation** — External links must be HTTPS with non-private hostnames
 
-Import validates JSON size and schema, rejects unexpected stores, strips secret-like fields, and merges by ID rather than clearing existing data. API keys are never imported or exported. A backup of existing data is saved to disk before any import is applied.
+**Content Safety:**
+- Advanced context detection and `negative_prompt` extraction
+- Scanned at: renderer layer, Electron IPC layer, and Express proxy
+- Fail-close design: errors result in 500 status (safe default)
+- Raw prompt text is never logged anywhere
 
-## Security Model
+**For full details**, see [SECURITY.md](SECURITY.md) and [PRIVACY.md](PRIVACY.md).
 
-Desktop Venice API calls go through a narrow preload API and main-process IPC transport. The renderer cannot read the raw API key, cannot invoke arbitrary IPC channels, and cannot choose arbitrary Venice endpoints. Allowed endpoints:
+---
 
-- `GET /models`
-- `POST /chat/completions`
-- `POST /image/generate`
-- `POST /image/upscale`
-- `POST /augment/search`
-- `POST /augment/scrape`
-- `POST /augment/text-parser`
+## 🎨 Theming
 
-**Content safety screening** runs on every outgoing Venice request before the payload leaves the app — at the renderer transport layer (`veniceClient.ts`), the Electron main process (IPC layer), and the Express web proxy. All prompt-sending UI modules also call the guard before invoking `veniceFetch`. Requests that fail the content assessment are blocked or surfaced to the user without being forwarded. The guard implements advanced features including cross-sentence context detection and `negative_prompt` extraction. The proxy operates on a "fail-close" design (returning a 500 status) if the guard encounters any extraction errors. Raw prompt text is strictly never logged.
+Venice Forge includes a full token-based theme system:
 
-**External URL trust** — `shell.openExternal` only allows `https:` URLs with non-private hostnames. RFC 1918 addresses (10.x, 192.168.x, 172.16–31.x), loopback (127.x, `localhost`, `0.0.0.0`), and `::1` are blocked even if the scheme is HTTPS.
+- **3 built-in palettes:** Forge Graphite, Forge Daylight, Forge Copper
+- **Live theme editor:** Open **Config** → **Appearance** → **Theme Maker** to customize in real time
+- **Persistent storage:** Custom themes are saved to encrypted IndexedDB and persist across sessions
 
-Production CSP does not allow localhost networking. Navigation is blocked except for the app files; trusted external HTTPS links open in the OS browser. Packaged production DevTools are disabled unless `VENICE_FORGE_DEBUG_DEVTOOLS=true`. Web proxy mode adds `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and `Content-Security-Policy` headers to all responses.
+See [docs/THEME_SYSTEM.md](docs/THEME_SYSTEM.md) for complete theming guide and token reference.
 
-Read our full [Privacy & Security Model](PRIVACY.md) and the technical [SECURITY.md](SECURITY.md) for more details.
+---
 
-## Trademark and Brand Notice
+## ❓ Troubleshooting
 
-Venice Forge is an unofficial, third-party desktop client for the Venice API.
+| Symptom | Solution |
+|---------|----------|
+| **Missing icon** | `npm run generate:icon && npm run verify:icon` |
+| **Packaging fails** | `npm run clean && npm install && npm run build && npm run dist:win` |
+| **SmartScreen/Gatekeeper warning** | Expected for unsigned local builds; sign before release |
+| **No API key prompt** | Manually open **Config**, save a key, test connection |
+| **Chat history not loading** | Check chat-history folder (see Storage section); corrupted files are backed up as `.backup-{timestamp}` |
+| **`400` on chat/image requests** | Verify model ID is valid and all parameters are correct strings |
+| **`401` / `403` errors** | Check that your API key is valid and has proper scope |
+| **`429` rate limit** | Wait for reset period (shown in **Diagnostics** tab) |
+| **Transport/connection failure** | Open **Diagnostics**, copy debug info, check logs folder |
 
-This project is not affiliated with, endorsed by, sponsored by, approved by, maintained by, or certified by Venice.ai, Inc. "Venice", "Venice.ai", the Venice wordmark, the Venice seal, the Venice keys mark, the Venice lockup, and related marks are trademarks or trade dress of Venice.ai, Inc.
+For more help, see [docs/DEVELOPMENT/troubleshooting.md](docs/DEVELOPMENT/troubleshooting.md) or open an issue.
 
-Use of Venice names and marks in this project is solely for nominative identification of API compatibility and provider integration. Official Venice brand assets remain the property of Venice.ai, Inc. and are not owned by this project.
+---
 
-This project's MIT License applies to this project's original code and documentation unless otherwise noted. It does not grant rights to Venice.ai trademarks, trade dress, logos, wordmarks, brand assets, API terms, or third-party materials.
+## 📚 Documentation
 
-Before using this app with the Venice API, review:
+All documentation is in the [docs](docs/) directory. Quick index:
 
-- [Venice Terms of Service](https://venice.ai/legal/tos)
-- [Venice Privacy Policy](https://venice.ai/legal/privacy)
-- [Venice API Documentation](https://docs.venice.ai)
-- [Venice Brand Guidelines](https://venice.ai/brand)
+### Getting Started
+- **[docs/ABOUT.md](docs/ABOUT.md)** — Architecture overview, dual-mode design, security model
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** — How to contribute and code standards
+- **[docs/FAQ.md](docs/FAQ.md)** — Frequently asked questions
 
-## Reporting Unsafe Content & CSAM
+### Development
+- **[docs/DEVELOPMENT/building.md](docs/DEVELOPMENT/building.md)** — Build system, Vite, Electron, esbuild
+- **[docs/DEVELOPMENT/platform-support.md](docs/DEVELOPMENT/platform-support.md)** — Platform requirements and support matrix
+- **[docs/DEVELOPMENT/troubleshooting.md](docs/DEVELOPMENT/troubleshooting.md)** — Common dev issues
+- **[docs/DEVELOPMENT/macos.md](docs/DEVELOPMENT/macos.md)** — macOS-specific notes
 
-If you encounter unsafe content, safety guard bypasses, or AI-generated material that inappropriately represents minors (CSAM), report it immediately:
-1. **NCMEC CyberTipline**: If the material involves child exploitation, report it directly to the [National Center for Missing & Exploited Children (NCMEC)](https://report.cybertip.org/).
-2. **Venice.ai Trust & Safety**: Report the incident to Venice.ai through their official support channels at [venice.ai/support](https://venice.ai/support).
-3. **Repository Maintainers**: Report bypasses of the Venice Forge safety guard using GitHub's private vulnerability reporting feature in this repository.
+### Release & Deployment
+- **[docs/RELEASE/release.md](docs/RELEASE/release.md)** — Release process and checklist
+- **[docs/RELEASE/signing-and-notarization.md](docs/RELEASE/signing-and-notarization.md)** — Code signing for Windows/macOS
+- **[CHANGELOG.md](CHANGELOG.md)** — Version history and breaking changes
 
-## Legal and Terms
+### Reference
+- **[docs/THEME_SYSTEM.md](docs/THEME_SYSTEM.md)** — Token-based theming architecture
+- **[docs/REPOSITORY_TREE.md](docs/REPOSITORY_TREE.md)** — Full repository structure and ownership
+- **[docs/RESEARCH_PROVIDERS.md](docs/RESEARCH_PROVIDERS.md)** — Web research provider guide
+- **[docs/JINA_PROVIDER.md](docs/JINA_PROVIDER.md)** — Jina AI configuration and limits
+- **[docs/PUBLIC_PROFILE_DISCOVERY.md](docs/PUBLIC_PROFILE_DISCOVERY.md)** — Public profile discovery feature
 
-Venice Forge is an **independent, unofficial, third-party** open-source client for the Venice API. It is **not endorsed by, sponsored by, or affiliated with** Venice.ai, Inc.
+### Legal & Governance
+- **[SECURITY.md](SECURITY.md)** — Security policy and vulnerability disclosure
+- **[docs/LEGAL.md](docs/LEGAL.md)** — Legal terms, disclaimers, and TOS
+- **[PRIVACY.md](PRIVACY.md)** — Privacy policy and data handling
+- **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** — Community standards
+- **[SUPPORT.md](SUPPORT.md)** — Support channels and issue routing
 
-Users are responsible for complying with the current [Venice Terms of Service](https://venice.ai/legal/tos), [Venice privacy information](https://venice.ai/privacy), and [Venice API documentation](https://docs.venice.ai/) when using their own API keys.
+---
 
-See [docs/LEGAL.md](docs/LEGAL.md) for the public-readiness legal notes, trademark notice, brand-compliance details, privacy limits, and release disclaimers.
+## ⚖️ Legal & Trademark
 
-## Troubleshooting
+**Venice Forge** is an unofficial, independent, third-party client for the Venice API and is **not affiliated with, endorsed by, or maintained by Venice.ai, Inc.**
 
-| Symptom | Fix |
-|---------|-----|
-| Missing icon | `npm run generate:icon` then `npm run verify:icon` |
-| Packaging failure | `npm run clean && npm install && npm run dist:win` |
-| SmartScreen/Gatekeeper warning | Expected for unsigned local builds; see [docs/RELEASE/release.md](docs/RELEASE/release.md) for signing |
-| No API key prompt at launch | Open **Config**, save a key, then test connection |
-| Chat history not loading | Check the chat-history folder (see Storage above). Corrupted files are renamed to `.backup-{timestamp}` and skipped. |
-| `400` on chat/image | Usually a request schema mismatch — ensure the model ID is valid and all API parameters are correct strings |
-| `401` / `403` | Invalid key or insufficient key scope |
-| `429` | Venice rate limit; wait for the reset period shown in the Status tab |
-| Transport failure | Open **Status**, copy diagnostics, inspect the logs folder |
+- Venice names and marks are used solely for nominative identification of API compatibility
+- Official Venice brand assets remain the property of Venice.ai, Inc.
+- This project's MIT License covers only the original code and documentation herein
+- It does **not** grant rights to Venice.ai trademarks, brand assets, API terms, or third-party materials
 
-## Theme System
+**Before using Venice Forge:**
+- Review [Venice Terms of Service](https://venice.ai/legal/tos)
+- Review [Venice Privacy Information](https://venice.ai/privacy)
+- Review [Venice API Documentation](https://docs.venice.ai)
 
-Venice Forge includes a full token-based theme system with three built-in palettes (Forge Graphite, Forge Daylight, Forge Copper) and a live theme editor. Open **Config → Appearance → Theme Maker** to customize colors, preview changes in real time, and save custom themes. Themes persist across restarts via encrypted IndexedDB storage.
+**Full legal terms** are in [docs/LEGAL.md](docs/LEGAL.md).
 
-## Known Limitations
+---
 
-- Auto-updates are fetched securely via GitHub Releases.
-- Release signing is optional and not required for local builds.
-- IndexedDB records are encrypted with a browser-managed AES-GCM key stored in same-origin IndexedDB. This reduces casual local inspection risk but is not equivalent to OS credential storage and does not protect against malware, XSS, same-origin compromise, browser profile compromise, or a compromised OS user. Export before risky upgrades.
-- Malware running as the same OS user is out of scope and may access user data or process memory.
+## ⚠️ Reporting Safety Issues & CSAM
 
-## Further Reading
+If you encounter unsafe content, safety guard bypasses, or AI-generated material that inappropriately represents minors (CSAM):
 
-- [docs/ABOUT.md](docs/ABOUT.md) — Project background and architecture
-- [SECURITY.md](SECURITY.md) — Full security model
-- [docs/RELEASE/release.md](docs/RELEASE/release.md) — Release checklist
-- [docs/LEGAL.md](docs/LEGAL.md) — Legal, TOS, and public release notes
-- [docs/REPOSITORY_TREE.md](docs/REPOSITORY_TREE.md) — Repository structure and ownership map
-- [SUPPORT.md](SUPPORT.md) — Support and issue routing
-- [CHANGELOG.md](CHANGELOG.md) — Version history
-- [CONTRIBUTING.md](CONTRIBUTING.md) — How to contribute
-- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) — Community standards
+1. **NCMEC CyberTipline** (for child exploitation): [report.cybertip.org](https://report.cybertip.org/)
+2. **Venice.ai Trust & Safety**: [venice.ai/support](https://venice.ai/support)
+3. **Venice Forge Maintainers** (for app vulnerabilities): Use GitHub private vulnerability reporting in this repo
+
+---
+
+## 📈 Known Limitations
+
+- **Auto-updates** are fetched securely via GitHub Releases
+- **Release signing** is optional for local builds
+- **IndexedDB encryption** uses a browser-managed AES-GCM key (reduces casual inspection risk but does not protect against malware, XSS, browser compromise, or same-user OS malware)
+- **Malware within the OS user scope** is out of scope (may access process memory)
+- **Linux packaging** is not officially maintained (contributions welcome!)
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Please read [CONTRIBUTING.md](CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) first.
+
+This project is actively maintained. For issues, feature requests, or security reports:
+- **Issues:** [GitHub Issues](https://github.com/spearchucker667/Venice-API-connector/issues)
+- **Security:** Use [GitHub private vulnerability reporting](https://github.com/spearchucker667/Venice-API-connector/security/advisories)
+- **Support:** [SUPPORT.md](SUPPORT.md)
+
+---
+
+## 📋 Project Status
+
+| Aspect | Status |
+|--------|--------|
+| Current Version | v1.0.3 ([Releases](https://github.com/spearchucker667/Venice-API-connector/releases)) |
+| Maintenance | Actively maintained |
+| Windows Support | ✅ Fully supported |
+| macOS Support | ✅ Fully supported (Intel + Apple Silicon) |
+| Linux Support | 🔧 Development-only (packaging not maintained) |
+| Node.js | v20, v22 |
+| TypeScript | Strict mode enforced |
+| Safety Guard | ✅ Active on every request |
+| License | [MIT](LICENSE) |
+
+Latest changes: See [CHANGELOG.md](CHANGELOG.md)
+
+---
+
+## 🎯 Roadmap & TODO
+
+Active development tracked in [TODO.md](TODO.md). Current focus:
+
+- Fixing remaining security and robustness issues
+- Expanding test coverage
+- Improving documentation and UX polish
+- Community contributions
+
+See [TODO.md](TODO.md) for the full list of open and completed items.
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
+
+**Exception:** Venice Forge does not grant rights to Venice.ai trademarks, logos, or brand assets. For Venice brand guidelines, see [venice.ai/brand](https://venice.ai/brand).
+
+---
+
+## 🙏 Acknowledgments
+
+Built with:
+- [React 19](https://react.dev/)
+- [Electron 42](https://www.electronjs.org/)
+- [Vite 6](https://vitejs.dev/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Tailwind CSS](https://tailwindcss.com/)
+
+Powered by [Venice API](https://docs.venice.ai/).
+
+---
+
+## 📞 Quick Links
+
+- **Official releases:** [GitHub Releases](https://github.com/spearchucker667/Venice-API-connector/releases)
+- **Issues & discussions:** [GitHub Issues](https://github.com/spearchucker667/Venice-API-connector/issues)
+- **CI/CD status:** [GitHub Actions](https://github.com/spearchucker667/Venice-API-connector/actions)
+- **Venice.ai:** [venice.ai](https://venice.ai) | [Docs](https://docs.venice.ai) | [API](https://api.venice.ai)
+
+---
+
+**Made with ❤️ by the Venice Forge community. Not affiliated with Venice.ai, Inc.**
