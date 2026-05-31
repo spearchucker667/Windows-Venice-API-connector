@@ -218,6 +218,7 @@ export async function saveConversation(conversation: Conversation): Promise<{ ok
     await fs.rename(tempPath, filePath);
     return { ok: true };
   } catch (err) {
+    await fs.unlink(tempPath).catch(() => undefined);
     const message = err instanceof Error ? err.message : String(err);
     logError("Failed to write conversation file", { path: filePath, error: message });
     return { ok: false, error: message };

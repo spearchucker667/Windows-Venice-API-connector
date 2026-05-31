@@ -341,20 +341,24 @@ export function registerIpcHandlers(): void {
       if (!isAllowed) {
         return { ok: false, error: "File must be inside Downloads or Documents." };
       }
-      const stat = await fs.stat(resolved).catch(() => null);
-      if (!stat) {
-        return { ok: false, error: "File not found." };
-      }
-      if (!stat.isFile()) {
-        return { ok: false, error: "Not a regular file." };
-      }
-      // 256 KiB cap for text attachments
+      // Open first, then fstat the same file descriptor to prevent TOCTOU between
+      // the stat and read calls (a symlink or file swap between those steps is blocked).
       const MAX_TEXT_ATTACHMENT_BYTES = 256 * 1024;
-      if (stat.size > MAX_TEXT_ATTACHMENT_BYTES) {
-        return { ok: false, error: `File too large (${stat.size} bytes). Max: ${MAX_TEXT_ATTACHMENT_BYTES} bytes.` };
+      let fh: Awaited<ReturnType<typeof fs.open>> | null = null;
+      try {
+        fh = await fs.open(resolved, "r");
+        const stat = await fh.stat();
+        if (!stat.isFile()) {
+          return { ok: false, error: "Not a regular file." };
+        }
+        if (stat.size > MAX_TEXT_ATTACHMENT_BYTES) {
+          return { ok: false, error: `File too large (${stat.size} bytes). Max: ${MAX_TEXT_ATTACHMENT_BYTES} bytes.` };
+        }
+        const content = await fh.readFile({ encoding: "utf-8" });
+        return { ok: true, content };
+      } finally {
+        await fh?.close().catch(() => undefined);
       }
-      const content = await fs.readFile(resolved, { encoding: "utf-8" });
-      return { ok: true, content };
     } catch (err) {
       return { ok: false, error: redactErrorMessage(err) };
     }

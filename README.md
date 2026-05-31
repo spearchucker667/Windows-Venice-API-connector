@@ -54,8 +54,8 @@ Eight integrated tabs covering chat, image generation, batch automation, researc
 | 📋 | **Batch** | Automate: run one prompt across many inputs, or chain multiple prompts in sequence |
 | 🔍 | **Research** | Web search via Venice or Jina AI, page scraping, research synthesis, and public-profile discovery |
 | 📚 | **Catalog** | Browse live Venice model catalog with capability details; auto-refresh on API key save |
-| 🏞️ | **Library** | Local image library with download, upscale, export, and conversation history |
-| ⚙️ | **Config** | API key management, theme editor (Forge Graphite, Daylight, Copper), model defaults, data import/export |
+| 🏞️ | **Library** | Local image gallery, saved chat files, and conversation history — with bulk download and upscale |
+| ⚙️ | **Config** | API key management, theme editor (Forge Graphite, Daylight, Copper, Dracula), model defaults, data import/export |
 | 📊 | **Diagnostics** | Transport mode, runtime info, rate-limit headers, and log viewer |
 
 ---
@@ -188,7 +188,7 @@ For detailed signing and notarization steps, see [docs/RELEASE/signing-and-notar
 | **API Keys** (Desktop) | OS Keychain (macOS) / DPAPI (Windows) | OS-level (encrypted at rest) |
 | **Logs** | Application support dir | Plain text (disk only) |
 | **Chats** (Desktop) | `chat-history/*.json` | Plain text (encryption planned) |
-| **Settings, Images, Conversations** | Renderer IndexedDB | AES-GCM (browser-managed key) |
+| **Settings, Images, Conversations, Memories, Files** | Renderer IndexedDB | AES-GCM (browser-managed key) |
 | **Exports** | User-specified location | Versioned JSON (same as storage) |
 
 **Import/Export Notes:**
@@ -224,7 +224,7 @@ For detailed signing and notarization steps, see [docs/RELEASE/signing-and-notar
 
 Venice Forge includes a full token-based theme system:
 
-- **3 built-in palettes:** Forge Graphite, Forge Daylight, Forge Copper
+- **4 built-in palettes:** Forge Graphite, Forge Daylight, Forge Copper, Forge Dracula
 - **Live theme editor:** Open **Config** → **Appearance** → **Theme Maker** to customize in real time
 - **Persistent storage:** Custom themes are saved to encrypted IndexedDB and persist across sessions
 

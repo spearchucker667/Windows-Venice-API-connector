@@ -149,4 +149,32 @@ describe("veniceFetch rate-limit handling", () => {
     await expect(request).resolves.toMatchObject({ data: { data: [] } });
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
+
+  it("respects Retry-After as HTTP-date on 429 and retries", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const dispatch = vi.fn() as unknown as AppDispatch;
+    // Set a Retry-After date 2 seconds in the future
+    const retryDate = new Date(Date.now() + 2000).toUTCString();
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ error: "rate limited" }), {
+          status: 429,
+          headers: { "content-type": "application/json", "retry-after": retryDate },
+        })
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ data: [] }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        })
+      );
+    globalThis.fetch = fetchMock;
+
+    const request = veniceFetch("/models", { method: "GET", dispatch });
+    await vi.advanceTimersByTimeAsync(3000);
+
+    await expect(request).resolves.toMatchObject({ data: { data: [] } });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
 });

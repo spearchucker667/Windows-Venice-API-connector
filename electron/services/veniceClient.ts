@@ -288,6 +288,12 @@ export async function performVeniceRequest(
             contentType,
           });
         });
+
+        res.on("error", (err) => {
+          setLastApiError("Venice response stream error.");
+          logError("Venice response stream error", err);
+          reject(new Error("Venice response stream error."));
+        });
       }
     );
 

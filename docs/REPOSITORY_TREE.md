@@ -116,7 +116,11 @@ This document is the public map for the Venice Forge repository. It reflects the
 ├── SECURITY.md
 ├── SUPPORT.md
 ├── TODO.md
-├── AUDIT_REPORT_2026-05-31.md
+├── DISCLAIMER.md
+├── NOTICE.md
+├── PRIVACY.md
+├── TRADEMARKS.md
+├── THIRD_PARTY_NOTICES.md
 ├── AGENTS.md
 ├── .cursorrules
 ├── .windsurfrules
@@ -153,14 +157,18 @@ This document is the public map for the Venice Forge repository. It reflects the
 |------|-------|
 | `src/modules/` | One file per app tab: chat, image generation, batch, research, models, gallery, settings, diagnostics |
 | `src/components/` | Reusable UI primitives and feature components |
-| `src/services/veniceClient.ts` | Only renderer entry point for Venice API calls |
+| `src/services/veniceClient.ts` | Only renderer entry point for Venice API calls; `veniceFetch` + `veniceStreamChat` with retry, deduplication, safety guard |
 | `src/services/desktopBridge.ts` | Electron-vs-web transport abstraction |
-| `src/services/storageService.ts` | IndexedDB persistence for images, chats, settings, diagnostics, and conversations (5 stores; 4 encrypted — diagnostics intentionally excluded) |
+| `src/services/storageService.ts` | IndexedDB persistence for 7 stores: `images`, `chats`, `settings`, `conversations`, `ai_memory`, `files` (all encrypted AES-GCM) plus unencrypted `diagnostics` |
 | `src/services/chatStorage.ts` | Unified conversation storage abstraction (IPC in Electron, IndexedDB in web) |
 | `src/services/cryptoService.ts` | AES-GCM encryption for IndexedDB records |
+| `src/services/memoryService.ts` | Persistent memory layer backed by encrypted `ai_memory` IndexedDB store; `saveMemory`, `searchMemory`, `selectMemoriesForInjection` (2 KB budget) |
+| `src/services/attachmentService.ts` | File/URL/image attachment reading, downscaling, and context assembly; enforces 256 KiB per-file and 1 MiB total limits |
+| `src/services/imageWorkflowService.ts` | Save image records to IndexedDB and refresh gallery state via `saveImageRecord`/`refreshGallery` |
+| `src/services/modelService.ts` | Model list fetching and caching |
+| `src/services/redaction.ts` | `redactSecrets` and `redactErrorMessage` — scrub API keys, Bearer tokens, and Venice key patterns before logging |
 | `electron/services/chatStorage.ts` | Main-process filesystem storage for conversations (atomic writes, corruption recovery) |
 | `src/services/exportImport.ts` | Versioned JSON export/import with secret redaction |
-| `src/services/veniceClient.ts` | Renderer-side Venice API client with retry, deduplication, and safety guard enforcement |
 | `src/shared/validation.ts` | Allowed Venice endpoint and method list |
 | `src/theme/validateColor.ts` | Safe CSS color validation for theme tokens (prevents injection via `url(...)`) |
 | `public/bootstrap-theme.js` | Early theme bootstrap loaded before React mounts; validates token values before applying |
@@ -172,6 +180,12 @@ This document is the public map for the Venice Forge repository. It reflects the
 | `electron/services/secureStore.ts` | OS-encrypted API key persistence (Venice + Jina keys) |
 | `electron/services/veniceClient.ts` | Main-process HTTPS client for `api.venice.ai` |
 | `electron/utils/urlSecurity.ts` | `isTrustedExternalUrl` and `isPrivateHostname` — pure hostname check, RFC 1918 + loopback blocking, no DNS |
+| `src/utils/payloadBuilders.ts` | `buildChatPayload` and `ChatMessageContent` — constructs Venice chat payloads with optional memory block and vision content parts |
+| `src/utils/image.ts` | `extractImages` — normalises Venice image API responses; handles all response shapes and deduplicates results |
+| `src/utils/veniceValidation.ts` | Input validation utilities for Venice API parameters |
+| `src/types/attachment.ts` | Attachment type definitions (`file`, `url`, `image` variants) |
+| `src/types/conversation.ts` | `Conversation` interface with optional fork lineage fields (`parentConversationId`, `forkedFromMessageIds`) |
+| `src/constants/venice.ts` | Store names, DB version, vision model allowlist/patterns, attachment size limits, `modelSupportsVision()` |
 
 ## Generated and Ignored Output
 

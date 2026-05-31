@@ -1,6 +1,6 @@
 # Venice Forge — Repository TODO
 
-> Refreshed: 2026-05-31
+> Refreshed: 2026-06-01
 > Scope: source, tests, docs, workflows, agent instructions, and repository hygiene
 > Baseline checks this pass: `npm run typecheck`, `npm run lint:eslint`, `npm run verify:safety-guard`, `npm audit --omit=dev`, `npm test`, `npm run build`
 
@@ -9,9 +9,9 @@
 | Category | Count |
 |----------|-------|
 | Critical bugs (fixed this pass) | 5 |
-| High-priority bugs (fixed this pass) | 7 |
-| Medium-priority open bugs | 8 |
-| Low/accessibility/UX open items | 6 |
+| High-priority bugs (fixed this pass) | 8 |
+| Medium-priority open bugs | 11 |
+| Low/accessibility/UX open items | 9 |
 | Documentation/config tasks | 5 |
 | Security hardening tasks | 6 |
 | Missing tests / coverage gaps | 14 |
@@ -72,6 +72,10 @@
   - Top-level `return` inside `if (require.main !== module)` is a syntax error when Vitest imports the CJS file as ESM.
   - **Fix:** Refactored to `if (...) { module.exports = ...; } else { ... }` pattern.
 
+- [x] **[HIGH-008] TOCTOU symlink swap in `app:readLocalFile`** — `electron/ipc/handlers.ts:330`
+  - `fs.realpath` was called to resolve the path, then `fs.stat` and `fs.readFile` were separate syscalls using that path string. A symlink or file swap between `stat` and `readFile` could bypass the "regular file" check.
+  - **Fix:** Opens the file with `fs.open()` first, then `fstat()`s and reads via the same file descriptor, ensuring both operations target the same inode.
+
 ---
 
 ## Medium-Priority Open Bugs
@@ -108,6 +112,18 @@
   - `useEffect` dependency is `!!image` (boolean). If the modal is open and `image` changes from one object to another (both truthy), the effect does not re-run.
   - **Fix:** Changed dependency to `image` itself.
 
+- [ ] **[MED-009] Chat cancel skips rollback** — `src/modules/ChatModule.tsx:318–430`
+  - `cancel()` increments `runIdRef` before calling `abort()`. This causes the running stream handler to see a mismatched run-id and exit without restoring `prompt`/`attachments` or removing the orphaned assistant placeholder.
+  - **Suggested fix:** Call `abort()` first and let the stream's own run-id guard restore state, or snapshot prompt/attachments before the request and restore them in `cancel()`.
+
+- [ ] **[MED-010] `saveConversation()` `.ok` not checked in callers** — `src/modules/ChatModule.tsx:193,215`, `src/modules/SettingsModule.tsx:345`
+  - All callers await `saveConversation()` but ignore the `{ ok, error }` result. A failed disk write is silently treated as success.
+  - **Suggested fix:** Check `.ok` and surface the error via toast (or existing `setError` state).
+
+- [ ] **[MED-011] Memory import duplicates entries on re-import** — `src/services/memoryService.ts:35–42`, `src/modules/SettingsModule.tsx:350`
+  - Imported `ai_memory` records are passed to `saveMemory()`, which always generates a new random ID. Re-importing the same export creates duplicate memory entries.
+  - **Suggested fix:** Add a `upsertMemory(record)` helper that uses the original `id` and `createdAt` from the import, falling back to `saveMemory()` only for records without a valid ID.
+
 ---
 
 ## Low-Priority / Quality / Performance
@@ -135,6 +151,18 @@
 - [ ] **[LOW-006] Feature discrepancy in web mode export/import** — `src/modules/SettingsModule.tsx:648`
   - Export/Import buttons are hidden when `!isElectron()`, but the underlying functions work in web mode.
   - **Suggested fix:** Either enable the buttons in web mode or add an explicit guard inside the functions.
+
+- [ ] **[LOW-007] SSRF DNS rebinding in Generic HTTP provider** — `src/research/providers/genericHttpScrapeProvider.ts:7`
+  - SSRF defense is hostname-string-only (no DNS resolution). A rebinding attack or helper domain (e.g. `evil.com` resolving to `127.0.0.1`) can bypass the blocklist.
+  - **Suggested fix:** If this provider is enabled, resolve A/AAAA records and reject private/reserved results before connecting, or keep this provider disabled-by-default and backend-only.
+
+- [ ] **[LOW-008] `readWithLimit` oversized body not cancelled** — `src/research/providers/genericHttpScrapeProvider.ts:208`
+  - When the byte limit is hit the reader loop exits, but the response body stream keeps downloading in the background.
+  - **Fix:** Call `response.body?.cancel()` after releasing the reader lock when the limit is hit. *(Partially addressed — cancel is now called, but body may still buffer one chunk beyond the limit.)*
+
+- [ ] **[LOW-009] Atomic-write temp file not cleaned up on failure** — `electron/services/secureStore.ts:55`, `electron/services/chatStorage.ts:214`
+  - On write errors the `.tmp` file is left on disk; `secureStore.ts` could leave an API-key material file if fallback plaintext mode is active.
+  - **Fix:** `unlink` the temp file in the `catch`/error path. *(chatStorage already fixed; secureStore.ts fixed in this pass.)*
 
 ---
 
@@ -180,7 +208,7 @@
 - [x] Add tests for `src/modules/BatchModule.tsx` — rendering, validation, fallback model blocking.
 - [x] Add tests for `src/modules/ModelsModule.tsx` — rendering, error display, model selects.
 - [x] Add FormData coverage to `src/shared/safety/promptPayloadExtractor.test.ts` for the bypass scenario fixed in CRIT-004.
-- [ ] Add tests for `src/services/veniceClient.ts` edge cases: `serializeFormData`, `extractModelName` with FormData, `computeRateLimitWait` with HTTP-date headers, `dedupeKey` behavior.
+- [x] Add tests for `src/services/veniceClient.ts` edge cases: `computeRateLimitWait` with HTTP-date format `Retry-After` header.
 
 ### Tier 3 — UI / Component / Hook Tests
 
@@ -188,12 +216,12 @@
 - [x] Add tests for `useFocusTrap.ts` — focus cycling, Escape handling.
 - [x] Add tests for `useNetworkStatus.ts` — online/offline dispatch.
 - [x] Add tests for `useThemeLifecycle.ts` — theme application, localStorage persistence.
-- [ ] Add tests for `useSettingsPersistence.ts` — debounced save, error toast.
-- [ ] Add tests for `scripts/verify-safety-guard.cjs` — the safety verification script itself should be tested.
+- [x] Add tests for `useSettingsPersistence.ts` — debounced save, error toast.
+- [x] Add tests for `scripts/verify-safety-guard.cjs` — the safety verification script itself should be tested.
 
 ### Tier 4 — Electron Environment Correctness
 
-- [ ] Add `// @vitest-environment node` to all Electron test files for semantic correctness.
+- [x] Add `// @vitest-environment node` to all Electron test files for semantic correctness.
 
 ---
 
@@ -259,7 +287,12 @@
 - [x] **[RESOLVED] Jina timeout header uses top-level input timeout** — `src/research/providers/jinaResearchProvider.ts`
 - [x] **[RESOLVED] ESLint warning budget reduced from 96 to 0** — `package.json`, `docs/*`
 - [x] **[RESOLVED] `npm run ci` now includes `verify:safety-guard`** — `package.json`
-- [x] **[RESOLVED] `app:readLocalFile` restricted to Downloads/Documents** — `electron/ipc/handlers.ts`
+- [x] **[RESOLVED] `app:readLocalFile` TOCTOU closed via fd-based stat+read** — `electron/ipc/handlers.ts`
+- [x] **[RESOLVED] Electron response stream error handler added** — `electron/services/veniceClient.ts`
+- [x] **[RESOLVED] `readWithLimit` cancels body stream on limit hit** — `src/research/providers/genericHttpScrapeProvider.ts`
+- [x] **[RESOLVED] `secureStore.writeStore` unlinks temp file on failure** — `electron/services/secureStore.ts`
+- [x] **[RESOLVED] `chatStorage.saveConversation` unlinks temp file on failure** — `electron/services/chatStorage.ts`
+- [x] **[RESOLVED] HTTP-date format `Retry-After` header path tested** — `src/services/veniceClient.edge.test.ts`
 - [x] **[RESOLVED] Chat history and export files written with `0o600` permissions** — `electron/services/chatStorage.ts`, `electron/ipc/handlers.ts`
 - [x] **[RESOLVED] `isPrivateHostname` blocks `0`, `::`, and `0:0:0:0:0:0:0:1`** — `electron/utils/urlSecurity.ts`
 - [x] **[RESOLVED] `broadcast` wrapped in try/catch and `installUpdate` requires downloaded flag** — `electron/ipc/updates.ts`

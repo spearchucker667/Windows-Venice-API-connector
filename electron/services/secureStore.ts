@@ -53,13 +53,18 @@ function readStore(): Record<string, string> {
 function writeStore(data: Record<string, string>): void {
   const storePath = getStorePath();
   const tempPath = `${storePath}.tmp`;
-  fs.writeFileSync(tempPath, JSON.stringify(data, null, 2), {
-    encoding: "utf-8",
-    // Restrict file to owner read/write only on POSIX systems.
-    // Ignored on Windows (which uses ACLs via NTFS / DPAPI instead).
-    mode: 0o600,
-  });
-  fs.renameSync(tempPath, storePath);
+  try {
+    fs.writeFileSync(tempPath, JSON.stringify(data, null, 2), {
+      encoding: "utf-8",
+      // Restrict file to owner read/write only on POSIX systems.
+      // Ignored on Windows (which uses ACLs via NTFS / DPAPI instead).
+      mode: 0o600,
+    });
+    fs.renameSync(tempPath, storePath);
+  } catch (err) {
+    try { fs.unlinkSync(tempPath); } catch { /* ignore cleanup errors */ }
+    throw err;
+  }
 }
 
 /** Encrypts and stores the Venice API key using OS-level encryption when possible.

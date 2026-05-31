@@ -209,6 +209,7 @@ async function readWithLimit(
   const decoder = new TextDecoder();
   let buffer = "";
   let bytesRead = 0;
+  let limitHit = false;
 
   try {
     while (bytesRead < maxBytes) {
@@ -216,10 +217,16 @@ async function readWithLimit(
       if (done) break;
       bytesRead += value.byteLength;
       buffer += decoder.decode(value, { stream: true });
-      if (bytesRead >= maxBytes) break;
+      if (bytesRead >= maxBytes) {
+        limitHit = true;
+        break;
+      }
     }
   } finally {
     reader.releaseLock();
+    if (limitHit) {
+      response.body?.cancel().catch(() => undefined);
+    }
   }
 
   // Flush any remaining buffered bytes (e.g. trailing multi-byte UTF-8 chars)
