@@ -187,6 +187,19 @@ export function extractPromptLikeFields(
     return extractFromBuffer(payload as Uint8Array, fieldNames);
   }
 
+  // Native FormData (web mode)
+  if (typeof FormData !== "undefined" && payload instanceof FormData) {
+    const results: ExtractedField[] = [];
+    for (const [key, val] of payload.entries()) {
+      if (results.length >= MAX_FIELDS) break;
+      if (DENY_FIELD_NAMES.has(key)) continue;
+      if (!fieldNames.includes("*") && !fieldNames.includes(key)) continue;
+      const strVal = typeof val === "string" ? val : "";
+      if (strVal && strVal.trim()) results.push({ path: `formData.${key}`, value: strVal.slice(0, MAX_FIELD_CHARS) });
+    }
+    return results;
+  }
+
   // Plain string
   if (typeof payload === "string") {
     const trimmed = payload.slice(0, MAX_FIELD_CHARS).trim();

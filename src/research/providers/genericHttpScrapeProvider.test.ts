@@ -98,6 +98,17 @@ describe("isSafeUrl SSRF blocklist", () => {
     expect(isSafeUrl("http://[::ffff:192.168.1.1]")).toBe(false);
     expect(isSafeUrl("http://[::ffff:8.8.8.8]")).toBe(true); // public
   });
+
+  it("blocks trailing-dot hostnames (SEC-002)", () => {
+    expect(isSafeUrl("http://localhost./")).toBe(false);
+    expect(isSafeUrl("http://127.0.0.1./")).toBe(false);
+  });
+
+  it("blocks all-zero hostnames (SEC-002)", () => {
+    expect(isSafeUrl("http://0")).toBe(false);
+    expect(isSafeUrl("http://0.0.0.0")).toBe(false);
+    expect(isSafeUrl("http://0000")).toBe(false);
+  });
 });
 
 describe("genericHttpScrapeProvider", () => {
@@ -235,5 +246,19 @@ describe("genericHttpScrapeProvider", () => {
     const provider = createGenericHttpProvider({ enabled: true });
     const result = await provider.scrape!({ url: "https://example.com" });
     expect(result.text).toBe("Before After");
+  });
+
+  it("rejects redirects to prevent SSRF bypass (SEC-001)", async () => {
+    fetchMock.mockRejectedValueOnce(new TypeError("Failed to fetch (redirect)"));
+    const provider = createGenericHttpProvider({ enabled: true });
+    await expect(
+      provider.scrape!({ url: "https://example.com/redirect" })
+    ).rejects.toThrow();
+
+    // Verify that fetch was called with redirect: 'error'
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ redirect: "error" })
+    );
   });
 });

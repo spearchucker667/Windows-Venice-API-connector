@@ -5,4 +5,4 @@ Key rules:
 - Keep Venice API traffic on the existing veniceClient, IPC, or Express proxy paths.
 - Never expose or log raw API keys or raw prompt text.
 - Every new prompt-sending path must call assessChildExploitationSafety() and recordDecision().
-- Run npm run lint:eslint, npm run typecheck, npm test, and npm run build before PR-ready changes when practical.
+- Run npm run lint:eslint, npm run typecheck, npm test, npm run verify:safety-guard, and npm run build before PR-ready changes when practical.

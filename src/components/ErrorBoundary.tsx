@@ -3,6 +3,7 @@ import { error as logError } from "../shared/logger";
 
 interface Props {
   children: ReactNode;
+  onReset?: () => void;
 }
 
 interface State {
@@ -30,7 +31,15 @@ export class ErrorBoundary extends Component<Props, State> {
           <h2 className="text-xl font-display font-semibold text-danger mb-3">Something went wrong.</h2>
           <p className="text-sm text-danger/80 mb-6">{this.state.error?.message}</p>
           <div className="flex flex-wrap gap-3">
-            <button className="btn primary" onClick={() => this.setState({ hasError: false })}>Try again</button>
+            <button
+              className="btn primary"
+              onClick={() => {
+                if (this.props.onReset) this.props.onReset();
+                this.setState({ hasError: false });
+              }}
+            >
+              Try again
+            </button>
             <button className="btn" onClick={() => window.location.reload()}>Reload application</button>
           </div>
         </div>

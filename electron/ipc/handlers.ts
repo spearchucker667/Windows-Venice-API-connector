@@ -287,7 +287,7 @@ export function registerIpcHandlers(): void {
         filters: [{ name: "JSON", extensions: ["json"] }],
       });
       if (result.canceled || !result.filePath) return { ok: false, canceled: true };
-      await fs.writeFile(result.filePath, data, "utf-8");
+      await fs.writeFile(result.filePath, data, { encoding: "utf-8", mode: 0o600 });
       return { ok: true, canceled: false };
     } catch (err) {
       return { ok: false, error: redactErrorMessage(err) };
@@ -325,16 +325,21 @@ export function registerIpcHandlers(): void {
       }
       // Resolve symlinks and normalize the path; path.resolve() already strips ".." segments
       // so a post-resolve includes("..") check is always false and provides no protection.
-      // Instead, restrict reads to paths under the user's home directory.
+      // Restrict reads to paths under Downloads or Documents to prevent exfiltration of
+      // sensitive files (SSH keys, shell history, secure storage, etc.).
       let resolved: string;
       try {
         resolved = await fs.realpath(path.resolve(filePath));
       } catch {
         return { ok: false, error: "File not found." };
       }
-      const homeDir = app.getPath("home");
-      if (resolved !== homeDir && !resolved.startsWith(homeDir + path.sep)) {
-        return { ok: false, error: "File is outside your home directory." };
+      const allowedDirs = [app.getPath("downloads"), app.getPath("documents")];
+      const isAllowed = allowedDirs.some((dir) => {
+        if (!dir) return false;
+        return resolved === dir || resolved.startsWith(dir + path.sep);
+      });
+      if (!isAllowed) {
+        return { ok: false, error: "File must be inside Downloads or Documents." };
       }
       const stat = await fs.stat(resolved).catch(() => null);
       if (!stat) {

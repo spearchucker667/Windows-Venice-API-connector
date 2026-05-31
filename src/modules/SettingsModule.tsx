@@ -12,6 +12,7 @@ import { listConversations, saveConversation } from "../services/chatStorage";
 import { listMemories, saveMemory } from "../services/memoryService";
 import { createExportPayload, validateImportJson } from "../services/exportImport";
 import { VENICE_MAX_BODY_BYTES } from "../shared/limits";
+import { validateAppSettings } from "../shared/configSchema";
 import {
   APP_NAME,
   FULL_UNOFFICIAL_NOTICE,
@@ -113,7 +114,12 @@ export function SettingsModule({ state, dispatch, apiKeyConfigured, onApiKeyChan
   }
 
   async function installUpdate() {
-    await desktopUpdates.installUpdate();
+    try {
+      await desktopUpdates.installUpdate();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Unknown install error";
+      setUpdateStatus(`Install failed: ${message}`);
+    }
   }
 
   function confirm(message: string, detail: string, action: () => Promise<void> | void) {
@@ -292,7 +298,7 @@ export function SettingsModule({ state, dispatch, apiKeyConfigured, onApiKeyChan
         listMemories(),
       ]);
       const appVersion = await desktopApp.getVersion();
-      const payload = createExportPayload({ images: images as unknown as Record<string, unknown>[], chats: chats as unknown as Record<string, unknown>[], settings, conversations: conversations as unknown as Record<string, unknown>[], ai_memory: memories as unknown as Record<string, unknown>[] }, appVersion);
+      const payload = createExportPayload({ images, chats, settings, conversations, ai_memory: memories }, appVersion);
       const ok = await desktopFiles.exportJson(
         payload,
         `venice-forge-export-${new Date().toISOString().slice(0, 10)}.json`
@@ -315,7 +321,7 @@ export function SettingsModule({ state, dispatch, apiKeyConfigured, onApiKeyChan
         listMemories(),
       ]);
       const backup = createExportPayload(
-        { images: imagesBefore as unknown as Record<string, unknown>[], chats: chatsBefore as unknown as Record<string, unknown>[], settings: settingsBefore, conversations: conversationsBefore as unknown as Record<string, unknown>[], ai_memory: memoriesBefore as unknown as Record<string, unknown>[] },
+        { images: imagesBefore, chats: chatsBefore, settings: settingsBefore, conversations: conversationsBefore, ai_memory: memoriesBefore },
         await desktopApp.getVersion()
       );
 
@@ -363,7 +369,10 @@ export function SettingsModule({ state, dispatch, apiKeyConfigured, onApiKeyChan
       const importedAppSettings = payload.data.settings.find((entry) => entry.id === "app-settings")?.value;
       const fallbackAppSettings = settings.find((entry) => entry.id === "app-settings")?.value;
       const nextSettings = importedAppSettings || fallbackAppSettings;
-      if (nextSettings) dispatch({ type: "SET_SETTINGS", settings: nextSettings });
+      if (nextSettings) {
+        const valid = validateAppSettings(nextSettings);
+        dispatch({ type: "SET_SETTINGS", settings: valid });
+      }
 
       setStatus(
         `Imported ${summary.imagesFound} images, ${summary.chatsFound} chats, ${summary.settingsFound} settings, ${summary.conversationsFound} conversations, ${summary.aiMemoryFound} memories. ` +

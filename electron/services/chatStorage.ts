@@ -127,13 +127,38 @@ function isValidConversation(value: unknown): value is Conversation {
   return c.messages.every(isValidMessage);
 }
 
+/** Type-guard for a message content part (OpenAI-style). */
+function isValidMessagePart(value: unknown): boolean {
+  if (typeof value !== "object" || value === null) return false;
+  const p = value as Record<string, unknown>;
+  if (p.type === "text") return typeof p.text === "string";
+  if (p.type === "image_url") {
+    const url = p.image_url;
+    return (
+      typeof url === "object" &&
+      url !== null &&
+      typeof (url as Record<string, unknown>).url === "string"
+    );
+  }
+  return false;
+}
+
 /** Type-guard for a ConversationMessage object. */
 function isValidMessage(value: unknown): boolean {
   if (typeof value !== "object" || value === null) return false;
   const m = value as Record<string, unknown>;
   if (!isValidId(m.id)) return false;
-  if (typeof m.role !== "string" || !["system", "user", "assistant", "tool"].includes(m.role)) return false;
-  if (typeof m.content !== "string" && !Array.isArray(m.content)) return false;
+  if (typeof m.role !== "string" || !["system", "user", "assistant", "tool"].includes(m.role))
+    return false;
+
+  if (typeof m.content === "string") {
+    // ok
+  } else if (Array.isArray(m.content)) {
+    if (!m.content.every(isValidMessagePart)) return false;
+  } else {
+    return false;
+  }
+
   if (typeof m.timestamp !== "number") return false;
   return true;
 }
@@ -189,7 +214,7 @@ export async function saveConversation(conversation: Conversation): Promise<{ ok
   const tempPath = `${filePath}.${crypto.randomUUID()}.tmp`;
   const payload: ConversationFile = { version: FILE_VERSION, conversation };
   try {
-    await fs.writeFile(tempPath, JSON.stringify(payload, null, 2), "utf-8");
+    await fs.writeFile(tempPath, JSON.stringify(payload, null, 2), { encoding: "utf-8", mode: 0o600 });
     await fs.rename(tempPath, filePath);
     return { ok: true };
   } catch (err) {

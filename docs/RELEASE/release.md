@@ -102,7 +102,11 @@ For local single-architecture builds, use:
 
 1. Create a tag: `git tag v<version> && git push origin v<version>`.
 2. Download artifacts from the workflow or use local `release/`.
-3. Smoke test on clean Windows and macOS environments.
+3. Smoke test on clean Windows and macOS environments:
+   - Verify chat, image generation, batch, research, and model browsing.
+   - Test memory save, search, and injection in chat.
+   - Test file, URL, and image attachments (vision models only).
+   - Verify export/import and settings persistence.
 4. Upload artifacts and checksums to the release.
 5. Note whether artifacts are signed or unsigned.
 6. Update the GitHub Release notes from `CHANGELOG.md`.

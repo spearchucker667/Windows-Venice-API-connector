@@ -72,6 +72,8 @@ function normalizeScrape(url: string, data: unknown): ScrapeResult {
   };
 }
 
+import { createTimeoutSignal } from "../../utils/timeout";
+
 export const veniceResearchProvider: ResearchProvider = {
   id: "venice",
   label: "Venice",
@@ -97,7 +99,7 @@ export const veniceResearchProvider: ResearchProvider = {
       signal,
       // Forward timeout as an AbortSignal if the runtime supports it.
       ...(timeoutMs
-        ? { signal: composeTimeoutSignal(timeoutMs, signal) }
+        ? { signal: createTimeoutSignal(timeoutMs, signal) }
         : {}),
     });
 
@@ -112,41 +114,10 @@ export const veniceResearchProvider: ResearchProvider = {
       body: { url },
       signal,
       ...(timeoutMs
-        ? { signal: composeTimeoutSignal(timeoutMs, signal) }
+        ? { signal: createTimeoutSignal(timeoutMs, signal) }
         : {}),
     });
 
     return normalizeScrape(url, data);
   },
 };
-
-/** Composes a timeout signal with an optional parent signal. */
-function composeTimeoutSignal(
-  ms: number,
-  parent?: AbortSignal
-): AbortSignal {
-  if (typeof AbortSignal !== "undefined" && AbortSignal.timeout) {
-    const timeoutSignal = AbortSignal.timeout(ms);
-    if (parent && typeof AbortSignal !== "undefined" && AbortSignal.any) {
-      return AbortSignal.any([parent, timeoutSignal]);
-    }
-    return timeoutSignal;
-  }
-  // Fallback for older runtimes
-  const controller = new AbortController();
-  let onAbort: (() => void) | undefined;
-  const id = setTimeout(() => {
-    if (onAbort && parent) {
-      parent.removeEventListener("abort", onAbort);
-    }
-    controller.abort();
-  }, ms);
-  if (parent) {
-    onAbort = () => {
-      clearTimeout(id);
-      controller.abort();
-    };
-    parent.addEventListener("abort", onAbort, { once: true });
-  }
-  return controller.signal;
-}

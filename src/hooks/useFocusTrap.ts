@@ -24,6 +24,10 @@ export function useFocusTrap(ref: RefObject<HTMLElement | null>, active: boolean
     if (focusable.length > 0) {
       focusable[0].focus();
     } else {
+      // Ensure the container itself can be focused if no children are focusable.
+      if (el.tabIndex < 0) {
+        el.tabIndex = -1;
+      }
       el.focus();
     }
 

@@ -32,7 +32,7 @@ Logs are available at:
 - **macOS**: `~/Library/Application Support/Venice Forge/logs/venice-forge.log`
 
 **Lint Gate Failures (`npm run lint:eslint`)**
-The project enforces `--max-warnings=96`. If you see `✖ N problems (0 errors, N warnings)` where `N > 96`, reduce warnings before committing. Common sources:
+The project enforces `--max-warnings=0`. If you see `✖ N problems (0 errors, N warnings)` where `N > 0`, reduce warnings before committing. Common sources:
 - `@typescript-eslint/no-explicit-any` — replace `any` with a narrow type or `unknown` + runtime guard.
 - `@typescript-eslint/no-unused-vars` — prefix intentionally unused args with `_`.
 

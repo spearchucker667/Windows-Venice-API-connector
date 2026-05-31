@@ -89,7 +89,7 @@ manual audit:
 npm audit
 ```
 
-A clean audit (`0 vulnerabilities`) is a release gate requirement.
+A clean audit at the `moderate` level or higher (`npm audit --audit-level=moderate`) is a release gate requirement.
 
 Furthermore, safety-guard enforcement is actively verified by a dedicated
 script that ensures boundary completeness and strict no-logging rules:

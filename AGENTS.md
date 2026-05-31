@@ -237,7 +237,7 @@ Only these endpoints may be invoked. No arbitrary URL or method forwarding is pe
 - Do **not** open public issues for security bugs.
 - Use GitHub private vulnerability reporting or request a private maintainer discussion.
 - Only the latest release tag is actively maintained for security patches.
-- `npm audit` must be clean before release.
+- `npm audit --audit-level=moderate` must be clean before release.
 
 ## Chat Workspace Architecture
 

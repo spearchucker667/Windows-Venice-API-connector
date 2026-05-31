@@ -23,35 +23,33 @@ export function ImageActionModal({
   const downloadRef = useRef<HTMLButtonElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const returnFocusRef = useRef<Element | null>(null);
-  const prevOverflowRef = useRef<string>("");
 
   useEffect(() => {
-    if (image) {
-      // Capture the element that triggered the modal so we can return focus on close.
-      returnFocusRef.current = document.activeElement;
-      prevOverflowRef.current = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
-      setTimeout(() => downloadRef.current?.focus(), 50);
-    } else {
-      document.body.style.overflow = prevOverflowRef.current;
+    if (!image) return;
+
+    // Capture the element that triggered the modal so we can return focus on close.
+    returnFocusRef.current = document.activeElement;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const focusTimeout = setTimeout(() => downloadRef.current?.focus(), 50);
+
+    return () => {
+      clearTimeout(focusTimeout);
+      document.body.style.overflow = originalOverflow;
       if (returnFocusRef.current instanceof HTMLElement) {
         returnFocusRef.current.focus();
       }
-      returnFocusRef.current = null;
-    }
-    return () => {
-      document.body.style.overflow = prevOverflowRef.current;
     };
-  }, [image]);
+  }, [!!image]);
 
   useFocusTrap(modalRef, !!image, onClose);
 
   if (!image) return null;
 
-  const promptText = image.prompt || "Generated image";
-  const truncatedAlt = promptText.length > 120
-    ? promptText.slice(0, 117) + "…"
-    : promptText;
+  const promptText = image.prompt?.trim() || "Generated image";
+  const truncatedAlt =
+    promptText.length > 120 ? promptText.slice(0, 117) + "…" : promptText;
 
   return (
     <div
@@ -61,7 +59,8 @@ export function ImageActionModal({
     >
       <div
         ref={modalRef}
-        className="flex w-full max-w-4xl max-h-[90vh] flex-col overflow-hidden rounded-3xl border border-border/50 bg-surface/95 shadow-[0_24px_64px_var(--overlay),0_0_0_1px_var(--glow)] backdrop-blur-xl animate-[slideUp_0.4s_cubic-bezier(0.16,1,0.3,1)] md:flex-row"
+        tabIndex={-1}
+        className="flex w-full max-w-4xl max-h-[90vh] flex-col overflow-hidden rounded-3xl border border-border/50 bg-surface/95 shadow-[0_24px_64px_var(--overlay),0_0_0_1px_var(--glow)] backdrop-blur-xl animate-[slideUp_0.4s_cubic-bezier(0.16,1,0.3,1)] md:flex-row focus:outline-none"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"

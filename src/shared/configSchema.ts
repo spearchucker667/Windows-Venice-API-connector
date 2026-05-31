@@ -57,3 +57,51 @@ export const AppConfig: EnvConfig = {
     return Number.isFinite(numeric) ? numeric : trustProxyRaw;
   }
 };
+
+/**
+ * Validates and sanitizes a raw settings object from storage.
+ * Drops unrecognized keys and enforces basic type safety.
+ */
+export function validateAppSettings(raw: unknown): Record<string, unknown> {
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
+    return {};
+  }
+
+  const record = raw as Record<string, unknown>;
+  const valid: Record<string, unknown> = {};
+
+  if (typeof record.defaultSystemPrompt === "string") {
+    valid.defaultSystemPrompt = record.defaultSystemPrompt;
+  }
+  if (typeof record.includeVeniceSystemPrompt === "boolean") {
+    valid.includeVeniceSystemPrompt = record.includeVeniceSystemPrompt;
+  }
+  if (typeof record.webSearch === "string" || typeof record.webSearch === "boolean") {
+    valid.webSearch = record.webSearch; // Let the reducer's normalizeWebSearchSetting handle the exact coercion
+  }
+  if (typeof record.webScraping === "boolean") {
+    valid.webScraping = record.webScraping;
+  }
+  if (typeof record.webCitations === "boolean") {
+    valid.webCitations = record.webCitations;
+  }
+  if (typeof record.theme === "string") {
+    valid.theme = record.theme;
+  }
+  if (Array.isArray(record.customModels)) {
+    valid.customModels = record.customModels.filter(m => typeof m === "string");
+  }
+  if (typeof record.selectedThemeId === "string") {
+    valid.selectedThemeId = record.selectedThemeId;
+  }
+  if (record.appearanceMode === "light" || record.appearanceMode === "dark") {
+    valid.appearanceMode = record.appearanceMode;
+  }
+  if (typeof record.customTheme === "object" && record.customTheme !== null) {
+    // Basic structural check for customTheme; full validation is handled by isValidTheme in exportImport if needed,
+    // or we just trust the shape here since it's a deep object.
+    valid.customTheme = record.customTheme;
+  }
+
+  return valid;
+}

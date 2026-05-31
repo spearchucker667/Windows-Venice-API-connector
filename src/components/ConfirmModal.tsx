@@ -32,24 +32,22 @@ export function ConfirmModal({
   const modalRef = useRef<HTMLDivElement>(null);
   const returnFocusRef = useRef<Element | null>(null);
 
-  const prevOverflowRef = useRef<string>("");
-
   useEffect(() => {
-    if (open) {
-      returnFocusRef.current = document.activeElement;
-      prevOverflowRef.current = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
-      // Default focus on the safe/cancel action.
-      requestAnimationFrame(() => cancelRef.current?.focus());
-    } else {
-      document.body.style.overflow = prevOverflowRef.current;
+    if (!open) return;
+
+    returnFocusRef.current = document.activeElement;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    // Default focus on the safe/cancel action.
+    const focusTimeout = setTimeout(() => cancelRef.current?.focus(), 50);
+
+    return () => {
+      clearTimeout(focusTimeout);
+      document.body.style.overflow = originalOverflow;
       if (returnFocusRef.current instanceof HTMLElement) {
         returnFocusRef.current.focus();
       }
-      returnFocusRef.current = null;
-    }
-    return () => {
-      document.body.style.overflow = prevOverflowRef.current;
     };
   }, [open]);
 
@@ -65,7 +63,8 @@ export function ConfirmModal({
     >
       <div
         ref={modalRef}
-        className="w-full max-w-md rounded-2xl border border-border/50 bg-surface/90 p-6 shadow-[0_24px_64px_var(--overlay),0_0_0_1px_var(--glow)] backdrop-blur-xl animate-[slideUp_0.4s_cubic-bezier(0.16,1,0.3,1)]"
+        tabIndex={-1}
+        className="w-full max-w-md rounded-2xl border border-border/50 bg-surface/90 p-6 shadow-[0_24px_64px_var(--overlay),0_0_0_1px_var(--glow)] backdrop-blur-xl animate-[slideUp_0.4s_cubic-bezier(0.16,1,0.3,1)] focus:outline-none"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"

@@ -222,7 +222,7 @@ export function ImageGenerationForm({
         <button
           className="btn primary"
           onClick={onGenerate}
-          disabled={loading}
+          disabled={loading || !draft.prompt.trim()}
           aria-disabled={loading || !draft.prompt.trim()}
         >
           {loading ? "Generating…" : "Generate + auto-save"}

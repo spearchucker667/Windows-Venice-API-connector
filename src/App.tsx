@@ -2,6 +2,7 @@
 // Root application shell — all state, routing, and bridge initialization lives here.
 import React, { useEffect, useReducer, useState } from "react";
 import { appReducer, initialState } from "./state/appReducer";
+import { validateAppSettings } from "./shared/configSchema";
 import StorageService from "./services/storageService";
 import { refreshModels } from "./services/modelService";
 import { useNetworkStatus } from "./hooks/useNetworkStatus";
@@ -97,8 +98,10 @@ export default function App() {
         dispatch({ type: "SET_GALLERY", items: images });
         dispatch({ type: "SET_CHATS", items: chats });
         const latestSettings = settingsItems.find(i => i.id === "app-settings")?.value;
-        if (latestSettings)
-          dispatch({ type: "SET_SETTINGS", settings: latestSettings });
+        if (latestSettings) {
+          const valid = validateAppSettings(latestSettings);
+          dispatch({ type: "SET_SETTINGS", settings: valid });
+        }
 
         // Load conversations (Electron filesystem or IndexedDB fallback)
         let conversations = await listConversations();
@@ -329,7 +332,7 @@ export default function App() {
 
         {/* Workspace Content */}
         <main className="relative flex min-w-0 flex-1 flex-col overflow-y-auto bg-transparent">
-          <ErrorBoundary>
+          <ErrorBoundary onReset={() => dispatch({ type: "SET_TAB", tab: "chat" })}>
             {isElectron() && apiKeyConfigured === false && (
               <div className="m-4 rounded-xl border border-warning/30 bg-warning/10 p-4 text-sm leading-relaxed text-warning shadow-sm">
                 Venice Forge needs a Venice API key before model, chat, and image requests can run. Add it in Config, then use Test connection.

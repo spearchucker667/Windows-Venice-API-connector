@@ -299,4 +299,26 @@ describe("SettingsModule", () => {
 
     vi.mocked(isElectron).mockReturnValue(false);
   });
+
+  it("shows 'up to date' message when update-not-available event is received", async () => {
+    const { isElectron, desktopUpdates } = await import("../services/desktopBridge");
+    vi.mocked(isElectron).mockReturnValue(true);
+
+    let notAvailableCallback: () => void = () => {};
+    vi.mocked(desktopUpdates.onUpdateNotAvailable).mockImplementation((cb: any) => {
+      notAvailableCallback = cb;
+      return vi.fn();
+    });
+
+    renderSettings();
+
+    // Simulate event from main process
+    notAvailableCallback();
+
+    await waitFor(() => {
+      expect(screen.getByText(/app is up to date/i)).toBeInTheDocument();
+    });
+
+    vi.mocked(isElectron).mockReturnValue(false);
+  });
 });

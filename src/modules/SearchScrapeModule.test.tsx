@@ -63,14 +63,14 @@ describe("SearchScrapeModule", () => {
   });
 
   it("shows a clear message for invalid search response shape", async () => {
-    vi.mocked(veniceFetch).mockResolvedValueOnce({ data: { nope: true } } as any);
+    vi.mocked(veniceFetch).mockRejectedValueOnce(new Error("Response validation failed for /augment/search"));
     renderModule();
 
     await userEvent.type(screen.getByPlaceholderText(/latest model routing/i), "hello");
     await userEvent.click(screen.getByRole("button", { name: /^search$/i }));
 
     await waitFor(() => {
-      expect(screen.getByRole("alert")).toHaveTextContent(/unexpected search response from server/i);
+      expect(screen.getByRole("alert")).toHaveTextContent(/response validation failed/i);
     });
   });
 

@@ -4,19 +4,39 @@ const path = require("path");
 const crypto = require("crypto");
 
 const args = process.argv.slice(2);
-const checkWin = args.includes("--win") || args.includes("--all") || (!args.includes("--mac") && process.platform === "win32") || args.length === 0 && process.platform === "win32";
-const checkMac = args.includes("--mac") || args.includes("--all") || (!args.includes("--win") && process.platform === "darwin") || args.length === 0 && process.platform === "darwin";
 
-let targetArches = ["x64", "arm64"];
-const archIdx = args.indexOf("--arch");
-const noExplicitPlatform = !args.includes("--win") && !args.includes("--mac") && !args.includes("--all");
-if (archIdx !== -1 && archIdx + 1 < args.length) {
-  targetArches = [args[archIdx + 1]];
-} else if (args.includes("--all")) {
-  targetArches = ["x64", "arm64"];
-} else if (noExplicitPlatform && process.platform === "win32") {
-  targetArches = ["x64"];
+/** Logic extracted for unit testing */
+function getTargets(platform, args) {
+  const checkWin =
+    args.includes("--win") ||
+    args.includes("--all") ||
+    (!args.includes("--mac") && platform === "win32") ||
+    (args.length === 0 && platform === "win32");
+  const checkMac =
+    args.includes("--mac") ||
+    args.includes("--all") ||
+    (!args.includes("--win") && platform === "darwin") ||
+    (args.length === 0 && platform === "darwin");
+
+  let targetArches = ["x64", "arm64"];
+  const archIdx = args.indexOf("--arch");
+  const noExplicitPlatform =
+    !args.includes("--win") && !args.includes("--mac") && !args.includes("--all");
+  if (archIdx !== -1 && archIdx + 1 < args.length) {
+    targetArches = [args[archIdx + 1]];
+  } else if (args.includes("--all")) {
+    targetArches = ["x64", "arm64"];
+  } else if (noExplicitPlatform && platform === "win32") {
+    targetArches = ["x64"];
+  }
+  return { checkWin, checkMac, targetArches };
 }
+
+if (require.main !== module) {
+  module.exports = { getTargets };
+} else {
+
+const { checkWin, checkMac, targetArches } = getTargets(process.platform, args);
 
 const root = path.join(__dirname, "..");
 const pkg = require(path.join(root, "package.json"));
@@ -105,3 +125,4 @@ if (checkMac) {
 
 console.log("[verify:dist] Successfully verified artifacts:");
 verified.forEach((v) => console.log(`  - ${v}`));
+}

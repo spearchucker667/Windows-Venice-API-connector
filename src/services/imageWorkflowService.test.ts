@@ -72,4 +72,27 @@ describe("downloadAllGallery", () => {
     expect(onProgress).toHaveBeenCalledWith(1, 1);
     expect(addToast).toHaveBeenLastCalledWith("Saved 0 images (1 failed).", "success");
   });
+
+  it("stops downloading when cancelSignal is triggered", async () => {
+    vi.mocked(downloadImage).mockResolvedValue({ confirmed: true, usedFallback: false });
+    const addToast = vi.fn();
+    const cancelSignal = { current: false };
+
+    // Request two images, but cancel after the first one
+    const promise = downloadAllGallery(
+      [
+        { id: "img-1", image: "img1", prompt: "test", model: "m", timestamp: 1 },
+        { id: "img-2", image: "img2", prompt: "test", model: "m", timestamp: 2 },
+      ],
+      addToast,
+      { 
+        cancelSignal,
+        onProgress: (curr) => { if (curr === 1) cancelSignal.current = true; }
+      }
+    );
+
+    await promise;
+    expect(vi.mocked(downloadImage)).toHaveBeenCalledTimes(1);
+    expect(addToast).toHaveBeenCalledWith(expect.stringContaining("cancelled"), "info");
+  });
 });

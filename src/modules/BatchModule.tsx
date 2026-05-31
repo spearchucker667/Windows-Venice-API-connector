@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import StorageService from "../services/storageService";
 import { veniceFetch } from "../services/veniceClient";
 import { assessChildExploitationSafety, recordDecision } from "../shared/safety";
-import { sleep } from "../services/veniceClient";
+import { sleep } from "../utils/timeout";
 import { extractImages } from "../utils/image";
 import { isValidChatResponse } from "../utils/veniceValidation";
 import { normalizeImageDraft } from "../utils/payloadBuilders";

@@ -120,7 +120,9 @@ function writeLog(level: "INFO" | "WARN" | "ERROR", message: string, meta?: unkn
   try {
     ensureLogFile();
     const metaText = meta === undefined ? "" : ` ${redact(typeof meta === "string" ? meta : JSON.stringify(meta))}`;
-    fs.appendFileSync(getLogPath(), `${new Date().toISOString()} ${level} ${redact(message)}${metaText}\n`, "utf-8");
+    const safeMessage = redact(message).replace(/\r?\n/g, "\\n");
+    const safeMeta = metaText.replace(/\r?\n/g, "\\n");
+    fs.appendFileSync(getLogPath(), `${new Date().toISOString()} ${level} ${safeMessage}${safeMeta}\n`, "utf-8");
   } catch {
     // Logging must never break app startup or API requests.
   }

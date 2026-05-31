@@ -52,59 +52,7 @@ class ResearchBudgetExceededError extends Error {
   }
 }
 
-/** Returns an AbortSignal that fires after ms, optionally linked to a parent. */
-function createTimeoutSignal(ms: number, parent?: AbortSignal): AbortSignal {
-  if (typeof AbortSignal !== "undefined" && AbortSignal.timeout) {
-    const timeoutSignal = AbortSignal.timeout(ms);
-    if (parent && typeof AbortSignal !== "undefined" && AbortSignal.any) {
-      return AbortSignal.any([parent, timeoutSignal]);
-    }
-    return timeoutSignal;
-  }
-  const controller = new AbortController();
-  let onAbort: (() => void) | undefined;
-  const id = setTimeout(() => {
-    if (onAbort && parent) parent.removeEventListener("abort", onAbort);
-    controller.abort();
-  }, ms);
-  if (parent) {
-    onAbort = () => {
-      clearTimeout(id);
-      controller.abort();
-    };
-    parent.addEventListener("abort", onAbort, { once: true });
-    if (parent.aborted) {
-      clearTimeout(id);
-      controller.abort();
-    }
-  }
-  return controller.signal;
-}
-
-function sleep(ms: number, signal?: AbortSignal): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (signal?.aborted) {
-      reject(new DOMException("Request aborted", "AbortError"));
-      return;
-    }
-    let onAbort: (() => void) | undefined;
-    const id = setTimeout(() => {
-      if (onAbort && signal) signal.removeEventListener("abort", onAbort);
-      resolve();
-    }, ms);
-    if (signal) {
-      onAbort = () => {
-        clearTimeout(id);
-        reject(new DOMException("Request aborted", "AbortError"));
-      };
-      signal.addEventListener("abort", onAbort, { once: true });
-      if (signal.aborted) {
-        clearTimeout(id);
-        reject(new DOMException("Request aborted", "AbortError"));
-      }
-    }
-  });
-}
+import { sleep, createTimeoutSignal } from "../../utils/timeout";
 
 /** Generates simple search queries from a research question if none are supplied. */
 function generateQueries(question: string, maxQueries: number): string[] {

@@ -101,7 +101,7 @@ export function isValidChatResponse(payload: unknown): payload is ChatCompletion
  * @param payload The raw response payload to validate.
  * @returns True when the payload contains a recognisable results field.
  */
-export function isValidSearchResponse(payload: unknown): boolean {
+export function isValidSearchResponse(payload: unknown): payload is Record<string, unknown> {
   if (!payload || typeof payload !== "object") {
     warn("[veniceValidation] Search response is not an object", payload);
     return false;

@@ -25,7 +25,7 @@ npm run build           # Full build: web (dist/) + Electron main (dist-electron
 npm run build:web       # Renderer build only
 npm run build:server    # Express server bundle only
 npm run build:electron  # Electron main/preload build only
-npm run ci              # CI parity: npm ci + lint:eslint + typecheck + test + build
+npm run ci              # CI parity: npm ci + lint:eslint + typecheck + test + verify:safety-guard + build
 npm run clean           # Remove dist/, dist-electron/, release/
 npm run dist:win        # Build Windows NSIS + portable installers
 npm run dist:mac        # Build macOS DMG + ZIP archives

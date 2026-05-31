@@ -70,7 +70,9 @@ This document is the public map for the Venice Forge repository. It reflects the
 │   ├── generate-placeholder-icon.cjs
 │   ├── start-production.cjs
 │   ├── verify-dist.cjs
-│   └── verify-icon.cjs
+│   ├── verify-dist.test.ts
+│   ├── verify-icon.cjs
+│   └── verify-safety-guard.cjs
 ├── src/
 │   ├── components/
 │   ├── constants/

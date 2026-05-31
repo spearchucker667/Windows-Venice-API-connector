@@ -2,7 +2,7 @@
 export function isPrivateHostname(hostname: string): boolean {
   // Strip IPv6 brackets: new URL("https://[::1]/").hostname === "[::1]"
   const h = hostname.replace(/^\[|\]$/g, "").toLowerCase();
-  if (h === "localhost" || h === "0.0.0.0" || h === "::1") return true;
+  if (h === "localhost" || h === "0.0.0.0" || h === "0" || h === "::1" || h === "0:0:0:0:0:0:0:1" || h === "::") return true;
 
   // IPv4-mapped IPv6: ::ffff:127.0.0.1 or ::ffff:7f00:1 (URL-normalized hex)
   if (h.startsWith("::ffff:")) {

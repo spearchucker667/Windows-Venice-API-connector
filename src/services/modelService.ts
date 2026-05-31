@@ -83,10 +83,8 @@ export async function refreshModels(dispatch: AppDispatch, force = false): Promi
       dispatch,
       retry: true,
       dedupe: true,
+      validator: isValidModelListResponse,
     });
-    if (!isValidModelListResponse(data)) {
-      throw new Error("Unexpected /models response shape.");
-    }
     const grouped = flattenModels(data);
     writeCache(grouped);
     dispatch({ type: "SET_MODELS", models: grouped, fallback: false });

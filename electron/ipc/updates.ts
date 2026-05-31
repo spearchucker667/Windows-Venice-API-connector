@@ -10,8 +10,11 @@ autoUpdater.autoInstallOnAppQuit = false;
 function broadcast(channel: string, payload?: unknown) {
   const windows = BrowserWindow.getAllWindows();
   for (const win of windows) {
-    if (!win.isDestroyed()) {
+    if (win.isDestroyed()) continue;
+    try {
       win.webContents.send(channel, payload);
+    } catch {
+      // Window destroyed between check and send — ignore.
     }
   }
 }
@@ -41,10 +44,20 @@ export function registerUpdateHandlers(): void {
     }
   });
 
+  let updateDownloaded = false;
+
   ipcMain.handle("app:installUpdate", () => {
+    if (!updateDownloaded) {
+      logError("Install update called but no update was downloaded");
+      return { ok: false, error: "No update downloaded." };
+    }
     logInfo("Installing update and restarting");
     autoUpdater.quitAndInstall();
     return { ok: true };
+  });
+
+  autoUpdater.on("update-downloaded", () => {
+    updateDownloaded = true;
   });
 
   // autoUpdater Events -> IPC Broadcasts

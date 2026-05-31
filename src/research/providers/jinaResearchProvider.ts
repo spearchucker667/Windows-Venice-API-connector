@@ -92,13 +92,15 @@ function buildSearchUrl(input: SearchInput): string {
   return `${JINA_SEARCH_BASE}/${query}`;
 }
 
+import { createTimeoutSignal } from "../../utils/timeout";
+
 async function jinaFetch(
   url: string,
   headers: Record<string, string>,
   signal?: AbortSignal,
   timeoutMs?: number
 ): Promise<unknown> {
-  const fetchSignal = composeTimeoutSignal(timeoutMs, signal);
+  const fetchSignal = timeoutMs ? createTimeoutSignal(timeoutMs, signal) : signal;
   const response = await fetch(url, {
     method: "GET",
     headers,
@@ -115,31 +117,6 @@ async function jinaFetch(
     return response.json().catch(() => null);
   }
   return response.text();
-}
-
-function composeTimeoutSignal(ms?: number, parent?: AbortSignal): AbortSignal {
-  if (!ms || ms <= 0) return parent || new AbortController().signal;
-  if (typeof AbortSignal !== "undefined" && AbortSignal.timeout) {
-    const timeoutSignal = AbortSignal.timeout(ms);
-    if (parent && typeof AbortSignal !== "undefined" && AbortSignal.any) {
-      return AbortSignal.any([parent, timeoutSignal]);
-    }
-    return timeoutSignal;
-  }
-  const controller = new AbortController();
-  let onAbort: (() => void) | undefined;
-  const id = setTimeout(() => {
-    if (onAbort && parent) parent.removeEventListener("abort", onAbort);
-    controller.abort();
-  }, ms);
-  if (parent) {
-    onAbort = () => {
-      clearTimeout(id);
-      controller.abort();
-    };
-    parent.addEventListener("abort", onAbort, { once: true });
-  }
-  return controller.signal;
 }
 
 /** Normalizes a Jina Reader response into ScrapeResult. */

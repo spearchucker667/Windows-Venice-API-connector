@@ -97,6 +97,26 @@ describe("chatStorage", () => {
     expect(list).toEqual([]);
   });
 
+  it("rejects saving a conversation with malformed message content parts", async () => {
+    const conv = makeConv({
+      messages: [
+        {
+          id: "m1",
+          role: "user",
+          content: [
+            { type: "text", text: "valid" },
+            { type: "image_url", image_url: { url: "https://example.com/img.png" } },
+            { type: "unknown", something: "invalid" } as any
+          ],
+          timestamp: Date.now()
+        }
+      ]
+    });
+    const result = await saveConversation(conv);
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe("Invalid conversation schema");
+  });
+
   it("uses bounded directory iteration instead of eager readdir when listing conversations", async () => {
     const readdirSpy = vi.spyOn(fs, "readdir");
     const conv = makeConv();

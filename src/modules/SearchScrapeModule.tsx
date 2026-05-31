@@ -119,13 +119,9 @@ export function SearchScrapeModule({ state, dispatch }: ModuleProps) {
         body: { query: query.trim(), provider },
         signal,
         dispatch,
+        validator: isValidSearchResponse,
       });
       if (runIdRef.current !== runId) return;
-      if (!isValidSearchResponse(data)) {
-        setSearchResults([]);
-        setError("Unexpected search response from server.");
-        return;
-      }
       const results =
         data?.results ||
         data?.data ||

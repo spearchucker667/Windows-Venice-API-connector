@@ -381,7 +381,7 @@ export async function startServer() {
     });
     app.use(vite.middlewares);
   } else if (AppConfig.NODE_ENV !== "test") {
-    const distPath = path.join(getModuleDir(), "dist");
+    const distPath = getModuleDir();
     const indexHtml = fs.readFileSync(path.join(distPath, "index.html"), "utf-8");
     const staticWindowMs = AppConfig.RATE_LIMIT_WINDOW_MS;
     const staticMaxRequests = AppConfig.RATE_LIMIT_MAX_REQUESTS;
@@ -417,14 +417,19 @@ export async function startServer() {
 
     app.use(staticRateLimiter);
     app.use(express.static(distPath));
-    app.get("*", staticRateLimiter, (_req: express.Request, res: express.Response) => {
+    app.get("*", (_req: express.Request, res: express.Response) => {
       res.type("html").send(indexHtml);
     });
     (app as express.Application & { staticRateLimiterCleanup?: ReturnType<typeof setInterval> | undefined }).staticRateLimiterCleanup = staticRateLimiterCleanup;
   }
 
   if (AppConfig.NODE_ENV !== "test") {
-    const host = AppConfig.HOST;
+    let host = AppConfig.HOST;
+    const ALLOWED_HOSTS = new Set(["127.0.0.1", "localhost", "::1"]);
+    if (!ALLOWED_HOSTS.has(host)) {
+      warn(`Invalid HOST "${host}" — falling back to 127.0.0.1`);
+      host = "127.0.0.1";
+    }
     const server = app.listen(Number(PORT), host, () => {
       warn(`Server running on http://${host}:${PORT}`);
     });

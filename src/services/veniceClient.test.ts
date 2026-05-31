@@ -1,10 +1,26 @@
 /** @fileoverview Unit tests for veniceClient utility functions. */
 
-import { describe, expect, it } from "vitest";
-import { summarizeDiagnostics, normalizeError, readWebErrorBody, extractModelName, dedupeKey, sleep } from "./veniceClient";
+import { describe, expect, it, vi } from "vitest";
+import { summarizeDiagnostics, normalizeError, readWebErrorBody, extractModelName, dedupeKey, serializeFormData } from "./veniceClient";
+import { sleep } from "../utils/timeout";
 
-/** Tests for the veniceClient utility functions. */
 describe("veniceClient utilities", () => {
+  describe("serializeFormData", () => {
+    it("serializes plain Blob values correctly", async () => {
+      const fd = new FormData();
+      const blob = new Blob(["hello blob"], { type: "text/plain" });
+      // In jsdom, append() converts Blob to File. Force a plain Blob to test the Blob branch.
+      vi.spyOn(fd, "entries").mockReturnValue([
+        ["file", blob]
+      ] as any);
+      
+      const result = await serializeFormData(fd);
+      expect(result.entries[0]._isFile).toBe(true);
+      expect(result.entries[0].value).toBe(btoa("hello blob"));
+      expect(result.entries[0].type).toBe("text/plain");
+    });
+  });
+
   /** BUG-006 regression: dedupeKey must not throw on circular bodies. */
   describe("dedupeKey", () => {
     it("returns consistent keys for serialisable bodies", () => {
@@ -152,6 +168,16 @@ describe("veniceClient utilities", () => {
     /** Verifies fallback behavior for malformed JSON bodies. */
     it("handles malformed JSON fallback", () => {
       expect(readWebErrorBody(null, "{oops", "Bad Request")).toBe("{oops");
+    });
+    /** Verifies safe stringification of error objects that return {}. */
+    it("safely stringifies error objects that yield empty objects", () => {
+      const err = { toString() { return "fallback str"; } };
+      expect(readWebErrorBody({ error: err }, "", "")).toBe("fallback str");
+    });
+    /** Verifies it handles uninformative [object Object] fallbacks. */
+    it("does not return [object Object] for malformed records", () => {
+      const emptyObj = Object.create(null);
+      expect(readWebErrorBody({ error: emptyObj }, "", "")).toBe("Malformed API error object");
     });
   });
 });

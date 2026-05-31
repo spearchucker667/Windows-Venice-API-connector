@@ -13,7 +13,6 @@ import { isValidChatResponse } from "../utils/veniceValidation";
 import { Field } from "../components/Field";
 import { ModelSelect } from "../components/ModelSelect";
 import { ModelRefreshButton } from "../components/ModelRefreshButton";
-// import { DiagPreview } from "../components/DiagnosticsPreview";
 import { StatusBlock } from "../components/StatusBlock";
 import { CollapsibleSection } from "../components/CollapsibleSection";
 import { ConfirmModal } from "../components/ConfirmModal";
@@ -1192,6 +1191,7 @@ export function ChatModule({ state, dispatch }: ModuleProps) {
                 className="h-6 w-6 flex items-center justify-center rounded bg-accent text-accent-foreground hover:bg-accent-hover disabled:opacity-50"
                 onClick={send}
                 disabled={loading}
+                aria-disabled={loading}
                 aria-label="Send"
                 title="Send"
               >
@@ -1408,7 +1408,15 @@ export function ChatModule({ state, dispatch }: ModuleProps) {
           message="Delete conversation"
           detail={`Delete "${deleteTarget.title}"? This cannot be undone.`}
           confirmLabel="Delete"
-          onConfirm={() => handleDeleteConversation(deleteTarget)}
+          onConfirm={async () => {
+            try {
+              await handleDeleteConversation(deleteTarget);
+              setDeleteTarget(null);
+            } catch (err: unknown) {
+              setError(err instanceof Error ? err.message : "Delete failed");
+              setDeleteTarget(null);
+            }
+          }}
           onCancel={() => setDeleteTarget(null)}
         />
       )}

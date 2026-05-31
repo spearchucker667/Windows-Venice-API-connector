@@ -24,6 +24,7 @@ export function DiagnosticsModule({ state, dispatch, apiKeyConfigured }: Diagnos
   const rows = d?.headers ? Object.entries(d.headers) : [];
 
   const [desktopDiagnostics, setDesktopDiagnostics] = useState<VeniceForgeDiagnostics | null>(null);
+  const [fallbackPayload, setFallbackPayload] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isElectron()) return;
@@ -35,6 +36,7 @@ export function DiagnosticsModule({ state, dispatch, apiKeyConfigured }: Diagnos
   }, []);
 
   async function copyDiagnostics() {
+    setFallbackPayload(null);
     let system: VeniceForgeDiagnostics | null = desktopDiagnostics;
     if (!system && isElectron()) {
       try {
@@ -48,11 +50,34 @@ export function DiagnosticsModule({ state, dispatch, apiKeyConfigured }: Diagnos
       latest: d || null,
       log: state.diagnosticsLog || [],
     });
-    await copyText(JSON.stringify(payload, null, 2));
+    const json = JSON.stringify(payload, null, 2);
+    try {
+      if (!navigator?.clipboard?.writeText) {
+        throw new Error("Clipboard API unavailable");
+      }
+      await copyText(json);
+      dispatch({
+        type: "ADD_TOAST",
+        toast: { id: crypto.randomUUID(), type: "success", message: "Diagnostics copied to clipboard." },
+      });
+    } catch {
+      setFallbackPayload(json);
+      dispatch({
+        type: "ADD_TOAST",
+        toast: { id: crypto.randomUUID(), type: "error", message: "Clipboard access denied. Please copy manually below." },
+      });
+    }
   }
 
   async function openLogs() {
-    await desktopApp.openLogsFolder();
+    try {
+      await desktopApp.openLogsFolder();
+    } catch {
+      dispatch({
+        type: "ADD_TOAST",
+        toast: { id: crypto.randomUUID(), type: "error", message: "Failed to open logs folder." },
+      });
+    }
   }
 
   async function clearDiagnostics() {
@@ -103,6 +128,18 @@ export function DiagnosticsModule({ state, dispatch, apiKeyConfigured }: Diagnos
             </button>
           </div>
         </div>
+
+        {fallbackPayload && (
+          <div className="rounded-2xl bg-surface border border-border p-6 shadow-sm">
+            <div className="text-sm font-medium text-text-primary mb-2">Manual Copy Fallback</div>
+            <textarea
+              readOnly
+              className="w-full h-48 bg-surface/50 border border-border/50 rounded-xl px-4 py-3 text-text-primary font-mono text-xs focus:outline-none focus:border-accent"
+              value={fallbackPayload}
+              onClick={(e) => (e.target as HTMLTextAreaElement).select()}
+            />
+          </div>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto p-6 space-y-8">
@@ -198,7 +235,7 @@ export function DiagnosticsModule({ state, dispatch, apiKeyConfigured }: Diagnos
               <div className="rounded-xl bg-surface/50 border border-border/50 p-4 text-center">
                 <div className="text-xs tracking-wide text-text-muted uppercase mb-1">HTTP status</div>
                 <div className={`font-mono text-sm ${d.ok ? 'text-success' : 'text-danger'}`}>
-                  {d.status || "network/local"}
+                  {d.status ?? "network/local"}
                 </div>
               </div>
               <div className="rounded-xl bg-surface/50 border border-border/50 p-4 text-center">
@@ -295,7 +332,7 @@ export function DiagnosticsModule({ state, dispatch, apiKeyConfigured }: Diagnos
                   <div className="rounded-xl bg-surface/50 border border-border/50 p-4" key={entry.id}>
                     <div className="flex flex-wrap items-center gap-3">
                       <Chip tone={entry.ok ? "ok" : "danger"}>
-                        {entry.status || "network"} {entry.ok ? "OK" : "error"}
+                        {entry.status ?? "network"} {entry.ok ? "OK" : "error"}
                       </Chip>
                       <span className="font-mono text-sm text-text-secondary">
                         <span className="text-accent">{entry.method}</span> {entry.endpoint}

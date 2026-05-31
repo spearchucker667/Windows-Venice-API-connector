@@ -21,6 +21,15 @@ const MAX_IMAGE_FIELD_BYTES = 20 * 1024 * 1024;
 /** Union type of exportable store names. */
 type ExportStore = (typeof EXPORT_STORES)[number];
 
+/** Shape of raw data provided to the export builder. */
+export interface RawExportData {
+  images?: unknown[];
+  chats?: unknown[];
+  settings?: unknown[];
+  conversations?: unknown[];
+  ai_memory?: unknown[];
+}
+
 /** Shape of the data object inside an export payload. */
 export interface ExportData {
   images: Record<string, unknown>[];
@@ -252,9 +261,9 @@ function sanitizeRecords(store: ExportStore, values: unknown[]): { records: Reco
  * @param appVersion The current application version string.
  * @returns A complete export payload with metadata and sanitized records.
  */
-export function createExportPayload(data: Partial<ExportData>, appVersion: string): ExportPayload {
+export function createExportPayload(data: RawExportData, appVersion: string): ExportPayload {
   const payloadData = EXPORT_STORES.reduce((acc, store) => {
-    const records = Array.isArray(data[store]) ? data[store] : [];
+    const records = Array.isArray(data[store]) ? data[store]! : [];
     acc[store] = sanitizeRecords(store, records).records;
     return acc;
   }, {} as ExportData);

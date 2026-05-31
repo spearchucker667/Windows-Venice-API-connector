@@ -3,7 +3,12 @@ import { ModuleProps, ToastMessage, AppDispatch } from "../types/app";
 
 export function ToastHost({ state, dispatch }: ModuleProps) {
   return (
-    <div className="fixed bottom-5 right-5 z-[9999] flex flex-col gap-2">
+    <div
+      className="fixed bottom-5 right-5 z-[9999] flex flex-col gap-2"
+      role="log"
+      aria-live="polite"
+      aria-relevant="additions"
+    >
       {state.toasts?.map((toast) => (
         <ToastItem key={toast.id} toast={toast} dispatch={dispatch} />
       ))}
@@ -26,15 +31,11 @@ function ToastItem({ toast, dispatch }: { toast: ToastMessage; dispatch: AppDisp
     return () => clearTimeout(timer);
   }, [toast.id, toast.duration, dispatch]);
 
-  const live = toast.type === "error" ? "assertive" : "polite";
-  const role = toast.type === "error" ? "alert" : "status";
   const toneClass = toastStyles[toast.type] || toastStyles.info;
 
   return (
     <div
       className={`rounded-xl border px-4 py-3 text-sm font-medium backdrop-blur-xl animate-[slideUp_0.3s_ease] ${toneClass}`}
-      role={role}
-      aria-live={live}
     >
       {toast.message}
     </div>

@@ -7,7 +7,7 @@ export function DiagPreview({ diagnostics }: { diagnostics: DiagnosticsEntry | n
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Chip tone={diagnostics.ok ? "ok" : "danger"}>
-        {diagnostics.status || "network"} {diagnostics.ok ? "OK" : "error"}
+        {diagnostics.status ?? "network"} {diagnostics.ok ? "OK" : "error"}
       </Chip>
       <Chip>{diagnostics.endpoint}</Chip>
       {diagnostics.headers?.["CF-RAY"] && (

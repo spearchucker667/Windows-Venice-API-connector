@@ -69,6 +69,16 @@ export function isSafeUrl(url: string): boolean {
     return false;
   }
 
+  // Block single-number IPv4 forms (e.g., "127.1", "2130706433")
+  if (/^\d+$/.test(hostname)) {
+    return false;
+  }
+
+  // Block hex-dotted IPv4 forms (e.g., "0x7f.0.0.1")
+  if (/^0x[0-9a-f]+(\.[0-9a-f]+){0,3}$/i.test(hostname)) {
+    return false;
+  }
+
   // IPv4 checks
   const ipv4 = hostname;
   if (
@@ -84,7 +94,8 @@ export function isSafeUrl(url: string): boolean {
   }
 
   // IPv6 checks
-  if (hostname === "::1") return false;
+  if (hostname === "::1" || hostname === "0:0:0:0:0:0:0:1") return false;
+  if (hostname === "::" || hostname === "0:0:0:0:0:0:0:0") return false;
   if (isIpv6InCidr(hostname, "fc00::", 7)) return false;
   if (isIpv6InCidr(hostname, "fe80::", 10)) return false;
 
@@ -271,29 +282,7 @@ function stripHtml(html: string): string {
   return text.replace(/\s+/g, " ").trim();
 }
 
-function composeTimeoutSignal(ms: number, parent?: AbortSignal): AbortSignal {
-  if (typeof AbortSignal !== "undefined" && AbortSignal.timeout) {
-    const timeoutSignal = AbortSignal.timeout(ms);
-    if (parent && typeof AbortSignal !== "undefined" && AbortSignal.any) {
-      return AbortSignal.any([parent, timeoutSignal]);
-    }
-    return timeoutSignal;
-  }
-  const controller = new AbortController();
-  let onAbort: (() => void) | undefined;
-  const id = setTimeout(() => {
-    if (onAbort && parent) parent.removeEventListener("abort", onAbort);
-    controller.abort();
-  }, ms);
-  if (parent) {
-    onAbort = () => {
-      clearTimeout(id);
-      controller.abort();
-    };
-    parent.addEventListener("abort", onAbort, { once: true });
-  }
-  return controller.signal;
-}
+import { createTimeoutSignal } from "../../utils/timeout";
 
 export function createGenericHttpProvider(config: GenericHttpConfig = {}): ResearchProvider {
   const enabled = config.enabled === true;
@@ -322,7 +311,7 @@ export function createGenericHttpProvider(config: GenericHttpConfig = {}): Resea
       }
 
       const signal = input.timeoutMs && input.timeoutMs > 0
-        ? composeTimeoutSignal(input.timeoutMs, input.signal)
+        ? createTimeoutSignal(input.timeoutMs, input.signal)
         : input.signal;
 
       const response = await fetch(url, {

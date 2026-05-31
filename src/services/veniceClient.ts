@@ -9,7 +9,6 @@ import type { DiagnosticsEntry } from "../types/venice";
 import type { AppDispatch } from "../types/app";
 import { MIB, VENICE_MAX_RAW_UPLOAD_BYTES, VENICE_MAX_SERIALIZED_UPLOAD_BYTES } from "../shared/limits";
 import { assessChildExploitationSafety, recordDecision, SafetyGuardBlockedError } from "../shared/safety";
-
 /** Maximum raw upload file size accepted by the renderer. */
 export const MAX_RAW_UPLOAD_BYTES = VENICE_MAX_RAW_UPLOAD_BYTES;
 
@@ -53,67 +52,7 @@ function nowIso() {
   return new Date().toISOString();
 }
 
-/**
- * Pauses execution for a given duration, optionally respecting an abort signal.
- * @param ms The number of milliseconds to sleep.
- * @param signal An optional abort signal to cancel the sleep early.
- * @returns A promise that restores after the delay or rejects if aborted.
- */
-/** @internal exported for testing */
-export function sleep(ms: number, signal?: AbortSignal): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (signal?.aborted) {
-      reject(new DOMException("Request aborted", "AbortError"));
-      return;
-    }
-    let onAbort: (() => void) | undefined;
-    const id = setTimeout(() => {
-      if (onAbort && signal) {
-        signal.removeEventListener("abort", onAbort);
-      }
-      resolve();
-    }, ms);
-    if (signal) {
-      onAbort = () => {
-        clearTimeout(id);
-        reject(new DOMException("Request aborted", "AbortError"));
-      };
-      signal.addEventListener("abort", onAbort, { once: true });
-    }
-  });
-}
-
-/**
- * Creates an abort signal that fires after `ms`, optionally composing
- * with a parent signal. Falls back to manual timeout for runtimes that
- * lack AbortSignal.timeout / AbortSignal.any.
- */
-function createTimeoutSignal(ms: number, parentSignal?: AbortSignal | null): AbortSignal {
-  if (typeof AbortSignal !== "undefined" && AbortSignal.timeout) {
-    const timeoutSignal = AbortSignal.timeout(ms);
-    if (parentSignal && typeof AbortSignal !== "undefined" && AbortSignal.any) {
-      return AbortSignal.any([parentSignal, timeoutSignal]);
-    }
-    return timeoutSignal;
-  }
-  // Fallback for older runtimes
-  const controller = new AbortController();
-  let onAbort: (() => void) | undefined;
-  const id = setTimeout(() => {
-    if (onAbort && parentSignal) {
-      parentSignal.removeEventListener("abort", onAbort);
-    }
-    controller.abort();
-  }, ms);
-  if (parentSignal) {
-    onAbort = () => {
-      clearTimeout(id);
-      controller.abort();
-    };
-    parentSignal.addEventListener("abort", onAbort, { once: true });
-  }
-  return controller.signal;
-}
+import { sleep, createTimeoutSignal } from "../utils/timeout";
 
 /**
  * Calculates an exponential backoff delay for a given retry attempt.
@@ -281,7 +220,16 @@ function readDesktopErrorBody(body: unknown): string {
   if (top) {
     if (typeof top === "object") {
       try {
-        return JSON.stringify(top);
+        const str = JSON.stringify(top);
+        if (str === "{}" || str === "[]") {
+          try {
+            const fallback = String(top);
+            return fallback === "[object Object]" ? "Malformed API error object" : fallback;
+          } catch {
+            return "Malformed API error object";
+          }
+        }
+        return str;
       } catch {
         return "[unserializable error]";
       }
@@ -319,7 +267,16 @@ export function readWebErrorBody(parsed: unknown, text: string, statusText: stri
   if (top) {
     if (typeof top === "object") {
       try {
-        return JSON.stringify(top);
+        const str = JSON.stringify(top);
+        if (str === "{}" || str === "[]") {
+          try {
+            const fallback = String(top);
+            return fallback === "[object Object]" ? "Malformed API error object" : fallback;
+          } catch {
+            return "Malformed API error object";
+          }
+        }
+        return str;
       } catch {
         return "[unserializable error]";
       }
@@ -347,7 +304,7 @@ export function readWebErrorBody(parsed: unknown, text: string, statusText: stri
  * @param formData The FormData to serialize.
  * @returns A promise resolving to the serialized representation.
  */
-async function serializeFormData(formData: FormData): Promise<SerializedFormData> {
+export async function serializeFormData(formData: FormData): Promise<SerializedFormData> {
   const entries: SerializedFormDataEntry[] = [];
   for (const [name, value] of formData.entries()) {
     if (value instanceof File) {
@@ -497,7 +454,7 @@ async function veniceFetchDesktop(
       const errorObj = err as VeniceApiError;
       const normalized = errorObj.message || "Desktop Venice transport failed.";
       lastError = new Error(normalized) as VeniceApiError;
-      lastError.status = errorObj.status ?? response?.status ?? null;
+      lastError.status = errorObj.status ?? response?.status ?? 0;
       // Skip re-dispatch for HTTP errors already dispatched in the try block.
       if (!errorObj.diagnostics) {
         dispatch?.({
@@ -541,11 +498,16 @@ async function veniceFetchDesktop(
  */
 function computeRateLimitWait(headers: unknown, attempt: number) {
   const record = headers as Record<string, string> | undefined;
-  // Prefer standard Retry-After header (seconds)
+  // Prefer standard Retry-After header (seconds or HTTP-date)
   const retryAfter = record?.["retry-after"];
   if (retryAfter) {
     const n = Number(retryAfter);
     if (Number.isFinite(n) && n >= 0) return Math.min(n * 1000, 60000);
+    const d = Date.parse(retryAfter);
+    if (Number.isFinite(d)) {
+      const wait = d - Date.now();
+      if (wait >= 0) return Math.min(wait, 60000);
+    }
   }
 
   const raw = record?.["x-ratelimit-reset-requests"];
@@ -707,7 +669,7 @@ async function _veniceFetch(
         : errorObj.message || "Request failed";
 
       lastError = new Error(normalized) as VeniceApiError;
-      lastError.status = errorObj.status ?? response?.status ?? null;
+      lastError.status = errorObj.status ?? response?.status ?? 0;
 
       if (!errorObj.diagnostics) {
         dispatch?.({
@@ -760,6 +722,7 @@ export async function veniceFetch<T = unknown>(
     isFormData?: boolean;
     retry?: boolean;
     dedupe?: boolean;
+    validator?: (data: unknown) => data is T;
   } = {}
 ): Promise<{ data: T; response: Response | VeniceForgeResponse; headers: Record<string, string>; diagnostics: Partial<DiagnosticsEntry> }> {
   const { dedupe = false, method = "GET", body } = options;
@@ -781,14 +744,22 @@ export async function veniceFetch<T = unknown>(
     return inFlight.get(key) as Promise<{ data: T; response: Response | VeniceForgeResponse; headers: Record<string, string>; diagnostics: Partial<DiagnosticsEntry> }>;
   }
 
-  const promise = _veniceFetch(endpoint, options);
+  const execute = async () => {
+    const result = await _veniceFetch(endpoint, options);
+    if (options.validator && !options.validator(result.data)) {
+      throw new Error(`veniceFetch: Response validation failed for ${endpoint}`);
+    }
+    return result as { data: T; response: Response | VeniceForgeResponse; headers: Record<string, string>; diagnostics: Partial<DiagnosticsEntry> };
+  };
+
+  const promise = execute();
 
   if (dedupe) {
     inFlight.set(key, promise);
     promise.finally(() => inFlight.delete(key)).catch(() => {});
   }
 
-  return promise as unknown as Promise<{ data: T; response: Response | VeniceForgeResponse; headers: Record<string, string>; diagnostics: Partial<DiagnosticsEntry> }>;
+  return promise;
 }
 
 /**

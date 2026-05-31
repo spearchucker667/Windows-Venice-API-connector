@@ -39,7 +39,7 @@ describe("veniceClient web regressions", () => {
         type: "SET_DIAGNOSTICS",
         diagnostics: expect.objectContaining({
           ok: false,
-          status: null,
+          status: 0,
           error: expect.stringContaining("Fetch failure"),
         }),
       })
@@ -103,5 +103,39 @@ describe("veniceClient web regressions", () => {
     ).rejects.toThrow("This request was blocked by Venice Forge");
 
     expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  it("computes Retry-After delay from HTTP-date", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("Wed, 21 Oct 2026 07:28:00 GMT"));
+    const dispatch = vi.fn() as unknown as AppDispatch;
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ error: "rate limit" }), {
+          status: 429,
+          headers: { 
+            "content-type": "application/json",
+            "retry-after": "Wed, 21 Oct 2026 07:28:10 GMT" 
+          },
+        })
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ data: "ok" }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        })
+      );
+    globalThis.fetch = fetchMock;
+
+    const request = veniceFetch("/models", { method: "GET", dispatch, retry: true });
+    
+    // Fast-forward exactly 10s
+    await vi.advanceTimersByTimeAsync(10000);
+    
+    const result = await request;
+    expect(result.data).toEqual({ data: "ok" });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    vi.useRealTimers();
   });
 });

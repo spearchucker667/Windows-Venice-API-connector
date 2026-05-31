@@ -52,7 +52,7 @@
     "dist:mac": "npm run verify:icon && npm run build && electron-builder --config electron-builder.config.cjs --mac --publish never",
     "dist:mac:arm64": "npm run verify:icon && npm run build && electron-builder --config electron-builder.config.cjs --mac --arm64 --publish never",
     "dist:mac:x64": "npm run verify:icon && npm run build && electron-builder --config electron-builder.config.cjs --mac --x64 --publish never",
-    "ci": "npm ci && npm run lint:eslint && npm run typecheck && npm test && npm run build"
+    "ci": "npm ci && npm run lint:eslint && npm run typecheck && npm test && npm run verify:safety-guard && npm run build"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
